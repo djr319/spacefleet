@@ -83,10 +83,22 @@ function controls() {
     // will later perhaps absorb the various function into this one, as the ccontrols will not be complicated... Just split for testing
     // CAPSLOCK??
     switch (e.key) {
+      case 'W':
+      case 'ArrowUp':
       case 'w': power(); break;
-      case 'a': rotateL(); break;
+
+      case 'A':
+      case 'ArrowLeft':
+        case 'a': rotateL(); break;
+
+      case 'S':
+      case 'ArrowDown':
       case 's': back(); break;
+
+      case 'D':
+      case 'ArrowRight':
       case 'd': rotateR();
+      case ' ': fire();
       default: break;
     }
     document.addEventListener('mousedown', fire);
