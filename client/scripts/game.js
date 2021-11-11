@@ -1,5 +1,7 @@
 'use strict';
 
+// TEMP note!!
+
 // init canvas
 let lastRender = 0;
 const canvas = document.getElementById('canvas');
