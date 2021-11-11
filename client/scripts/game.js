@@ -1,6 +1,8 @@
 'use strict';
 
-// TEMP note!!
+// Debug
+const debug = document.getElementById('debug-content');
+const mouse = document.getElementById("mouse");
 
 // init canvas
 let lastRender = 0;
@@ -11,12 +13,11 @@ const ctx = canvas.getContext('2d', { alpha: false }); // alpha false for perfor
 let start, previousTimeStamp;
 
 // window dimensions in global scope
-let windowWidth;
-let windowHeight;
-let viewportX; // left - usually ship.x - w/2
+let viewportWidth; // from browser
+let viewportHeight;
+let viewportX; // top left of viewport,
 let viewportY; // top - usually ship.y - h/2
-let canvasX;
-let canvasY;
+let viewportBuffer = 200;
 
 // size of asteroids
 let asteroidScale = 20;
@@ -32,7 +33,7 @@ const aliens = [];
 const ships = [];
 
 // define ship
-let myShip = {
+let myShip = { // x & y are center point
   x: null,
   y: null,
   direction: 0,
@@ -40,7 +41,35 @@ let myShip = {
   dY: 0,
   width: 10,
   height: 30,
-  maxSpeed: 20
+  maxSpeed: 20,
+
+  fire: function () {
+    console.log("GUNS FIRED!!!");
+  },
+
+  power: function () {
+    // simply translates for testing
+    myShip.y = myShip.y - myShip.maxSpeed;
+    perimeterCheck();
+  },
+
+  back: function () {
+    // simply translates for testing
+    myShip.y = myShip.y + myShip.maxSpeed;
+    perimeterCheck();
+  },
+
+  rotateL: function () {
+    // simply translates for testing
+    myShip.x = myShip.x - myShip.maxSpeed;
+    perimeterCheck();
+  },
+
+  rotateR: function () {
+    // simply translates for testing
+    myShip.x = myShip.x + myShip.maxSpeed;
+    perimeterCheck();
+  }
 }
 
 class Asteroid {
@@ -53,11 +82,10 @@ class Asteroid {
     this.strength = asteroidMaxSize;
   }
 
-  dummyMethods() {
+  split() {
     // TODO
   }
 }
-
 
 window.onload = () => {
   controls();
@@ -87,59 +115,39 @@ function controls() {
     switch (e.key) {
       case 'W':
       case 'ArrowUp':
-      case 'w': power(); break;
+      case 'w': myShip.power(); break;
 
       case 'A':
       case 'ArrowLeft':
-        case 'a': rotateL(); break;
+        case 'a': myShip.rotateL(); break;
 
       case 'S':
       case 'ArrowDown':
-      case 's': back(); break;
+      case 's': myShip.back(); break;
 
       case 'D':
       case 'ArrowRight':
-      case 'd': rotateR();
-      case ' ': fire();
+      case 'd': myShip.rotateR(); break;
+
+      case ' ': myShip.fire();
       default: break;
     }
-    document.addEventListener('mousedown', fire);
   });
-}
+  document.addEventListener('mousedown', myShip.fire);
 
-function fire() {
-  console.log("GUNS FIRED!!!");
-}
-
-function power() {
-  // simply translates for testing
-  myShip.y = myShip.y - myShip.maxSpeed;
-  perimeterCheck();
-}
-
-function back() {
-  // simply translates for testing
-  myShip.y = myShip.y + myShip.maxSpeed;
-  perimeterCheck();
-}
-
-function rotateL() {
-  // simply translates for testing
-  myShip.x = myShip.x - myShip.maxSpeed;
-  perimeterCheck();
-}
-
-function rotateR() {
-  // simply translates for testing
-  myShip.x = myShip.x + myShip.maxSpeed;
-  perimeterCheck();
+  document.onmousemove = (e) => {
+    console.log("mousin around");
+    mouse.innerText = `Mouse x: ${viewportX + e.clientX}, y: ${viewportY + e.clientY}`;
+  };
 }
 
 function perimeterCheck() {
-  if (myShip.y < 0) myShip.y = 0;
-  if (myShip.x < 0) myShip.x = 0;
-  if (myShip.x > fieldX-myShip.width) myShip.x = fieldX-myShip.width;
-  if (myShip.y > fieldY-myShip.height) myShip.y = fieldY-myShip.height;
+
+  // change to clamp
+  myShip.x = clamp(myShip.x, myShip.width/2, fieldX - myShip.width/2);
+  myShip.y = clamp(myShip.y, myShip.height/2, fieldY - myShip.height/2);
+
+  debug.innerHTML = `myShip.x = ${myShip.x}<br>myShip.y = ${myShip.y}`;
 }
 
 function randomPlacement() {
@@ -148,8 +156,8 @@ function randomPlacement() {
     asteroids.push(new Asteroid());
   }
   // myShip
-  myShip.x = Math.floor(randomX());
-  myShip.y = Math.floor(randomY());
+  myShip.x = 4500 // Math.floor(randomX());
+  myShip.y = 4500 // Math.floor(randomY());
 
   // check that ship is not too close to an astroid
   // TODO
@@ -158,11 +166,11 @@ function randomPlacement() {
 function resizeCanvas () { // incase window size changes during play
   ctx.strokeStyle = 'black';
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, windowWidth, windowHeight);
-  windowWidth = window.innerWidth;
-  windowHeight = window.innerHeight;
-  canvas.height = windowHeight;
-  canvas.width = windowWidth;
+  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+  canvas.height = viewportHeight;
+  canvas.width = viewportWidth;
   draw();
 }
 
@@ -180,13 +188,38 @@ function updatePositions(progress) {
 
 function draw () {
   ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, windowWidth, windowHeight);
-  viewportX = clamp(myShip.x - windowWidth / 2, 0, fieldX - windowWidth );
-  viewportY = clamp(myShip.y - windowHeight / 2, 0, fieldY - windowHeight);
+  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+  viewportX = clamp(myShip.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
+  viewportY = clamp(myShip.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
+  drawPerimeter();
   drawShip();
   drawAsteroids();
   // drawBullets()
   // drawAliens()
+}
+
+function drawPerimeter() {
+  const border = '#222'
+  if (viewportX < 0) {
+    ctx.fillStyle = border;
+    ctx.fillRect(0, 0, 0-viewportX, viewportHeight);
+  }
+
+  if (viewportY < 0) {
+    ctx.fillStyle = border;
+    ctx.fillRect(0, 0, viewportWidth, 0-viewportY);
+  }
+
+  if (viewportX + viewportWidth > fieldX) {
+    ctx.fillStyle = border;
+    ctx.fillRect(fieldX - viewportX, 0, viewportWidth, viewportHeight);
+  }
+
+  if (viewportY + viewportHeight > fieldY) {
+    ctx.fillStyle = border;
+    ctx.fillRect(0, fieldY - viewportY, viewportWidth, viewportHeight);
+  }
+
 }
 
 function drawAsteroids () {
@@ -201,18 +234,24 @@ function drawAsteroids () {
     });
 }
 
+function drawShip(x, y) {
+  // plot in center of canvas
+  let plotX = (viewportWidth - myShip.width) / 2;
+  let plotY = (viewportHeight - myShip.height) / 2;
 
-function drawShip (x, y) {
-  let plotX;
-  let plotY;
   // unless ship is close to edge of arena
 
-  plotX = (windowWidth - myShip.width) / 2;
-  plotY = (windowHeight - myShip.height) / 2;
+  if (myShip.x < viewportWidth/2 || myShip.x > fieldX - (viewportWidth - myShip.width) / 2) {
+    plotX = myShip.x - myShip.width/2 - viewportX;
+  }
+
+  if (myShip.y < viewportHeight/2 || myShip.y > fieldY - (viewportHeight - myShip.height) / 2) {
+    plotY = myShip.y - myShip.height/2 - viewportY;
+  }
 
   ctx.beginPath();
   ctx.strokeStyle = "red";
-  ctx.lineWidth = "4";
+  ctx.lineWidth = "1";
   ctx.rect(plotX, plotY, myShip.width, myShip.height);
   ctx.stroke();
 }

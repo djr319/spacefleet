@@ -4,3 +4,10 @@ html, body {
 }
 
 body {overflow: hidden;}
+
+#debug {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+color: white;
+}
