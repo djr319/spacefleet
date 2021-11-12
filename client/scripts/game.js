@@ -21,8 +21,8 @@ const ctx = canvas.getContext('2d', { alpha: false }); // alpha false for perfor
 let lastRender = 0;
 
 // init field - may come from backend
-const fieldX = 5000; // 5000 x 5000
-const fieldY = 5000;
+const fieldX = 1000; // 5000 x 5000
+const fieldY = 1000;
 const fieldBuffer = 50; // to make sure nothing is spawned too close to edge
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
@@ -42,17 +42,20 @@ class Vector {
     this.size = size;
   }
 
-  x() {
+  get x() {
     return this.size * Math.cos(this.angle);
   }
 
-  y() {
+  get y() {
     return this.size * Math.sin(this.angle);
   }
 
-  add(v) {
+  // not working
+  add = (v) => {
     return new Vector(
-      Math.atan2(this.x + v.x, this.y + v.y),
+      Math.atan2(
+        this.size * Math.cos(this.angle) + v.x,
+        this.size * Math.sin(this.angle) + v.y),
       Math.sqrt(
         (this.x + v.x) ** 2 +
         (this.y + v.y) ** 2
@@ -60,8 +63,8 @@ class Vector {
     )
   };
 
-  factor(factor) {
-    return new Vector(this.angle, this.size * factor);
+  factor = (fact) => {
+    return new Vector(this.angle, this.size * fact);
   }
 }
 
@@ -79,9 +82,8 @@ const ships = [];
 class Ship extends Entity {
   constructor() {
     super();
-    this.vector = new Vector(0, 0);
     this.direction = 0;
-    this.thrust = 0;
+    this.thrustValue = 0;
     this.width = 20;
     this.height = 40;
     this.maxSpeed = 20;
@@ -90,46 +92,64 @@ class Ship extends Entity {
     this.rotationRate = 3;
   }
 
-  shoot() {
+  shoot = () => {
     // TODO
     // give 5 shots then need to repress
   }
 
-  thrust() {
-    console.log(this.thrust);
-    this.thrust = Math.min(this.thrust++, this.maxSpeed);
-    let thrustVector = new Vector(this.direction, this.thrust);
-    this.vector.add(thrustVector);
+  thrust = () => {
+
+
+    // *** This method is not yet working!! *** //
+
+
+    this.thrustValue = Math.min(this.thrustValue++, this.maxSpeed);
+    let thrustVector = new Vector(this.direction, this.thrustValue);
+
+    this.velocity
+    thrustVector
+      Math.atan2(
+        this.size * Math.cos(this.angle) + v.x,
+        this.size * Math.sin(this.angle) + v.y),
+      Math.sqrt(
+        (this.x + v.x) ** 2 +
+        (this.y + v.y) ** 2
+      )
+
+
+    // below not working
+    // this.velocity.add(thrustVector);
+    // this.velocity.angle = this.direction;
+    this.velocity.angle = 0;
+    this.velocity.size = 3;
   }
 
-  coast() {
-    this.thrust--;
-    this.vector.size < 0.5 ? this.vector.size = 0 : this.vector.factor(0.9);
+  coast = () => {
+    this.thrustValue = 0;
+    this.velocity.size < 0.5 ? this.velocity.size = 0 : this.velocity.factor(0.9);
   }
 
-  respawn() {
+  respawn = () => {
     this.x = Math.floor(randomX());
     this.y = Math.floor(randomY());
     // check for collision and respawn again if necessary
   }
 
-  rotateL(fps) {
-    console.log(this.direction);
-    this.direction = this.direction - this.rotationRate // fps;
+  rotateL = (fps) => {
+    this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction = 2*Math.PI;
   }
 
-  rotateR(fps) {
-    console.log(this.direction);
+  rotateR = (fps) => {
     this.direction = this.direction + this.rotationRate/fps;
     if (this.direction > 2*Math.PI) this.direction = 0;
   }
 
-  hit() {
+  hit = () => {
     // if hit, lose a life
   }
 
-  die() {
+  die = () => {
 
   }
 }
@@ -148,7 +168,7 @@ class Asteroid extends Entity {
     super();
     this.x = randomX();
     this.y = randomY();
-    this.vector = new Vector(Math.random() * 40 - 20, Math.random() * 40 - 20);
+    this.vector = new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
     this.size = asteroidMaxSize;
     this.strength = this.size;
   }
@@ -174,9 +194,7 @@ class Asteroid extends Entity {
   }
 }
 
-for (let x = 0; x < noOfAsteroids; x++) {
-  asteroids.push(new Asteroid());
-}
+
 
 // Aliens
 const aliens = [];
@@ -261,33 +279,35 @@ function controls() {
 // Start Game
 window.onload = () => {
   controls();
+  for (let x = 0; x < noOfAsteroids; x++) {
+    asteroids.push(new Asteroid());
+  }
   myShip.respawn();
   resizeCanvas();
   window.requestAnimationFrame(gameLoop);
 }
 
-// Game Loop
+// ----------------------    GAME LOOP    ----------------------------//
+
 function gameLoop(timestamp) {
-  // https://stackoverflow.com/questions/38709923/why-is-requestanimationframe-better-than-setinterval-or-settimeout
   let fps = 1000 / (timestamp - lastRender);
-  positionMyShip(fps);
+  updateShipStatus(fps); // polling the controller object
   updatePositions(fps);
   perimeterCheck();
   draw();
-
   lastRender = timestamp;
-  // https://dev.to/macroramesh6/are-you-facing-high-cpu-usage-on-animation-requestanimationframe-3c94
   window.requestAnimationFrame(gameLoop)
 }
 
 // -----------    functions: calculate positions    ------------------//
 
-function positionMyShip() {
-  // check user inputs
+function updateShipStatus(fps) {
   Object.values(controller).forEach(property => {
-    if (property.pressed === true) property.func();
+    if (property.pressed === true) property.func(fps);
   });
-  if (controller.thrust.pressed = false) { myShip.coast() }
+  if (controller.thrust.pressed === false) {
+    myShip.coast();
+  }
 }
 
 function perimeterCheck() {
@@ -324,8 +344,8 @@ function updatePositions(fps) {
     if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
   })
 
-  myShip.x = myShip.x + myShip.vector.x / fps;
-  myShip.y = myShip.y + myShip.vector.y / fps;
+  myShip.x = myShip.x + myShip.velocity.x // fps;
+  myShip.y = myShip.y + myShip.velocity.y // fps;
 
 }
 
@@ -337,8 +357,8 @@ function draw() {
   ctx.fillRect(0, 0, viewportWidth, viewportHeight);
   viewportX = clamp(myShip.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
   viewportY = clamp(myShip.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
-  drawShip();
   drawAsteroids();
+  drawShip();
   drawPerimeter();
   // drawBullets()
   // drawAliens()
@@ -361,16 +381,33 @@ function drawShip() {
   }
 
   ctx.translate(plotX + myShip.width / 2, plotY + myShip.height / 4);
-  ctx.rotate(myShip.vector.angle);
+  ctx.rotate(myShip.direction);
   ctx.beginPath();
-  ctx.strokeStyle = "red";
+  ctx.strokeStyle = "#555";
+  ctx.fillStyle = "#333";
   ctx.lineWidth = "1";
   ctx.moveTo(0, -myShip.height / 4);
   ctx.lineTo(myShip.width / 2, myShip.height * 3/4);
   ctx.lineTo(0, myShip.height / 4);
   ctx.lineTo(-myShip.width / 2, myShip.height * 3/4);
   ctx.lineTo(0, -myShip.height / 4);
+  ctx.fill();
   ctx.closePath();
+
+  ctx.fill;
+  if (controller.thrust.pressed) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#FFA500";
+    ctx.fillStyle = "#FF0";
+    ctx.moveTo(0, myShip.height * 3 / 4);
+    ctx.lineTo(myShip.width / 4, myShip.height);
+    ctx.lineTo(0, myShip.height*1.5);
+    ctx.lineTo(-myShip.width / 4, myShip.height);
+    ctx.lineTo(0, myShip.height * 3 / 4);
+    ctx.fill();
+    ctx.closePath();
+  }
+
   ctx.stroke();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
