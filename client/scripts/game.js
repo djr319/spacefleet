@@ -1,16 +1,8 @@
 'use strict';
 
-// Debug
+// Debug info box
 const debug = document.getElementById('debug-content');
 const mouse = document.getElementById("mouse");
-
-// init canvas
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d', { alpha: false }); // alpha false for performance reasons (not tested without)
-
-// animation
-let lastRender = 0;
-
 
 // window dimensions in global scope
 let viewportWidth; // from browser
@@ -19,10 +11,12 @@ let viewportX; // top left of viewport
 let viewportY;
 const viewportBuffer = 100;
 
-// size of asteroids
-const asteroidScale = 20; // 20
-const asteroidMaxSize = 5;
+// init canvas
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { alpha: false }); // alpha false for performance reasons (not tested without)
 
+// animation
+let lastRender = 0;
 
 // init field - may come from backend
 const fieldX = 5000; // 5000 x 5000
@@ -30,75 +24,42 @@ const fieldY = 5000;
 const fieldBuffer = 50; // to make sure nothing is spawned too close to edge
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
-const asteroids = [];
+
 const aliens = [];
 const ships = [];
 
-// define ship
-let myShip = { // x & y are center point
-  x: null,
-  y: null,
-  direction: 0,
-  speed: 0,
-  width: 10,
-  height: 30,
-  maxSpeed: 20,
-  lives: 5,
-  score: 0,
+// Vectors
 
-  shoot: function () {
-    let x = this.x;
-    let y = this.y;
-    let direction = this.direction;
-  shoot(x,y,direction);
-  },
+class Vector {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
 
-  thrust: function () {
-    // simply translates for testing
-    myShip.y = myShip.y - myShip.maxSpeed;
-    perimeterCheck();
-  },
+  add(v) {
+    return new Vector(this.x + v.x, this.y + v.y);
+  }
 
-  warp: function () {
-    // simply translates for testing
-    myShip.y = myShip.y + myShip.maxSpeed;
-    perimeterCheck();
-  },
+  speed() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
+  }
 
-  rotateL: function () {
-    // simply translates for testing
-    myShip.x = myShip.x - myShip.maxSpeed;
-    perimeterCheck();
-  },
-
-  rotateR: function () {
-    // simply translates for testing
-    myShip.x = myShip.x + myShip.maxSpeed;
-    perimeterCheck();
-  },
-
-  hit: function () {
-    // if hit, lose a life
+  direction() {
+    // returns in radians
   }
 }
 
-const controller = {
-  rotateL: {pressed: false, func: myShip.rotateL},
-  rotateR: {pressed: false, func: myShip.rotateR},
-  thrust: {pressed: false, func: myShip.thrust},
-  warp: {pressed: false, func: myShip.warp},
-  shoot: {pressed: false, func: myShip.shoot}
-}
+// asteroids
+const asteroids = [];
+const asteroidScale = 20; // 20
+const asteroidMaxSize = 5;
 
 class Asteroid {
-  constructor() {
+  constructor(name) {
+    this.name,
     this.x = Math.floor(randomX());
     this.y = Math.floor(randomY());
-
-    // need to change to vectore: direction and speed
-    this.dx = (Math.random() * 40) - 20;
-    this.dy = (Math.random() * 40) - 20;
-
+    this.velocity = new Vector((Math.random() * 40) - 20, (Math.random() * 40) - 20);
     this.size = asteroidMaxSize;
     this.strength = asteroidMaxSize;
   }
@@ -111,20 +72,91 @@ class Asteroid {
   split() {
     // TODO
   }
+
+
+}
+
+for (let x = 0; x < 10; x++) {
+  asteroids.push(new Asteroid(`asteroid-${x}`));
+}
+
+// define ship
+const myShip = { // x & y are center point
+  x: null,
+  y: null,
+  velocity: new Vector(0, 0),
+  direction: 0,
+  width: 20,
+  height: 40,
+  maxSpeed: 20,
+  lives: 5,
+  score: 0,
+  maxSpeed: 5,
+  rotationRate: 150,
+
+  shoot: function () {
+    let x = this.x;
+    let y = this.y;
+    let direction = this.direction;
+    shoot(x,y,direction);
+  },
+
+  thrust: function (x,y,fps) {
+    myShip.velocity.x = myShip.velocity.x + x/fps;
+    myShip.velocity.y = myShip.velocity.y + y / fps;
+
+    if (myShip.speed > myShip.maxSpeed) myShip.speed = myShip.maxSpeed;
+  },
+
+  decay() { // % of 1.00, expect 0.1 as a standard input
+    const friction = 0.1;
+    this.velocity.x < 0.5 ? this.velocity.x = 0 : this.velocity.x = this.velocity.x - friction * this.velocity.x;
+    this.velocity.y < 0.5 ? this.velocity.y = 0 : this.velocity.y = this.velocity.y - friction * this.velocity.y;
+  },
+
+  respawn: function () {
+    myShip.x = Math.floor(randomX());
+    myShip.y = Math.floor(randomY());
+
+    // check that ship is not too close to an astroid
+  },
+
+  rotateL: function (fps) {
+    myShip.direction = myShip.direction - myShip.rotationRate/fps;
+    if (myShip.direction < 0) myShip.direction = 360;
+  },
+
+  rotateR: function (fps) {
+    myShip.direction = myShip.direction + myShip.rotationRate/fps;
+    if (myShip.direction > 360) myShip.direction = 0;
+  },
+
+  hit: function () {
+    // if hit, lose a life
+  }
+}
+
+const controller = {
+  rotateL: {pressed: false, func: myShip.rotateL},
+  rotateR: {pressed: false, func: myShip.rotateR},
+  thrust: {pressed: false, func: myShip.thrust},
+  warp: {pressed: false, func: myShip.respawn},
+  shoot: {pressed: false, func: myShip.shoot}
 }
 
 window.onload = () => {
   controls();
-  randomPlacement();
+  myShip.respawn();
   resizeCanvas();
   window.requestAnimationFrame(gameLoop);
 }
 
 function gameLoop(timestamp) {
   // https://stackoverflow.com/questions/38709923/why-is-requestanimationframe-better-than-setinterval-or-settimeout
-  let progress = timestamp - lastRender;
-  positionMyShip();
-  updatePositions(progress);
+  let fps = 1000 / (timestamp - lastRender);
+  positionMyShip(fps);
+  updatePositions(fps);
+  perimeterCheck();
   draw();
 
   lastRender = timestamp;
@@ -189,38 +221,23 @@ function controls() {
   };
 }
 
-function positionMyShip() {
-// iterate over object
-  //   rotateL: {pressed: false, func: myShip.rotateL},
+function positionMyShip(fps) {
 
   Object.values(controller).forEach(property => {
-    if (property.pressed === true) property.func();
+    if (property.pressed === true) property.func(fps);
   });
+  if (controller.thrust.pressed = false) { }
+}
 
+function shoot() {
 
 }
 
 function perimeterCheck() {
 
-  // change to clamp
   myShip.x = clamp(myShip.x, myShip.width/2, fieldX - myShip.width/2);
   myShip.y = clamp(myShip.y, myShip.height/2, fieldY - myShip.height/2);
-
-  debug.innerHTML = `myShip.x = ${myShip.x}<br>myShip.y = ${myShip.y}`;
-}
-
-function randomPlacement() {
-
-  // asteroids
-  for (let x = 0; x < 10; x++) {
-    asteroids.push(new Asteroid());
-  }
-  // myShip
-  myShip.x = Math.floor(randomX());
-  myShip.y = Math.floor(randomY());
-
-  // check that ship is not too close to an astroid
-  // TODO
+  debug.innerHTML = `myShip.x = ${myShip.x}<br>myShip.y = ${myShip.y}<br>myShip.direction = ${myShip.direction}`;
 }
 
 function resizeCanvas() { // incase window size changes during play
@@ -235,19 +252,21 @@ function resizeCanvas() { // incase window size changes during play
   draw();
 }
 
-function updatePositions(progress) {
-
-  let fps = 1000 / progress;
+function updatePositions(fps) {
   asteroids.forEach((el)=> {
     el.x = el.x + el.dx / fps;
     el.y = el.y + el.dy / fps;
     if(el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
-  if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
-  if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
-  if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
+    if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
+    if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
+    if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
+    ctx.fillStyle = 'white';
+    ctx.fillText(el.name, el.x, el.y);
   })
-  perimeterCheck();
 }
+
+
+// Draw functions
 
 function draw() {
 
@@ -260,6 +279,50 @@ function draw() {
   drawPerimeter();
   // drawBullets()
   // drawAliens()
+}
+
+function drawShip(x, y) {
+
+  // the usual position for the ship is plotted in center of canvas, and the environment moves behind
+  let plotX = (viewportWidth - myShip.width) / 2;
+  let plotY = (viewportHeight - myShip.height) / 2;
+
+
+  // If ship is close to edge of arena, the viewport should clamp, and myShip will diverge from center of screen.
+  if (myShip.x < viewportWidth/2 || myShip.x > fieldX - (viewportWidth - myShip.width) / 2) {
+    plotX = myShip.x - myShip.width/2 - viewportX;
+  }
+
+  if (myShip.y < viewportHeight/2 || myShip.y > fieldY - (viewportHeight - myShip.height) / 2) {
+    plotY = myShip.y - myShip.height/2 - viewportY;
+  }
+
+  ctx.translate(plotX + myShip.width / 2, plotY + myShip.height / 4);
+  ctx.rotate(myShip.direction * Math.PI / 180);
+  ctx.beginPath();
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = "1";
+  ctx.moveTo(0, -myShip.height / 4);
+  ctx.lineTo(myShip.width / 2, myShip.height * 3/4);
+  ctx.lineTo(0, myShip.height / 4);
+  ctx.lineTo(-myShip.width / 2, myShip.height * 3/4);
+  ctx.lineTo(0, -myShip.height / 4);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+function drawAsteroids() {
+
+  asteroids.forEach((el) => {
+    ctx.beginPath();
+    ctx.arc(el.x-viewportX, el.y-viewportY, el.size * asteroidScale, 0, 2 * Math.PI, false);
+    ctx.fillStyle = 'green';
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#003300';
+    ctx.stroke();
+    });
 }
 
 function drawPerimeter() {
@@ -287,57 +350,16 @@ function drawPerimeter() {
 
 }
 
-function drawAsteroids() {
-
-  asteroids.forEach((el) => {
-    ctx.beginPath();
-    ctx.arc(el.x-viewportX, el.y-viewportY, el.size * asteroidScale, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'green';
-    ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#003300';
-    ctx.stroke();
-    });
-}
-
-function drawShip(x, y) {
-
-  // plot in center of canvas
-  let plotX = (viewportWidth - myShip.width) / 2;
-  let plotY = (viewportHeight - myShip.height) / 2;
-
-  // unless ship is close to edge of arena
-
-  if (myShip.x < viewportWidth/2 || myShip.x > fieldX - (viewportWidth - myShip.width) / 2) {
-    plotX = myShip.x - myShip.width/2 - viewportX;
-  }
-
-  if (myShip.y < viewportHeight/2 || myShip.y > fieldY - (viewportHeight - myShip.height) / 2) {
-    plotY = myShip.y - myShip.height/2 - viewportY;
-  }
-
-  ctx.beginPath();
-  ctx.strokeStyle = "red";
-  ctx.lineWidth = "1";
-  ctx.rect(plotX, plotY, myShip.width, myShip.height);
-  ctx.stroke();
-}
+// Helper Position Functions
 
 function randomX() {
-
   return fieldBuffer + Math.random() * (fieldX - 2 * fieldBuffer);
 }
 
 function randomY() {
-
   return fieldBuffer + Math.random() * (fieldY - 2 * fieldBuffer);
 }
 
 function clamp(num, min, max) {
-
   return Math.min(Math.max(num, min), max);
-}
-
-function shoot() {
-
 }
