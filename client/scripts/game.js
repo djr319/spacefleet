@@ -1,5 +1,7 @@
 'use strict';
 
+// -----------    Variables    ------------------//
+
 // Debug info box
 const debug = document.getElementById('debug-content');
 const mouse = document.getElementById("mouse");
@@ -25,10 +27,8 @@ const fieldBuffer = 50; // to make sure nothing is spawned too close to edge
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
 
-const aliens = [];
-const ships = [];
 
-// Vectors
+// -----------    Objects    ------------------//
 
 class Vector {
   constructor(x, y) {
@@ -49,17 +49,85 @@ class Vector {
   }
 }
 
+class Entity {
+  constructor() {
+    this.x = 0;
+    this.y = 0;
+    this.velocity = new Vector (0,0)
+  }
+}
+
+// ships
+const ships = [];
+
+class Ship extends Entity {
+  constructor() {
+    super();
+    this.direction = 0;
+    this.width = 20;
+    this.height = 40;
+    this.speed = 0;
+    this.maxSpeed = 20;
+    this.lives = 5;
+    this.score = 0;
+    this.rotationRate = 150;
+  }
+
+  shoot = function () {
+    let direction = this.direction;
+
+    let x = this.x;
+    let y = this.y;
+
+    shoot(x,y,direction);
+  }
+
+  thrust = function () {
+    myShip.thrust++;
+
+    if (myShip.speed > myShip.maxSpeed) myShip.speed = myShip.maxSpeed;
+  }
+
+  decay = function () { // % of 1.00, expect 0.1 as a standard input
+    const friction = 0.1;
+    this.velocity.x < 0.5 ? this.velocity.x = 0 : this.velocity.x = this.velocity.x - friction * this.velocity.x;
+    this.velocity.y < 0.5 ? this.velocity.y = 0 : this.velocity.y = this.velocity.y - friction * this.velocity.y;
+  }
+
+  respawn = function () {
+    myShip.x = Math.floor(randomX());
+    myShip.y = Math.floor(randomY());
+    // check that ship is not too close to an astroid
+  }
+
+  rotateL = function (fps) {
+    myShip.direction = myShip.direction - myShip.rotationRate/fps;
+    if (myShip.direction < 0) myShip.direction = 360;
+  }
+
+  rotateR = function (fps) {
+    myShip.direction = myShip.direction + myShip.rotationRate/fps;
+    if (myShip.direction > 360) myShip.direction = 0;
+  }
+
+  hit = function () {
+    // if hit, lose a life
+  }
+}
+
+let myShip = new Ship;
+
 // asteroids
 const asteroids = [];
 const asteroidScale = 20; // 20
 const asteroidMaxSize = 5;
+const noOfAsteroids = 10;
 
-class Asteroid {
-  constructor(name) {
-    this.name,
-    this.x = Math.floor(randomX());
-    this.y = Math.floor(randomY());
-    this.velocity = new Vector((Math.random() * 40) - 20, (Math.random() * 40) - 20);
+class Asteroid extends Entity {
+  constructor() {
+    super(Math.floor(randomX()), Math.floor(randomY()));
+    this.velocity.x = Math.random() * 40 - 20;
+    this.velocity.y = Math.random() * 40 - 20;
     this.size = asteroidMaxSize;
     this.strength = asteroidMaxSize;
   }
@@ -76,95 +144,23 @@ class Asteroid {
 
 }
 
-for (let x = 0; x < 10; x++) {
+for (let x = 0; x < noOfAsteroids; x++) {
   asteroids.push(new Asteroid(`asteroid-${x}`));
 }
 
-// define ship
-const myShip = { // x & y are center point
-  x: null,
-  y: null,
-  velocity: new Vector(0, 0),
-  direction: 0,
-  width: 20,
-  height: 40,
-  maxSpeed: 20,
-  lives: 5,
-  score: 0,
-  maxSpeed: 5,
-  rotationRate: 150,
-
-  shoot: function () {
-    let x = this.x;
-    let y = this.y;
-    let direction = this.direction;
-    shoot(x,y,direction);
-  },
-
-  thrust: function (x,y,fps) {
-    myShip.velocity.x = myShip.velocity.x + x/fps;
-    myShip.velocity.y = myShip.velocity.y + y / fps;
-
-    if (myShip.speed > myShip.maxSpeed) myShip.speed = myShip.maxSpeed;
-  },
-
-  decay() { // % of 1.00, expect 0.1 as a standard input
-    const friction = 0.1;
-    this.velocity.x < 0.5 ? this.velocity.x = 0 : this.velocity.x = this.velocity.x - friction * this.velocity.x;
-    this.velocity.y < 0.5 ? this.velocity.y = 0 : this.velocity.y = this.velocity.y - friction * this.velocity.y;
-  },
-
-  respawn: function () {
-    myShip.x = Math.floor(randomX());
-    myShip.y = Math.floor(randomY());
-
-    // check that ship is not too close to an astroid
-  },
-
-  rotateL: function (fps) {
-    myShip.direction = myShip.direction - myShip.rotationRate/fps;
-    if (myShip.direction < 0) myShip.direction = 360;
-  },
-
-  rotateR: function (fps) {
-    myShip.direction = myShip.direction + myShip.rotationRate/fps;
-    if (myShip.direction > 360) myShip.direction = 0;
-  },
-
-  hit: function () {
-    // if hit, lose a life
-  }
+// Aliens
+const aliens = [];
+class Aliens extends Entity {
+  // maybe don't need alients if multiplayer
 }
 
+// User Input object
 const controller = {
   rotateL: {pressed: false, func: myShip.rotateL},
   rotateR: {pressed: false, func: myShip.rotateR},
   thrust: {pressed: false, func: myShip.thrust},
-  warp: {pressed: false, func: myShip.respawn},
   shoot: {pressed: false, func: myShip.shoot}
 }
-
-window.onload = () => {
-  controls();
-  myShip.respawn();
-  resizeCanvas();
-  window.requestAnimationFrame(gameLoop);
-}
-
-function gameLoop(timestamp) {
-  // https://stackoverflow.com/questions/38709923/why-is-requestanimationframe-better-than-setinterval-or-settimeout
-  let fps = 1000 / (timestamp - lastRender);
-  positionMyShip(fps);
-  updatePositions(fps);
-  perimeterCheck();
-  draw();
-
-  lastRender = timestamp;
-  // https://dev.to/macroramesh6/are-you-facing-high-cpu-usage-on-animation-requestanimationframe-3c94
-  window.requestAnimationFrame(gameLoop)
-}
-
-// -----------------------------//
 
 function controls() {
   document.addEventListener("keydown", (e) => {
@@ -179,7 +175,10 @@ function controls() {
 
       case 'S':
       case 'ArrowDown':
-      case 's': controller.warp.pressed = true; break;
+      case 's': {
+        if (!e.repeat) { myShip.respawn() };
+        break;
+      }
 
       case 'D':
       case 'ArrowRight':
@@ -200,10 +199,6 @@ function controls() {
       case 'ArrowLeft':
       case 'a': controller.rotateL.pressed = false; break;
 
-      case 'S':
-      case 'ArrowDown':
-      case 's': controller.warp.pressed = false; break;
-
       case 'D':
       case 'ArrowRight':
       case 'd': controller.rotateR.pressed = false; break;
@@ -221,8 +216,32 @@ function controls() {
   };
 }
 
-function positionMyShip(fps) {
+// Start Game
+window.onload = () => {
+  controls();
+  myShip.respawn();
+  resizeCanvas();
+  window.requestAnimationFrame(gameLoop);
+}
 
+// Game Loop
+function gameLoop(timestamp) {
+  // https://stackoverflow.com/questions/38709923/why-is-requestanimationframe-better-than-setinterval-or-settimeout
+  let fps = 1000 / (timestamp - lastRender);
+  positionMyShip(fps);
+  updatePositions(fps);
+  perimeterCheck();
+  draw();
+
+  lastRender = timestamp;
+  // https://dev.to/macroramesh6/are-you-facing-high-cpu-usage-on-animation-requestanimationframe-3c94
+  window.requestAnimationFrame(gameLoop)
+}
+
+// -----------    functions: calculate positions    ------------------//
+
+function positionMyShip(fps) {
+  // check user inputs
   Object.values(controller).forEach(property => {
     if (property.pressed === true) property.func(fps);
   });
@@ -230,7 +249,7 @@ function positionMyShip(fps) {
 }
 
 function shoot() {
-
+  // TODO
 }
 
 function perimeterCheck() {
@@ -253,6 +272,7 @@ function resizeCanvas() { // incase window size changes during play
 }
 
 function updatePositions(fps) {
+  // branch to various functions for aliens / asteroids / other ships
   asteroids.forEach((el)=> {
     el.x = el.x + el.dx / fps;
     el.y = el.y + el.dy / fps;
@@ -265,8 +285,7 @@ function updatePositions(fps) {
   })
 }
 
-
-// Draw functions
+// -----------    functions: draw on screen    ------------------//
 
 function draw() {
 
@@ -350,7 +369,7 @@ function drawPerimeter() {
 
 }
 
-// Helper Position Functions
+// -----------    functions: helper functions    ------------------//
 
 function randomX() {
   return fieldBuffer + Math.random() * (fieldX - 2 * fieldBuffer);
