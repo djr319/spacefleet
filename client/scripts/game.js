@@ -50,16 +50,16 @@ class Vector {
     return this.size * Math.sin(this.angle);
   }
 
-  // not working
   add = (v) => {
-    return new Vector(
-      Math.atan2(
-        this.size * Math.cos(this.angle) + v.x,
-        this.size * Math.sin(this.angle) + v.y),
-      Math.sqrt(
-        (this.x + v.x) ** 2 +
-        (this.y + v.y) ** 2
-      )
+
+    this.angle = Math.atan2(
+      this.size * Math.sin(this.angle) + v.y,
+      this.size * Math.cos(this.angle) + v.x
+    )
+
+    this.size = Math.sqrt(
+      (this.x + v.x) ** 2 +
+      (this.y + v.y) ** 2
     )
   };
 
@@ -86,7 +86,7 @@ class Ship extends Entity {
     this.thrustValue = 0;
     this.width = 20;
     this.height = 40;
-    this.maxSpeed = 20;
+    this.maxSpeed = 2;
     this.lives = 5;
     this.score = 0;
     this.rotationRate = 3;
@@ -99,34 +99,18 @@ class Ship extends Entity {
 
   thrust = () => {
 
-
     // *** This method is not yet working!! *** //
 
-
-    this.thrustValue = Math.min(this.thrustValue++, this.maxSpeed);
-    let thrustVector = new Vector(this.direction, this.thrustValue);
-
-    this.velocity
-    thrustVector
-      Math.atan2(
-        this.size * Math.cos(this.angle) + v.x,
-        this.size * Math.sin(this.angle) + v.y),
-      Math.sqrt(
-        (this.x + v.x) ** 2 +
-        (this.y + v.y) ** 2
-      )
-
-
-    // below not working
-    // this.velocity.add(thrustVector);
-    // this.velocity.angle = this.direction;
-    this.velocity.angle = 0;
-    this.velocity.size = 3;
+    // Rebased vector angle for the atan2 method, where the angle defined as that between the positive x axis and the point.
+    let vectorAngle = this.direction + Math.PI;
+    vectorAngle = vectorAngle > 2 * Math.PI ? vectorAngle - 2 * Math.PI : vectorAngle;
+    let thrustVector = new Vector(vectorAngle, Math.min(this.thrustValue++, this.maxSpeed));
+    this.velocity.add(thrustVector);
   }
 
-  coast = () => {
+  coast = (fps) => {
     this.thrustValue = 0;
-    this.velocity.size < 0.5 ? this.velocity.size = 0 : this.velocity.factor(0.9);
+    this.velocity.size < 0.5 ? this.velocity.size = 0 : this.velocity.factor(0.9/fps);
   }
 
   respawn = () => {
@@ -168,7 +152,7 @@ class Asteroid extends Entity {
     super();
     this.x = randomX();
     this.y = randomY();
-    this.vector = new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
+    this.velocity = new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
     this.size = asteroidMaxSize;
     this.strength = this.size;
   }
@@ -184,17 +168,15 @@ class Asteroid extends Entity {
     let child2 = new Asteroid();
     child1.x = child2.x = this.x;
     child1.y = child2.y = this.y;
-    child1.vector.angle = this.vector.angle - 0.5;
-    child2.vector.angle = this.vector.angle + 0.5;
-    child1.vector.size = this.vector.size * 1.2;
-    child2.vector.size = this.vector.size * 1.2;
+    child1.velocity.angle = this.velocity.angle - 0.5;
+    child2.velocity.angle = this.velocity.angle + 0.5;
+    child1.velocity.size = this.velocity.size * 1.2;
+    child2.velocity.size = this.velocity.size * 1.2;
     child1.size = this.size - 1;
     child2.size = this.size - 1;
     asteroids.push(child1, child2);
   }
 }
-
-
 
 // Aliens
 const aliens = [];
@@ -306,7 +288,7 @@ function updateShipStatus(fps) {
     if (property.pressed === true) property.func(fps);
   });
   if (controller.thrust.pressed === false) {
-    myShip.coast();
+    myShip.coast(fps);
   }
 }
 
@@ -336,8 +318,8 @@ function updatePositions(fps) {
       // make explosion TODO
       asteroids.splice(index, 1);
     }
-    el.x = el.x + el.vector.x / fps;
-    el.y = el.y + el.vector.y / fps;
+    el.x = el.x + el.velocity.x / fps;
+    el.y = el.y + el.velocity.y / fps;
     if(el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
     if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
     if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
