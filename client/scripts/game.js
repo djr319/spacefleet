@@ -24,14 +24,14 @@ const bullets = [];
 const explosions = [];
 const aliens = [];
 const ships = [];
-const fieldX = 500; // 5000 x 5000
-const fieldY = 500;
+const fieldX = 5000; // 5000 x 5000
+const fieldY = 5000;
 const starfield = [];
 const noOfStars = 1000;
 const asteroids = [];
 const asteroidScale = 20; // 20
 const asteroidMaxSize = 5;
-const noOfAsteroids = 1;
+const noOfAsteroids = 20;
 const fieldBuffer = Math.max(50, asteroidMaxSize * asteroidScale); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
@@ -98,7 +98,6 @@ class Explosion extends Entity {
   }
 
 }
-
 
 class Ship extends Entity {
   constructor() {
@@ -195,12 +194,12 @@ class Bullet extends Entity {
 }
 
 class Asteroid extends Entity {
-  constructor() {
+  constructor(x,y,v,s) {
     super();
-    this.x = randomX();
-    this.y = randomY();
-    this.velocity = new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
-    this.size = asteroidMaxSize;
+    this.x = x || randomX();
+    this.y = y || randomY();
+    this.velocity = v || new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
+    this.size = s || asteroidMaxSize;
     this.strength = 5 + this.size * 5;
   }
 
@@ -210,19 +209,18 @@ class Asteroid extends Entity {
   }
 
   split() {
-    let child1 = new Asteroid();
-    let child2 = new Asteroid();
-    child1.x = this.x;
-    child2.x = this.x;
-    child1.y = this.y;
-    child2.y = this.y;
-    child1.velocity.angle = this.velocity.angle - 0.5;
-    child2.velocity.angle = this.velocity.angle + 0.5;
-    child1.velocity.size = this.velocity.size * 1.2;
-    child2.velocity.size = this.velocity.size * 1.2;
-    child1.size = this.size - 1;
-    child2.size = this.size - 1;
-    asteroids.push(child1, child2);
+    if (this.size > 3) {
+      let child1 = new Asteroid(this.x, this.y, new Vector(this.velocity.angle - 0.5, 40), this.size - 1);
+      let child2 = new Asteroid(this.x, this.y, new Vector(this.velocity.angle + 0.5, 40), this.size - 1);
+      asteroids.push(child1, child2);
+    } else {
+      let child1 = new Asteroid(this.x, this.y, new Vector(Math.random()*2*Math.PI, this.velocity.size * 3), this.size - 1);
+      let child2 = new Asteroid(this.x, this.y, new Vector(Math.random()*2*Math.PI, this.velocity.size * 1.5), this.size - 1);
+      let child3 = new Asteroid(this.x, this.y, new Vector(Math.random()*2*Math.PI, this.velocity.size * 1.7), this.size - 1);
+      let child4 = new Asteroid(this.x, this.y, new Vector(Math.random()*2*Math.PI, this.velocity.size * 1), this.size - 1);
+      asteroids.push(child1, child2, child3, child4);
+    }
+
   }
 }
 
@@ -339,8 +337,8 @@ function spawnAll() {
 function updateAll() {
   updateShipStatus(); // polling the controller object
   updatePositions();
+  updateScore();
 }
-// -----------    functions: calculate positions    ------------------//
 
 function updateShipStatus() {
   Object.values(controller).forEach(property => {
@@ -351,16 +349,13 @@ function updateShipStatus() {
   }
 }
 
-function resizeCanvas() { // incase window size changes during play
+function updateScore() {
 
-  ctx.strokeStyle = 'black';
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
-  viewportWidth = window.innerWidth;
-  viewportHeight = window.innerHeight;
-  canvas.height = viewportHeight;
-  canvas.width = viewportWidth;
 }
+
+
+
+// -----------    functions: calculate positions    ------------------//
 
 function updatePositions() {
   updateShip();
@@ -369,8 +364,23 @@ function updatePositions() {
   updateExplosion();
 };
 
-function updateShip() {  myShip.x = myShip.x + myShip.velocity.x / fps;
+function updateShip() {
+
+  myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
+
+  // asteroid collision detection
+  asteroids.forEach((asteroid, asteroidIndex) => {
+
+    let distance = Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size;
+    if (distance < 0) {
+      // crash detected
+      myShip.lives = myShip.lives - 1;
+      if (myShip.lives === 0) {
+        gameOver();
+      }
+    };
+  });
 
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
@@ -595,16 +605,38 @@ function drawPerimeter() {
 
 }
 
+// -----------    functions: game control     ------------------//
+
+function gameOver() {
+  // spin and fade out myShip
+  // display end of game stats
+  // new game button
+}
+
 // -----------    functions: helper functions    ------------------//
 
+function resizeCanvas() { // incase window size changes during play
+
+  ctx.strokeStyle = 'black';
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+  canvas.height = viewportHeight;
+  canvas.width = viewportWidth;
+}
+
 function randomX() {
+  // returns a random x value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldX - 2 * fieldBuffer));
 }
 
 function randomY() {
+    // returns a random y value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
 
 function clamp(num, min, max) {
+  // limits num to between min and max
   return Math.min(Math.max(num, min), max);
 }
