@@ -34,10 +34,6 @@ const fieldBuffer = Math.max(50, asteroidMaxSize * asteroidScale); // buffer wid
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
 let lastShot = new Date();
-let myStatus = {
-  score: 0,
-  lives: 5
-}
 
 let scoreTable = {
   5: 50,
@@ -97,10 +93,11 @@ class Star extends Entity {
 }
 
 class Explosion extends Entity {
-  constructor(x, y) {
+  constructor(x, y, v) {
     super();
     this.x = x;
     this.y = y;
+    this.velocity = v;
     this.start = -5;
     this.end = 15;
     this.size = this.start;
@@ -149,7 +146,7 @@ class Ship extends Entity {
       bullet.x = this.x;
       bullet.y = this.y;
       bullet.velocity.angle = this.direction - 1 / 2 * Math.PI;
-      bullet.velocity.size = 600;
+      bullet.velocity.size = this.velocity.size + 600;
       bullet.originX = bullet.x;
       bullet.originY = bullet.y;
       bullets.push(bullet);
@@ -186,7 +183,6 @@ class Ship extends Entity {
     if (this.direction > 2*Math.PI) this.direction = 0;
   }
 }
-let myShip = new Ship();
 
 class Bullet extends Entity {
   constructor() {
@@ -229,14 +225,20 @@ class Asteroid extends Entity {
 
 // ----------------------    Start Game   ----------------------------//
 
+let myShip = new Ship();
+
+let myStatus = {
+  score: 0,
+  lives: 0
+}
+
 window.onload = () => { newGame() };
 
 function newGame() {
-  let status = document.getElementById('gameover');
-  status.style.visibility = 'hidden';
   resizeCanvas();
-  setEventListeners();
+  resetScore();
   spawnAll();
+  hudInit();
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -267,13 +269,19 @@ function spawnAll() {
 }
 
 function spawnMyShip() {
-  ships.push(myShip);
+  setEventListeners();
   myShip.x = randomX();
   myShip.y = randomY();
-  myShip.velocity = new Vector(0, 0);
-  myShip.opacity = 1;
-  if (checkCollision()) spawnMyShip();
+  if (checkCollision()) warp();
+  myShip.velocity = new Vector(3/2*Math.PI, 20);
 };
+
+function warp() {
+  while (checkCollision()) {
+    myShip.x = randomX();
+    myShip.y = randomY();
+  }
+}
 
 function checkControls() {
   Object.values(controller).forEach(property => {
@@ -299,8 +307,8 @@ function updateShip() {
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
 
-  let collisionSpeed = checkCollision();
-  if (collisionSpeed) die(collisionSpeed);
+  let crashSite = checkCollision();
+  if (crashSite) die(crashSite);
 
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
@@ -311,11 +319,16 @@ function updateShip() {
 }
 
 function checkCollision() {
+  let returnValue = false;
   asteroids.map((asteroid) => {
-    // console.log("dsadsa", asteroid.x);
-    if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) return asteroid.velocity;
+    if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) {
+      returnValue = new Entity(asteroid.x, asteroid.y, asteroid.velocity);
+      return true;
+    } else {
+      return false;
+    };
   });
-  return false;
+  return returnValue;
 }
 
 function updateAsteroids() {asteroids.forEach((el, index) => {
@@ -335,7 +348,7 @@ function updateAsteroids() {asteroids.forEach((el, index) => {
 
 function updateBullets() {
 
-  bullets.forEach((bullet, bulletIndex) => {
+  bullets.forEach((bullet) => {
     bullet.x = bullet.x + bullet.velocity.x / fps;
     bullet.y = bullet.y + bullet.velocity.y / fps;
     checkKills();
@@ -363,7 +376,6 @@ function checkKills() {
   });
 });
 };
-
 
 function updateExplosion() {
   explosions.forEach((exp, index) => {
@@ -440,7 +452,7 @@ function drawBullets() {
 
 function drawShips() {
   // will need to display all ships for multiplayer
-
+  ships.push(myShip);
   ships.forEach((ship) => {
     // guard clause to check if ship is in the viewport
     if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
@@ -480,6 +492,7 @@ function drawShips() {
     // reset canvas position from rotation
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
+  ships.pop();
 }
 
 function drawAsteroids() {
@@ -533,36 +546,74 @@ function drawPerimeter() {
 
 // -----------    functions: game control     ------------------//
 
-function gameOver() {
-//   removeEventListeners();
-  let status = document.getElementById('gameover');
-  status.style.visibility = 'visible';
-//   let goScore = document.getElementById('gameover-score');
-//   goScore.innerText = 'myShip.score';
+function resetScore() {
+  myStatus.score = 0;
+  myStatus.lives = 5;
 }
 
-// function newGame() {
-//   let status = document.getElementById('gameover');
-//   status.style.visibility = 'hidden';
+function hudInit() {
+  console.log('HUD initialized');
 
-// }
+  let hud = document.createElement('div');
+  hud.id = 'hud';
+  document.body.appendChild(hud);
 
-function die(velocity) {
-  // explosion at ship
-  let bigHole = new Explosion(myShip.x, myShip.y, velocity);
+  let lives = document.createElement('div');
+  lives.id = 'lives';
+  hud.appendChild(lives);
+
+  for (let i = 0; i < myStatus.lives; i++) {
+    let heart = document.createElement('span');
+    heart.classList.add('heart');
+    heart.innerText = '♥';
+    lives.appendChild(heart);
+  }
+
+  let p = document.createElement('p');
+  p.id = 'hud-score';
+  p.innerText = `Score: ${myStatus.score}`;
+  hud.appendChild(p);
+}
+
+function scoreUpdate() {
+  p.id = 'hud-score';
+  p.innerText = `Score: ${myStatus.score}`;
+}
+
+function removeHeart() {
+  let lives = document.getElementById('lives');
+  console.log('heart count',lives.childElementCount , myStatus.lives);
+
+  while ( lives.childElementCount > myStatus.lives ) {
+    lives.removeChild(lives.lastChild);
+  }
+}
+
+function die(crashSite) {
+  removeEventListeners();
+  let bigHole = new Explosion(crashSite.x, crashSite.y, crashSite.velocity);
   bigHole.end = 50;
   explosions.push(bigHole);
-  ships.splice(ships.filter("myShip"));
   myStatus.lives = myStatus.lives - 1;
+  removeHeart();
   if (myStatus.lives === 0) {
     gameOver();
   } else {
-    removeEventListeners();
-    setTimeout(() => {
-      spawnMyShip();
-      setEventListeners();
-    }, 1000);
-  }
+      // setTimeout causing multiple calls
+      // setTimeout(() => {
+        spawnMyShip();
+        console.log("about to spawn");
+      // }, 3000);
+    }
+}
+
+function gameOver() {
+
+  // TODO: handle score
+
+  setTimeout(() => {
+    newGame();
+  }, 5000);
 }
 
 // -----------    functions: event listeners    ------------------//
@@ -601,7 +652,7 @@ function controls (e) {
     case 'S':
     case 'ArrowDown':
     case 's': {
-      if (!e.repeat) { spawnMyShip() };
+      if (!e.repeat) { warp() };
       break;
     }
 
