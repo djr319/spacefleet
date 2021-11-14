@@ -1,11 +1,9 @@
 'use strict';
-
 // -----------    Variables    ------------------//
 
-// Debug info box
-const score = document.getElementById('score');
+// // Debug info box
+// const score = document.getElementById('score');
 
-// window dimensions in global scope
 let viewportWidth; // from browser
 let viewportHeight;
 let viewportX; // top left of viewport
@@ -24,18 +22,22 @@ const bullets = [];
 const explosions = [];
 const aliens = [];
 const ships = [];
-const fieldX = 5000; // 5000 x 5000
+const fieldX = 5000;
 const fieldY = 5000;
 const starfield = [];
 const noOfStars = 1000;
 const asteroids = [];
-const asteroidScale = 20; // 20
+const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 20;
 const fieldBuffer = Math.max(50, asteroidMaxSize * asteroidScale); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
 let lastShot = new Date();
+let myStatus = {
+  score: 0,
+  lives: 5
+}
 
 // -----------    Objects    ------------------//
 class Vector {
@@ -64,10 +66,6 @@ class Vector {
       (this.y + v.y) ** 2
     )
   };
-
-  factor = (fact) => {
-    return new Vector(this.angle, this.size * fact);
-  }
 }
 
 class Entity {
@@ -90,28 +88,30 @@ class Star extends Entity {
 }
 
 class Explosion extends Entity {
-  constructor(x, y, vector) {
+  constructor(x, y) {
     super();
     this.x = x;
     this.y = y;
-    this.size = -5;
+    this.start = -5;
+    this.end = 15;
+    this.size = this.start;
   }
-
 }
 
 class Ship extends Entity {
   constructor() {
     super();
     this.direction = 0;
+
+    // move some of these into myShip.. other ships will simply post their values
     this.thrustValue = 0;
     this.thrustMax = 10;
     this.width = 20;
     this.height = 40;
     this.maxSpeed = 800;
-    this.lives = 5;
-    this.score = 0;
     this.rotationRate = 8;
     this.ammo = 15;
+    this.opacity = 1;
   }
 
   get size() {
@@ -161,15 +161,8 @@ class Ship extends Entity {
     this.velocity.size = Math.min(this.maxSpeed, this.velocity.size);
     }
 
-
   coast = () => {
       this.velocity.size *= 0.998;
-  }
-
-  respawn = () => {
-    this.x = Math.floor(randomX());
-    this.y = Math.floor(randomY());
-    // check for collision and respawn again if necessary
   }
 
   rotateL = () => {
@@ -182,7 +175,9 @@ class Ship extends Entity {
     if (this.direction > 2*Math.PI) this.direction = 0;
   }
 }
-let myShip = new Ship;
+
+let myShip = new Ship();
+ships.push(myShip);
 
 class Bullet extends Entity {
   constructor() {
@@ -220,88 +215,16 @@ class Asteroid extends Entity {
       let child4 = new Asteroid(this.x, this.y, new Vector(Math.random()*2*Math.PI, this.velocity.size * 1), this.size - 1);
       asteroids.push(child1, child2, child3, child4);
     }
-
   }
 }
 
-class Aliens extends Entity {
-  // maybe don't need alients if multiplayer
-}
+// ----------------------    Start Game   ----------------------------//
 
-// User Input object
-const controller = {
-  rotateL: {
-    pressed: false,
-    func: myShip.rotateL
-  },
-  rotateR: {
-    pressed: false,
-    func: myShip.rotateR
-  },
-  thrust: {
-    pressed: false,
-    func: myShip.thrust
-  },
-  shoot: {
-    pressed: false,
-    func: myShip.shoot
-  }
-}
+window.onload = () => { newGame() };
 
-function setEventListeners() {
-  // document.addEventListener('contextmenu', event => event.preventDefault());
-  document.addEventListener("keydown", (e) => {
-    switch (e.key) {
-      case 'W':
-      case 'ArrowUp':
-      case 'w': controller.thrust.pressed = true; break;
-
-      case 'A':
-      case 'ArrowLeft':
-      case 'a': controller.rotateL.pressed = true; break;
-
-      case 'S':
-      case 'ArrowDown':
-      case 's': {
-        if (!e.repeat) { myShip.respawn() };
-        break;
-      }
-
-      case 'D':
-      case 'ArrowRight':
-      case 'd': controller.rotateR.pressed = true; break;
-
-      case ' ': controller.shoot.pressed = true; break;
-      default: break;
-    }
-  });
-
-  document.addEventListener("keyup", (e) => {
-    switch (e.key) {
-      case 'W':
-      case 'ArrowUp':
-      case 'w': controller.thrust.pressed = false; break;
-
-      case 'A':
-      case 'ArrowLeft':
-      case 'a': controller.rotateL.pressed = false; break;
-
-      case 'D':
-      case 'ArrowRight':
-      case 'd': controller.rotateR.pressed = false; break;
-
-      case ' ': controller.shoot.pressed = false; break;
-      default: break;
-    }
-  });
-
-  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
-}
-
-// Start Game
-window.onload = () => {
-
+function newGame() {
+  let status = document.getElementById('gameover');
+  status.style.visibility = 'hidden';
   resizeCanvas();
   setEventListeners();
   spawnAll();
@@ -312,7 +235,8 @@ window.onload = () => {
 
 function gameLoop(timestamp) {
 fps = 1000 / (timestamp - lastRender);
-  updateAll();
+  checkControls();
+  updatePositions();
   drawAll();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop)
@@ -321,26 +245,27 @@ fps = 1000 / (timestamp - lastRender);
 // -----------    functions: Spawn Components    ------------------//
 
 function spawnAll() {
-
+  // stars
   for (let x = 0; x < noOfStars; x++) {
     starfield.push(new Star());
   }
-
+  // asteroids
   for (let x = 0; x < noOfAsteroids; x++) {
     asteroids.push(new Asteroid());
   }
-
-  myShip.respawn();
-
+  // myShip
+  spawnMyShip();
 }
 
-function updateAll() {
-  updateShipStatus(); // polling the controller object
-  updatePositions();
-  updateScore();
-}
+function spawnMyShip () {
+  myShip.x = randomX();
+  myShip.y = randomY();
+  myShip.velocity = new Vector(0, 0);
+  myShip.opacity = 1;
+  if (checkCollision()) spawnMyShip();
+};
 
-function updateShipStatus() {
+function checkControls() {
   Object.values(controller).forEach(property => {
     if (property.pressed === true) property.func();
   });
@@ -349,15 +274,10 @@ function updateShipStatus() {
   }
 }
 
-function updateScore() {
-
-}
-
-
-
 // -----------    functions: calculate positions    ------------------//
 
 function updatePositions() {
+
   updateShip();
   updateAsteroids();
   updateBullets();
@@ -369,18 +289,14 @@ function updateShip() {
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
 
-  // asteroid collision detection
-  asteroids.forEach((asteroid, asteroidIndex) => {
-
-    let distance = Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size;
-    if (distance < 0) {
-      // crash detected
-      myShip.lives = myShip.lives - 1;
-      if (myShip.lives === 0) {
-        gameOver();
-      }
-    };
-  });
+  if (checkCollision()) {
+    myStatus.lives - 1;
+    if (myStatus.lives === 0) {
+      gameOver();
+    } else {
+      die();
+    }
+  }
 
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
@@ -388,6 +304,13 @@ function updateShip() {
     case myShip.y < myShip.size/2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
     case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
   }
+}
+
+function checkCollision() {
+
+  return asteroids.some((asteroid) => {
+    return Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size < 0
+  });
 }
 
 function updateAsteroids() {asteroids.forEach((el, index) => {
@@ -421,7 +344,6 @@ function updateBullets() {
           asteroids.splice(asteroidIndex,1);
           bullets.splice(bulletIndex, 1);
         } else {
-          console.log("Asteroid Status", asteroid.size, asteroid.strength);
           asteroid.hit();
           if (asteroid.strength === 0) asteroids.splice(asteroidIndex, 1);
           explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
@@ -429,23 +351,21 @@ function updateBullets() {
         bullets.splice(bulletIndex, 1);
       };
     });
-
-
   });
 }
 
 function updateExplosion() {
   explosions.forEach((exp, index) => {
-    // exp.x = exp.x + exp.velocity.x / fps;
-    // exp.y = exp.y + exp.velocity.y / fps;
+    exp.x = exp.x + exp.velocity.x / fps;
+    exp.y = exp.y + exp.velocity.y / fps;
     exp.size++;
-    if (exp.size > 15) {
+    if (exp.size > exp.end) {
       explosions.splice(index, 1);
     }
   });
 }
 
-// -----------    functions: draw on screen    ------------------//
+// // -----------    functions: draw on screen    ------------------//
 
 function drawAll() {
   // clear canvas ready for next frame
@@ -458,9 +378,9 @@ function drawAll() {
 
   // render components
   drawStars();
-  drawAsteroids();
   drawBullets();
-  drawShip();
+  drawAsteroids();
+  drawShips();
   drawPerimeter();
   drawExplosions();
 }
@@ -468,7 +388,7 @@ function drawAll() {
 function drawStars() {
 
   starfield.forEach(star => {
-    // make parallax effect
+    // parallax effect
     let offsetX = star.x + star.z * (fieldX / 1.8 - viewportX) / 20;
     let offsetY = star.y + star.z * (fieldY / 1.8 - viewportY) / 20;
 
@@ -481,7 +401,6 @@ function drawStars() {
     }
   });
 }
-
 
 function drawBullets() {
 
@@ -504,7 +423,8 @@ function drawBullets() {
     });
 }
 
-function drawShip() {
+function drawShips() {
+  // will need to display all ships for multiplayer
 
   // the usual position for the ship is plotted in center of canvas, and the environment moves behind
   let plotX = (viewportWidth ) / 2;
@@ -519,40 +439,44 @@ function drawShip() {
     plotY = myShip.y - viewportY;
   }
 
-  // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
-  ctx.translate(plotX, plotY);
-  ctx.rotate(myShip.direction);
+  ships.forEach((ship) => {
+    if (ship.opacity === 1) {
+      // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
+      ctx.translate(plotX, plotY);
+      ctx.rotate(myShip.direction);
 
-  // Draw ship
-  ctx.beginPath();
-  ctx.strokeStyle = "#555";
-  ctx.fillStyle = "#333";
-  ctx.lineWidth = "1";
-  ctx.moveTo(0, -myShip.height / 2);
-  ctx.lineTo(myShip.width / 2, myShip.height /2);
-  ctx.lineTo(0, myShip.height * 0.3);
-  ctx.lineTo(-myShip.width / 2, myShip.height /2);
-  ctx.lineTo(0, -myShip.height / 2);
-  ctx.fill();
-  ctx.closePath();
+      // Draw ship
+      ctx.beginPath();
+      ctx.strokeStyle = '#555';
+      ctx.fillStyle = '#ccc';
+      ctx.lineWidth = '1';
+      ctx.moveTo(0, -myShip.height / 2);
+      ctx.lineTo(myShip.width / 2, myShip.height / 2);
+      ctx.lineTo(0, myShip.height * 0.3);
+      ctx.lineTo(-myShip.width / 2, myShip.height / 2);
+      ctx.lineTo(0, -myShip.height / 2);
+      ctx.fill();
+      ctx.closePath();
 
-  // Draw thrust flame
-  if (controller.thrust.pressed) {
-    ctx.beginPath();
-    ctx.strokeStyle = "#FFA500";
-    ctx.fillStyle = "#FF0";
-    ctx.moveTo(0, 23);
-    ctx.lineTo(myShip.width / 4, 25);
-    ctx.lineTo(0, 30);
-    ctx.lineTo(-myShip.width / 4, 25);
-    ctx.lineTo(0, 23);
-    ctx.fill();
-    ctx.stroke();
-    ctx.closePath();
-  }
+      // Draw thrust flame
+      if (controller.thrust.pressed && myShip.opacity === 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = "#FFA500";
+        ctx.fillStyle = "#FF0";
+        ctx.moveTo(0, 23);
+        ctx.lineTo(myShip.width / 4, 25);
+        ctx.lineTo(0, 30);
+        ctx.lineTo(-myShip.width / 4, 25);
+        ctx.lineTo(0, 23);
+        ctx.fill();
+        ctx.stroke();
+        ctx.closePath();
+      }
 
-  // reset canvas position from rotation
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+      // reset canvas position from rotation
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+  });
 }
 
 function drawAsteroids() {
@@ -602,18 +526,128 @@ function drawPerimeter() {
     ctx.fillStyle = border;
     ctx.fillRect(0, fieldY - viewportY, viewportWidth, viewportHeight);
   }
-
 }
 
 // -----------    functions: game control     ------------------//
 
 function gameOver() {
-  // spin and fade out myShip
-  // display end of game stats
-  // new game button
+//   removeEventListeners();
+  let status = document.getElementById('gameover');
+  status.style.visibility = 'visible';
+//   let goScore = document.getElementById('gameover-score');
+//   goScore.innerText = 'myShip.score';
 }
 
-// -----------    functions: helper functions    ------------------//
+// function newGame() {
+//   let status = document.getElementById('gameover');
+//   status.style.visibility = 'hidden';
+
+// }
+
+function die() {
+  // explosion at ship
+  let bigHole = new Explosion(myShip.x, myShip.y, myShip.velocity);
+  bigHole.end = 50;
+  explosions.push(bigHole);
+  myShip.opacity = 0;
+  // remove ship
+
+  removeEventListeners();
+  setTimeout(() => {
+    spawnMyShip();
+    setEventListeners();
+  }, 1000);
+}
+
+// -----------    functions: event listeners    ------------------//
+
+// User Input object
+const controller = {
+  rotateL: {
+    pressed: false,
+    func: myShip.rotateL
+  },
+  rotateR: {
+    pressed: false,
+    func: myShip.rotateR
+  },
+  thrust: {
+    pressed: false,
+    func: myShip.thrust
+  },
+  shoot: {
+    pressed: false,
+    func: myShip.shoot
+  }
+}
+
+// event listeners
+function controls (e) {
+  switch (e.key) {
+    case 'W':
+    case 'ArrowUp':
+    case 'w': controller.thrust.pressed = true; break;
+
+    case 'A':
+    case 'ArrowLeft':
+    case 'a': controller.rotateL.pressed = true; break;
+
+    case 'S':
+    case 'ArrowDown':
+    case 's': {
+      if (!e.repeat) { spawnMyShip() };
+      break;
+    }
+
+    case 'D':
+    case 'ArrowRight':
+    case 'd': controller.rotateR.pressed = true; break;
+
+    case ' ': controller.shoot.pressed = true; break;
+    default: break;
+  }
+}
+
+function keyupControls(e) {
+  switch (e.key) {
+    case 'W':
+    case 'ArrowUp':
+    case 'w': controller.thrust.pressed = false; break;
+
+    case 'A':
+    case 'ArrowLeft':
+    case 'a': controller.rotateL.pressed = false; break;
+
+    case 'D':
+    case 'ArrowRight':
+    case 'd': controller.rotateR.pressed = false; break;
+
+    case ' ': controller.shoot.pressed = false; break;
+    default: break;
+  };
+}
+
+function setEventListeners() {
+  controller.thrust.pressed = false;
+  controller.rotateL.pressed = false;
+  controller.rotateR.pressed = false;
+  controller.shoot.pressed = false;
+
+  document.addEventListener("keydown", controls);
+  document.addEventListener("keyup", keyupControls);
+  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
+  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
+}
+
+function removeEventListeners() {
+  document.addEventListener("keydown", controls);
+  document.addEventListener("keyup", keyupControls);
+  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
+  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
+}
+
+
+// // -----------    functions: helper functions    ------------------//
 
 function resizeCanvas() { // incase window size changes during play
 

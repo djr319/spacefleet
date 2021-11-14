@@ -5,9 +5,30 @@ html, body {
 
 body {overflow: hidden;}
 
-#debug {
+/* #score {
   position: absolute;
   top: 30px;
   left: 30px;
 color: white;
+} */
+
+#gameover {
+  z-index: 10;
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate( -50%, -50%);
+    border-radius: 2rem;
+    border: 5px solid #555;
+    background: rgb(30,30,30);
+    color: white;
+    /* visibility: hidden; */
+    opacity: 1;
+    transition: opacity 2s linear;
+    padding: 2rem;
+}
+
+#gameover button {
+  margin-left: 50%;
+  transform: translate(-50%)
 }
