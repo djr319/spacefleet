@@ -126,9 +126,8 @@ class Ship extends Entity {
   }
 
   shoot = () => {
-
     // rate control
-    const now = +new Date();
+    const now = new Date();
     if (now - lastShot < 20 || this.alive === false) {
       return;
     }
@@ -248,10 +247,10 @@ function newGame() {
 
 function gameLoop(timestamp) {
 fps = 1000 / (timestamp - lastRender);
-  checkControls();
+  if (myShip.alive = true)  checkControls();
   updatePositions();
   drawAll();
-  scoreUpdate();
+  if (myShip.alive = true)  scoreUpdate();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop)
 }
@@ -276,12 +275,32 @@ function spawnMyShip() {
   myShip.x = randomX();
   myShip.y = randomY();
   myShip.alive = true;
-  if (checkCollision()) warp();
+
+  // check for proximity of asteroids
+  if (distToNearestObj(400).collision === true) warp();
   myShip.velocity = new Vector(3/2*Math.PI, 20);
 };
 
+function distToNearestObj(buffer = 0) {
+  let nearestDist = Infinity;
+  let nearestObj = new Asteroid;
+  asteroids.forEach((asteroid) => {
+    let dist = Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2;
+    if (dist < nearestDist) {
+      nearestObj = asteroid;
+      nearestDist = dist
+    }
+  });
+  let collision = nearestDist - buffer < 0 ? true : false;
+  return {
+    collision,
+    nearestObj,
+    nearestDist
+  }
+}
+
 function warp() {
-  while (checkCollision()) {
+  while (distToNearestObj().collision === true) {
     myShip.x = randomX();
     myShip.y = randomY();
   }
@@ -316,11 +335,6 @@ function updateMyShip() {
     case myShip.y < myShip.size/2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
     case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
   }
-
-  checkCollision();
-}
-
-function checkCollision() {
 
   asteroids.forEach((asteroid) => {
     if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) {
@@ -557,7 +571,7 @@ function drawPerimeter() {
 
 function resetScore() {
   myStatus.score = 0;
-  myStatus.lives = 5;
+  myStatus.lives = 2;
 }
 
 function hudInit() {
@@ -622,6 +636,13 @@ function gameOver() {
   let hud = document.getElementById('hud');
   document.body.removeChild(hud);
 
+  // local storage
+  const pb = localStorage.getItem('pb');
+  if (myStatus.score > pb) {
+    localStorage.setItem('pb', myStatus.score);
+    alert("New personal best!" + myStatus.score);
+  }
+
   setTimeout(() => {
     newGame();
   }, 2000);
@@ -654,7 +675,7 @@ function controls (e) {
   switch (e.key) {
     case 'm':
     case 'M':
-      if (!e.repeat) { toggleMusic() };
+      toggleMusic();
       break;
 
     case 'W':
@@ -766,13 +787,15 @@ function playSound(url, repeat) {
   tunes.push(audio);
 }
 
-let music = true;
+let music = false;
 function toggleMusic() {
-  if (music = true) {
+
+  if (music === true) {
     music = false;
     tunes.map((tune) => { tune.pause(); tune.currentTime = 0; });
     tunes = [];
   } else {
+
     music = true;
     playSound(backgroundMusic);
     }
