@@ -39,6 +39,15 @@ let myStatus = {
   lives: 5
 }
 
+let scoreTable = {
+  5: 50,
+  4: 100,
+  3: 200,
+  2: 300,
+  1: 500,
+  'enemy': 5000
+}
+
 // -----------    Objects    ------------------//
 class Vector {
   constructor(angle, size) {
@@ -111,7 +120,7 @@ class Ship extends Entity {
     this.maxSpeed = 800;
     this.rotationRate = 8;
     this.ammo = 15;
-    this.opacity = 1;
+    this.thruster = true;
   }
 
   get size() {
@@ -149,6 +158,7 @@ class Ship extends Entity {
   }
 
   thrust = () => {
+    this.thruster = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
     let vectorAngle = this.direction - 1/2 * Math.PI;
     vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
@@ -162,6 +172,7 @@ class Ship extends Entity {
     }
 
   coast = () => {
+    this.thruster = false;
       this.velocity.size *= 0.998;
   }
 
@@ -175,9 +186,7 @@ class Ship extends Entity {
     if (this.direction > 2*Math.PI) this.direction = 0;
   }
 }
-
 let myShip = new Ship();
-ships.push(myShip);
 
 class Bullet extends Entity {
   constructor() {
@@ -257,7 +266,8 @@ function spawnAll() {
   spawnMyShip();
 }
 
-function spawnMyShip () {
+function spawnMyShip() {
+  ships.push(myShip);
   myShip.x = randomX();
   myShip.y = randomY();
   myShip.velocity = new Vector(0, 0);
@@ -289,14 +299,8 @@ function updateShip() {
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
 
-  if (checkCollision()) {
-    myStatus.lives - 1;
-    if (myStatus.lives === 0) {
-      gameOver();
-    } else {
-      die();
-    }
-  }
+  let collisionSpeed = checkCollision();
+  if (collisionSpeed) die(collisionSpeed);
 
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
@@ -307,10 +311,11 @@ function updateShip() {
 }
 
 function checkCollision() {
-
-  return asteroids.some((asteroid) => {
-    return Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size < 0
+  asteroids.map((asteroid) => {
+    // console.log("dsadsa", asteroid.x);
+    if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) return asteroid.velocity;
   });
+  return false;
 }
 
 function updateAsteroids() {asteroids.forEach((el, index) => {
@@ -333,26 +338,32 @@ function updateBullets() {
   bullets.forEach((bullet, bulletIndex) => {
     bullet.x = bullet.x + bullet.velocity.x / fps;
     bullet.y = bullet.y + bullet.velocity.y / fps;
-
-    // asteroid / bullet collision detection
-    asteroids.forEach((asteroid, asteroidIndex) => {
-
-      let distance = Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
-      if (distance < 0) {
-        if (asteroid.size === 1) {
-          explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
-          asteroids.splice(asteroidIndex,1);
-          bullets.splice(bulletIndex, 1);
-        } else {
-          asteroid.hit();
-          if (asteroid.strength === 0) asteroids.splice(asteroidIndex, 1);
-          explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
-        }
-        bullets.splice(bulletIndex, 1);
-      };
-    });
+    checkKills();
   });
 }
+
+function checkKills() {
+  // asteroid / bullet collision detection
+  bullets.forEach((bullet, bulletIndex) => {
+  asteroids.forEach((asteroid, asteroidIndex) => {
+
+    let distance = Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
+    if (distance < 0) {
+      if (asteroid.size === 1) {
+        explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
+        asteroids.splice(asteroidIndex,1);
+        bullets.splice(bulletIndex, 1);
+      } else {
+        asteroid.hit();
+        if (asteroid.strength === 0) asteroids.splice(asteroidIndex, 1);
+        explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
+      }
+      bullets.splice(bulletIndex, 1);
+    };
+  });
+});
+};
+
 
 function updateExplosion() {
   explosions.forEach((exp, index) => {
@@ -372,9 +383,7 @@ function drawAll() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, viewportWidth, viewportHeight);
 
-  // define viewport
-  viewportX = clamp(myShip.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
-  viewportY = clamp(myShip.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
+  setViewport();
 
   // render components
   drawStars();
@@ -383,6 +392,12 @@ function drawAll() {
   drawShips();
   drawPerimeter();
   drawExplosions();
+}
+
+function setViewport() {
+    // define viewport
+    viewportX = clamp(myShip.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
+    viewportY = clamp(myShip.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
 }
 
 function drawStars() {
@@ -426,56 +441,44 @@ function drawBullets() {
 function drawShips() {
   // will need to display all ships for multiplayer
 
-  // the usual position for the ship is plotted in center of canvas, and the environment moves behind
-  let plotX = (viewportWidth ) / 2;
-  let plotY = (viewportHeight ) / 2;
-
-  // If ship is close to edge of arena, the viewport should remain static and myShip will diverge from center of screen in direction of travel.
-  if (myShip.x < viewportWidth/2 || myShip.x > fieldX - (viewportWidth - myShip.size) / 2) {
-    plotX = myShip.x - viewportX;
-  }
-
-  if (myShip.y < viewportHeight/2 || myShip.y > fieldY - (viewportHeight - myShip.size) / 2) {
-    plotY = myShip.y - viewportY;
-  }
-
   ships.forEach((ship) => {
-    if (ship.opacity === 1) {
-      // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
-      ctx.translate(plotX, plotY);
-      ctx.rotate(myShip.direction);
+    // guard clause to check if ship is in the viewport
+    if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
 
-      // Draw ship
+    // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
+    ctx.translate(ship.x-viewportX, ship.y-viewportY);
+    ctx.rotate(ship.direction);
+
+    // Draw ship
+    ctx.beginPath();
+    ctx.strokeStyle = '#555';
+    ctx.fillStyle = '#ccc';
+    ctx.lineWidth = '1';
+    ctx.moveTo(0, -ship.height / 2);
+    ctx.lineTo(ship.width / 2, ship.height / 2);
+    ctx.lineTo(0, ship.height * 0.3);
+    ctx.lineTo(-ship.width / 2, ship.height / 2);
+    ctx.lineTo(0, -ship.height / 2);
+    ctx.fill();
+    ctx.closePath();
+
+    // Draw thrust flame
+    if (ship.thruster) {
       ctx.beginPath();
-      ctx.strokeStyle = '#555';
-      ctx.fillStyle = '#ccc';
-      ctx.lineWidth = '1';
-      ctx.moveTo(0, -myShip.height / 2);
-      ctx.lineTo(myShip.width / 2, myShip.height / 2);
-      ctx.lineTo(0, myShip.height * 0.3);
-      ctx.lineTo(-myShip.width / 2, myShip.height / 2);
-      ctx.lineTo(0, -myShip.height / 2);
+      ctx.strokeStyle = "#FFA500";
+      ctx.fillStyle = "#FF0";
+      ctx.moveTo(0, 23);
+      ctx.lineTo(ship.width / 4, 25);
+      ctx.lineTo(0, 30);
+      ctx.lineTo(-ship.width / 4, 25);
+      ctx.lineTo(0, 23);
       ctx.fill();
+      ctx.stroke();
       ctx.closePath();
-
-      // Draw thrust flame
-      if (controller.thrust.pressed && myShip.opacity === 1) {
-        ctx.beginPath();
-        ctx.strokeStyle = "#FFA500";
-        ctx.fillStyle = "#FF0";
-        ctx.moveTo(0, 23);
-        ctx.lineTo(myShip.width / 4, 25);
-        ctx.lineTo(0, 30);
-        ctx.lineTo(-myShip.width / 4, 25);
-        ctx.lineTo(0, 23);
-        ctx.fill();
-        ctx.stroke();
-        ctx.closePath();
-      }
-
-      // reset canvas position from rotation
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
+
+    // reset canvas position from rotation
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
 }
 
@@ -544,19 +547,22 @@ function gameOver() {
 
 // }
 
-function die() {
+function die(velocity) {
   // explosion at ship
-  let bigHole = new Explosion(myShip.x, myShip.y, myShip.velocity);
+  let bigHole = new Explosion(myShip.x, myShip.y, velocity);
   bigHole.end = 50;
   explosions.push(bigHole);
-  myShip.opacity = 0;
-  // remove ship
-
-  removeEventListeners();
-  setTimeout(() => {
-    spawnMyShip();
-    setEventListeners();
-  }, 1000);
+  ships.splice(ships.filter("myShip"));
+  myStatus.lives = myStatus.lives - 1;
+  if (myStatus.lives === 0) {
+    gameOver();
+  } else {
+    removeEventListeners();
+    setTimeout(() => {
+      spawnMyShip();
+      setEventListeners();
+    }, 1000);
+  }
 }
 
 // -----------    functions: event listeners    ------------------//
