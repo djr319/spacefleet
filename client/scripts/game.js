@@ -101,6 +101,7 @@ class Explosion extends Entity {
     this.start = -5;
     this.end = 15;
     this.size = this.start;
+    this.alive = true;
   }
 }
 
@@ -128,7 +129,7 @@ class Ship extends Entity {
 
     // rate control
     const now = +new Date();
-    if (now - lastShot < 20) {
+    if (now - lastShot < 20 || this.alive === false) {
       return;
     }
 
@@ -137,9 +138,9 @@ class Ship extends Entity {
     if (this.ammo < 0) {
       controller.shoot.pressed = false;
       document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
-      this.ammo = 15;
+      this.ammo = 10;
       setTimeout(() => {
-        document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
+      document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
       }, 200);
     } else {
       let bullet = new Bullet;
@@ -226,6 +227,7 @@ class Asteroid extends Entity {
 // ----------------------    Start Game   ----------------------------//
 
 let myShip = new Ship();
+let camera = new Entity();
 
 let myStatus = {
   score: 0,
@@ -242,18 +244,19 @@ function newGame() {
   window.requestAnimationFrame(gameLoop);
 }
 
-// ----------------------    GAME LOOP    ----------------------------//
+// ----------------------    GAME LOOP    ---------------------------- //
 
 function gameLoop(timestamp) {
 fps = 1000 / (timestamp - lastRender);
   checkControls();
   updatePositions();
   drawAll();
+  scoreUpdate();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop)
 }
 
-// -----------    functions: Spawn Components    ------------------//
+// -----------    functions: Spawn Components    ------------------ //
 
 function spawnAll() {
   // stars
@@ -272,6 +275,7 @@ function spawnMyShip() {
   setEventListeners();
   myShip.x = randomX();
   myShip.y = randomY();
+  myShip.alive = true;
   if (checkCollision()) warp();
   myShip.velocity = new Vector(3/2*Math.PI, 20);
 };
@@ -295,55 +299,65 @@ function checkControls() {
 // -----------    functions: calculate positions    ------------------//
 
 function updatePositions() {
-
-  updateShip();
+  if (myShip.alive === true) updateMyShip();
+  updateViewport();
   updateAsteroids();
   updateBullets();
   updateExplosion();
 };
 
-function updateShip() {
-
+function updateMyShip() {
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
-
-  let crashSite = checkCollision();
-  if (crashSite) die(crashSite);
-
+  // wall collision: vector to push away from walls
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
     case myShip.x > fieldX - myShip.size/2: myShip.velocity = new Vector(Math.PI,20); break;
     case myShip.y < myShip.size/2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
     case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
   }
+
+  checkCollision();
 }
 
 function checkCollision() {
-  let returnValue = false;
-  asteroids.map((asteroid) => {
+
+  asteroids.forEach((asteroid) => {
     if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) {
-      returnValue = new Entity(asteroid.x, asteroid.y, asteroid.velocity);
-      return true;
-    } else {
-      return false;
-    };
+      die(new Explosion(myShip.x, myShip.y, asteroid.velocity));
+    }
   });
-  return returnValue;
 }
 
-function updateAsteroids() {asteroids.forEach((el, index) => {
-  if (el.strenth = 0) {
-    el.split;
-    asteroids.splice(index, 1);
+function updateViewport() {
+
+  if (myShip.alive === true) {
+    // follow ship
+    camera = myShip;
   }
 
-  el.x = el.x + el.velocity.x / fps;
-  el.y = el.y + el.velocity.y / fps;
-  if(el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
-  if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
-  if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
-  if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
-})
+  // restrict viewport at bounderies
+  viewportX = clamp(camera.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
+  viewportY = clamp(camera.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
+}
+
+function updateAsteroids() {
+  asteroids.forEach((el, index) => {
+    if (el.strenth = 0) {
+      el.split();
+      asteroids.splice(index, 1);
+    }
+
+    // move
+    el.x = el.x + el.velocity.x / fps;
+    el.y = el.y + el.velocity.y / fps;
+
+    // asteroids going off-field re-enter on the other side
+    if (el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
+    if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
+    if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
+    if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
+  })
 }
 
 function updateBullets() {
@@ -362,6 +376,7 @@ function checkKills() {
 
     let distance = Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
     if (distance < 0) {
+      myStatus.score = myStatus.score + scoreTable[asteroid.size];
       if (asteroid.size === 1) {
         explosions.push(new Explosion(bullet.x, bullet.y, asteroid.velocity));
         asteroids.splice(asteroidIndex,1);
@@ -381,7 +396,7 @@ function updateExplosion() {
   explosions.forEach((exp, index) => {
     exp.x = exp.x + exp.velocity.x / fps;
     exp.y = exp.y + exp.velocity.y / fps;
-    exp.size++;
+    exp.size = exp.size + 1;
     if (exp.size > exp.end) {
       explosions.splice(index, 1);
     }
@@ -395,8 +410,6 @@ function drawAll() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, viewportWidth, viewportHeight);
 
-  setViewport();
-
   // render components
   drawStars();
   drawBullets();
@@ -406,18 +419,12 @@ function drawAll() {
   drawExplosions();
 }
 
-function setViewport() {
-    // define viewport
-    viewportX = clamp(myShip.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
-    viewportY = clamp(myShip.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
-}
-
 function drawStars() {
 
   starfield.forEach(star => {
     // parallax effect
-    let offsetX = star.x + star.z * (fieldX / 1.8 - viewportX) / 20;
-    let offsetY = star.y + star.z * (fieldY / 1.8 - viewportY) / 20;
+    let offsetX = star.x + star.z * (star.x - viewportX / 2) / 2;
+    let offsetY = star.y + star.z * (star.y - viewportY / 2) / 2;
 
     // select only visible stars
     if (offsetX > viewportX && offsetX < viewportX + viewportWidth && offsetY > viewportY && offsetY < viewportY + viewportHeight) {
@@ -452,7 +459,8 @@ function drawBullets() {
 
 function drawShips() {
   // will need to display all ships for multiplayer
-  ships.push(myShip);
+  if (myShip.alive === true) ships.push(myShip);
+
   ships.forEach((ship) => {
     // guard clause to check if ship is in the viewport
     if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
@@ -492,7 +500,8 @@ function drawShips() {
     // reset canvas position from rotation
     ctx.setTransform(1, 0, 0, 1, 0, 0);
   });
-  ships.pop();
+
+  if (myShip.alive === true) ships.pop();
 }
 
 function drawAsteroids() {
@@ -552,7 +561,6 @@ function resetScore() {
 }
 
 function hudInit() {
-  console.log('HUD initialized');
 
   let hud = document.createElement('div');
   hud.id = 'hud';
@@ -576,44 +584,47 @@ function hudInit() {
 }
 
 function scoreUpdate() {
-  p.id = 'hud-score';
-  p.innerText = `Score: ${myStatus.score}`;
+  let score = document.getElementById('hud-score');
+  score.innerText = `Score: ${myStatus.score}`;
 }
 
 function removeHeart() {
   let lives = document.getElementById('lives');
-  console.log('heart count',lives.childElementCount , myStatus.lives);
-
   while ( lives.childElementCount > myStatus.lives ) {
     lives.removeChild(lives.lastChild);
   }
 }
 
-function die(crashSite) {
-  removeEventListeners();
-  let bigHole = new Explosion(crashSite.x, crashSite.y, crashSite.velocity);
+function die(bigHole) {
+  // music
+  tunes.map((tune) => { tune.pause(); tune.currentTime = 0; });
+  tunes = [];
+
+  myShip.alive = false;
   bigHole.end = 50;
   explosions.push(bigHole);
-  myStatus.lives = myStatus.lives - 1;
+  myStatus.lives--;
+  playSound(fireball);
   removeHeart();
-  if (myStatus.lives === 0) {
-    gameOver();
-  } else {
-      // setTimeout causing multiple calls
-      // setTimeout(() => {
-        spawnMyShip();
-        console.log("about to spawn");
-      // }, 3000);
+
+  setTimeout(() => {
+    if (myStatus.lives < 1) {
+      gameOver();
+    } else {
+      spawnMyShip();
     }
+  }, 3000);
 }
 
 function gameOver() {
 
   // TODO: handle score
+  let hud = document.getElementById('hud');
+  document.body.removeChild(hud);
 
   setTimeout(() => {
     newGame();
-  }, 5000);
+  }, 2000);
 }
 
 // -----------    functions: event listeners    ------------------//
@@ -641,13 +652,20 @@ const controller = {
 // event listeners
 function controls (e) {
   switch (e.key) {
+    case 'm':
+    case 'M':
+      if (!e.repeat) { toggleMusic() };
+      break;
+
     case 'W':
     case 'ArrowUp':
-    case 'w': controller.thrust.pressed = true; break;
+    case 'w': controller.thrust.pressed = true;
+      break;
 
     case 'A':
     case 'ArrowLeft':
-    case 'a': controller.rotateL.pressed = true; break;
+    case 'a': controller.rotateL.pressed = true;
+      break;
 
     case 'S':
     case 'ArrowDown':
@@ -658,9 +676,12 @@ function controls (e) {
 
     case 'D':
     case 'ArrowRight':
-    case 'd': controller.rotateR.pressed = true; break;
+    case 'd': controller.rotateR.pressed = true;
+      break;
 
-    case ' ': controller.shoot.pressed = true; break;
+    case ' ': controller.shoot.pressed = true;
+      break;
+
     default: break;
   }
 }
@@ -694,13 +715,15 @@ function setEventListeners() {
   document.addEventListener("keyup", keyupControls);
   document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
   document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
+
+  document.addEventListener('mousedown', (e) => {e.preventDefault();});
 }
 
 function removeEventListeners() {
-  document.addEventListener("keydown", controls);
-  document.addEventListener("keyup", keyupControls);
-  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
+  document.removeEventListener("keydown", controls);
+  document.removeEventListener("keyup", keyupControls);
+  document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
+  document.removeEventListener('mouseup', () => { controller.shoot.pressed = false });
 }
 
 
@@ -731,3 +754,26 @@ function clamp(num, min, max) {
   // limits num to between min and max
   return Math.min(Math.max(num, min), max);
 }
+
+let tunes = [];
+let backgroundMusic = './assets/sounds/51239__rutgermuller__8-bit-electrohouse.wav';
+let fireball = './assets/sounds/fireball.mp3';
+
+function playSound(url, repeat) {
+  const audio = new Audio(url);
+  audio.play();
+  if (repeat) audio.loop = true;
+  tunes.push(audio);
+}
+
+let music = true;
+function toggleMusic() {
+  if (music = true) {
+    music = false;
+    tunes.map((tune) => { tune.pause(); tune.currentTime = 0; });
+    tunes = [];
+  } else {
+    music = true;
+    playSound(backgroundMusic);
+    }
+  }
