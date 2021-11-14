@@ -1,9 +1,6 @@
 'use strict';
 // -----------    Variables    ------------------//
 
-// // Debug info box
-// const score = document.getElementById('score');
-
 let viewportWidth; // from browser
 let viewportHeight;
 let viewportX; // top left of viewport
@@ -238,7 +235,8 @@ window.onload = () => { newGame() };
 function newGame() {
   resizeCanvas();
   resetScore();
-  spawnAll();
+  spawnEnvironment();
+  spawnMyShip()
   hudInit();
   window.requestAnimationFrame(gameLoop);
 }
@@ -247,17 +245,17 @@ function newGame() {
 
 function gameLoop(timestamp) {
 fps = 1000 / (timestamp - lastRender);
-  if (myShip.alive = true)  checkControls();
+  checkControls();
   updatePositions();
   drawAll();
-  if (myShip.alive = true)  scoreUpdate();
+  if (myShip.alive === true) scoreUpdate();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop)
 }
 
 // -----------    functions: Spawn Components    ------------------ //
 
-function spawnAll() {
+function spawnEnvironment() {
   // stars
   for (let x = 0; x < noOfStars; x++) {
     starfield.push(new Star());
@@ -267,7 +265,6 @@ function spawnAll() {
     asteroids.push(new Asteroid());
   }
   // myShip
-  spawnMyShip();
 }
 
 function spawnMyShip() {
@@ -277,7 +274,7 @@ function spawnMyShip() {
   myShip.alive = true;
 
   // check for proximity of asteroids
-  if (distToNearestObj(400).collision === true) warp();
+  if (distToNearestObj(400).collision === true) warp(400);
   myShip.velocity = new Vector(3/2*Math.PI, 20);
 };
 
@@ -295,16 +292,16 @@ function distToNearestObj(buffer = 0) {
   return {
     collision,
     nearestObj,
-    nearestDist
+    // nearestDist
   }
 }
 
-function warp() {
+function warp(buffer) {
   do {
     myShip.x = randomX();
     myShip.y = randomY();
   }
-  while (distToNearestObj().collision === true)
+  while (distToNearestObj(buffer).collision === true)
 }
 
 function checkControls() {
@@ -337,11 +334,8 @@ function updateMyShip() {
     case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
   }
 
-  asteroids.forEach((asteroid) => {
-    if (Math.sqrt((myShip.x - asteroid.x) ** 2 + (myShip.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - myShip.size / 2 < 0) {
-      die(new Explosion(myShip.x, myShip.y, asteroid.velocity));
-    }
-  });
+  if (distToNearestObj().collision === true) die(new Explosion(myShip.x, myShip.y, distToNearestObj().nearestObj.velocity));
+
 }
 
 function updateViewport() {
@@ -572,7 +566,7 @@ function drawPerimeter() {
 
 function resetScore() {
   myStatus.score = 0;
-  myStatus.lives = 2;
+  myStatus.lives = 5;
 }
 
 function hudInit() {
@@ -611,29 +605,25 @@ function removeHeart() {
 }
 
 function die(bigHole) {
-  // music
-  tunes.map((tune) => { tune.pause(); tune.currentTime = 0; });
-  tunes = [];
-
   myShip.alive = false;
   bigHole.end = 50;
   explosions.push(bigHole);
-  myStatus.lives--;
   playSound(fireball);
+  myStatus.lives--;
   removeHeart();
-
+  if (myStatus.lives < 1) {
   setTimeout(() => {
-    if (myStatus.lives < 1) {
-      gameOver();
-    } else {
-      spawnMyShip();
-    }
+    gameOver();
+  }, 2000);
+} else {
+  setTimeout(() => {
+    spawnMyShip();
   }, 3000);
+    }
 }
 
 function gameOver() {
 
-  // TODO: handle score
   let hud = document.getElementById('hud');
   document.body.removeChild(hud);
 
@@ -748,8 +738,7 @@ function removeEventListeners() {
   document.removeEventListener('mouseup', () => { controller.shoot.pressed = false });
 }
 
-
-// // -----------    functions: helper functions    ------------------//
+// -----------    functions: helper functions    ------------------//
 
 function resizeCanvas() { // incase window size changes during play
 
