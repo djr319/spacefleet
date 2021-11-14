@@ -300,10 +300,11 @@ function distToNearestObj(buffer = 0) {
 }
 
 function warp() {
-  while (distToNearestObj().collision === true) {
+  do {
     myShip.x = randomX();
     myShip.y = randomY();
   }
+  while (distToNearestObj().collision === true)
 }
 
 function checkControls() {
