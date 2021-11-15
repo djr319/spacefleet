@@ -5,12 +5,18 @@ html, body {
 
 body {overflow: hidden;}
 
-/* #score {
-  position: absolute;
-  top: 30px;
-  left: 30px;
+#splash {
+position: absolute;
+display: flex;
+align-items: center;
+justify-content: center;
+top:0;
+left: 0;
+width: 100vw;
+height: 100vh;
+background: rgba(0,0,102,0.9);
 color: white;
-} */
+}
 
 #gameover {
   z-index: 10;

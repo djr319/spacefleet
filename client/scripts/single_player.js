@@ -233,6 +233,7 @@ let myStatus = {
 window.onload = () => { newGame() };
 
 function newGame() {
+  hideMouse();
   resizeCanvas();
   resetScore();
   spawnEnvironment();
@@ -622,11 +623,17 @@ function die(bigHole) {
     }
 }
 
+function abortGame() {
+// TODO Abort game
+  showMouse();
+  // go to lobby
+}
+
 function gameOver() {
 
   let hud = document.getElementById('hud');
   document.body.removeChild(hud);
-
+  showMouse();
   // local storage
   const pb = localStorage.getItem('pb');
   if (myStatus.score > pb) {
@@ -728,7 +735,12 @@ function setEventListeners() {
   document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
   document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
 
-  document.addEventListener('mousedown', (e) => {e.preventDefault();});
+  document.addEventListener('mousedown', (e) => { e.preventDefault(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === 'Escape') {
+      abortGame();
+     }
+  });
 }
 
 function removeEventListeners() {
@@ -736,6 +748,14 @@ function removeEventListeners() {
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
   document.removeEventListener('mouseup', () => { controller.shoot.pressed = false });
+}
+
+function hideMouse() {
+  document.body.style.cursor = 'none';
+}
+
+function showMouse() {
+  document.body.style.cursor = 'auto';
 }
 
 // -----------    functions: helper functions    ------------------//
