@@ -1,9 +1,28 @@
 
-const http = require('http');
 const express = require('express');
+const http = require('http');
+const { Server } = require("socket.io");
 
-const PORT = 5000;
 const app = express();
-const server = http.createServer(app);
+const httpServer = http.createServer(app);
+const io = new Server(httpServer);
+// const socketRouter = require('./socketRouter');
 
-server.listen(PORT, () => { console.log(`app listening on http://localhost:${PORT}  🚀`);});
+// ------------ sockets ---------- //
+io.on('connection', (socket) => {
+  console.log(socket.id);
+  // socketRouter(socket);
+});
+
+// ------------ http static ---------- //
+const PORT = 5000;
+app.use(express.static('./views'));
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/views/index.html');
+});
+
+httpServer.listen(PORT, () => {
+  console.log(`app listening on http://localhost:${PORT}  🚀`);
+});

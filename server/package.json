@@ -3,17 +3,15 @@
   "version": "1.0.0",
   "description": "Backend express server for sockets.io",
   "private": true,
-    "scripts": {
+  "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "David Ryan",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
     "express": "^4.17.1",
     "http": "^0.0.1-security",
     "nodemon": "^2.0.15",
-    "socket.io": "^4.3.2",
-    "uuid": "^8.3.2"
+    "socket.io": "^4.3.2"
   }
 }
