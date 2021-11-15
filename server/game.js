@@ -1,20 +1,19 @@
-// init field - may come from backend
+const { socketRouter } = require('./socketRouter');
+
+// init field
 const fps = 60;
 const bullets = [];
 const explosions = [];
 const ships = [];
 const fieldX = 5000;
 const fieldY = 5000;
-const starfield = [];
-const noOfStars = 1000;
 const asteroids = [];
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 20;
 const fieldBuffer = Math.max(50, asteroidMaxSize * asteroidScale); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
-if (viewportBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("viewportBuffer too large") };
-let lastShot = new Date();
+
 
 // -----------    Objects    ------------------//
 class Vector {
@@ -57,22 +56,16 @@ class Ship extends Entity {
   constructor() {
     super();
     this.direction = 0;
-
-    // move some of these into myShip.. other ships will simply post their values
-    this.thrustValue = 0;
-    this.thrustMax = 10;
     this.width = 20;
     this.height = 40;
-    this.maxSpeed = 800;
-    this.rotationRate = 8;
-    this.ammo = 15;
     this.thruster = true;
+    this.shields = 10;
+    this.user;
   }
 
   get size() {
     return Math.max(this.width, this.height);
   }
-
 }
 
 class Bullet extends Entity {
@@ -80,7 +73,8 @@ class Bullet extends Entity {
     super();
     this.originX = 0;
     this.originY = 0;
-    this.reach = Math.min(viewportWidth/1.5, viewportHeight/1.5, 600);
+    this.reach = Math.min(viewportWidth / 1.5, viewportHeight / 1.5, 600);
+    this.owner;
   }
 }
 
@@ -115,9 +109,10 @@ class Asteroid extends Entity {
 }
 
 // ---------------   Game --------------- //
+game();
 function game() {
   console.log('Game is running');
-  spawnEnvironment();
+  spawnAsteroids();
   gameLoop();
 };
 
@@ -128,14 +123,16 @@ function gameLoop() {
   setInterval(gameLoop, 1000 / fps);
 }
 
-function spawnEnvironment() {
-  // stars
-  for (let x = 0; x < noOfStars; x++) {
-    starfield.push(new Star());
-  }
-  // asteroids
-  for (let x = 0; x < noOfAsteroids; x++) {
-    asteroids.push(new Asteroid());
+function receiveData() { };
+function transmitData() { };
+
+function spawnAsteroids(offscreen) {
+  while (asteroids.length < noOfAsteroids) {
+    let newAsteroid = new Asteroid()
+    if (offscreen = true) {
+      newAsteroid.x = -asteroidMaxSize * asteroidScale;
+    }
+    asteroids.push();
   }
 }
 
@@ -145,7 +142,8 @@ let scoreTable = {
   3: 200,
   2: 300,
   1: 500,
-  'enemy': 5000
+  'hurtEnemy': 1000,
+  'killEnemy': 5000
 }
 
 function spawnShip() {
@@ -190,31 +188,16 @@ function warp(ship, buffer) {
 function updatePositions() {
   ships.forEach((ship) => {
     if (ship.alive = true) {
-      updateMyShip();
+      updateShip();
     }
   });
-  if (ship.alive === true) updateShip(ship);
-  updateViewport();
   updateAsteroids();
   updateBullets();
   updateExplosion();
 };
 
-function updateShip(ship) {
-  ship.x = ship.x + ship.velocity.x / fps;
-  ship.y = ship.y + ship.velocity.y / fps;
-  // wall collision: vector to push away from walls
-  switch (true) {
-    case ship.x < ship.size/2: ship.velocity = new Vector(0,20); break;
-    case ship.x > fieldX - ship.size/2: ship.velocity = new Vector(Math.PI,20); break;
-    case ship.y < ship.size/2: ship.velocity = new Vector(Math.PI * 0.5, 20); break;
-    case ship.y > fieldY - ship.size/2: ship.velocity = new Vector(Math.PI * 1.5,20); break;
-  }
-
-  if (distToNearestObj().collision === true) die(new Explosion(ship.x, ship.y, distToNearestObj().nearestObj.velocity));
-}
-
 function updateAsteroids() {
+  spawnAsteroids();
   asteroids.forEach((el, index) => {
     if (el.strenth = 0) {
       el.split();
@@ -231,6 +214,8 @@ function updateAsteroids() {
     if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
     if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
   })
+
+
 }
 
 function updateBullets() {
@@ -238,11 +223,35 @@ function updateBullets() {
   bullets.forEach((bullet) => {
     bullet.x = bullet.x + bullet.velocity.x / fps;
     bullet.y = bullet.y + bullet.velocity.y / fps;
-    checkKills();
+    checkAsteroidHit();
+    checkEnemyHit();
   });
 }
 
-function checkKills() {
+function checkEnemyHit() {
+  // ship / bullet collision detection
+  bullets.forEach((bullet, bulletIndex) => {
+    ships.forEach((ship, shipIndex) => {
+      let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
+      if (distance < 0) {
+        ship.shield--;
+        if (ship.shields < 1) {
+          // ship has been killed
+          die(shipIndex);
+          // add score to the one shooting
+          users[bullet.owner].score += score.killEnemy;
+          explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
+          ships.splice(shipIndex,1);
+        } else {
+          users[bullet.owner].score += score.hurtEnemy;
+        }
+        bullets.splice(bulletIndex, 1);
+      }
+    });
+  });
+}
+
+function checkAsteroidHit() {
   // asteroid / bullet collision detection
   bullets.forEach((bullet, bulletIndex) => {
   asteroids.forEach((asteroid, asteroidIndex) => {
@@ -265,36 +274,6 @@ function checkKills() {
 });
 };
 
-function updateExplosion() {
-  explosions.forEach((exp, index) => {
-    exp.x = exp.x + exp.velocity.x / fps;
-    exp.y = exp.y + exp.velocity.y / fps;
-    exp.size = exp.size + 1;
-    if (exp.size > exp.end) {
-      explosions.splice(index, 1);
-    }
-  });
-}
-
-function die(bigHole) {
-  myShip.alive = false;
-  bigHole.end = 50;
-  explosions.push(bigHole);
-  playSound(fireball);
-  myStatus.lives--;
-  removeHeart();
-  if (myStatus.lives < 1) {
-  setTimeout(() => {
-    gameOver();
-  }, 2000);
-} else {
-  setTimeout(() => {
-    spawnMyShip();
-  }, 3000);
-    }
-}
-
-
 function randomX() {
   // returns a random x value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldX - 2 * fieldBuffer));
@@ -309,11 +288,3 @@ function clamp(num, min, max) {
   // limits num to between min and max
   return Math.min(Math.max(num, min), max);
 }
-
-
-
-
-
-
-
-module.exports = game;

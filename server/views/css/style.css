@@ -22,7 +22,7 @@ left: 0;
 width: 100vw;
 height: 100vh;
 z-index: 100;
-background: rgba(0,0,200,0.1);
+background: rgba(0,0,200,0.8);
 color: white;
 transition: all 2s;
 }

@@ -19,4 +19,11 @@ By the wonders of the modern internet, it would be great to be able to play this
 - The front end is vanilla JS with `Canvas API`
 - The client connects to the backend server with `socket.io`
 -  The backend creates the gaming environment and physics with pure vanilla JS
-- `Webpack` package manager was used to bundle  
+- `Webpack` package manager was used to bundle
+
+## Further Reading
+
+### Libraries
+- https://brm.io/matter-js/ (2D physics engine)
+- https://threejs.org/ (3D rendering)
+- https://phaser.io/ (HTML5 Game framework)

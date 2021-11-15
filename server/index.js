@@ -6,12 +6,12 @@ const { Server } = require("socket.io");
 const app = express();
 const httpServer = http.createServer(app);
 const io = new Server(httpServer);
-// const socketRouter = require('./socketRouter');
+const { socketRouter } = require('./socketRouter');
+require('./game');
 
 // ------------ sockets ---------- //
 io.on('connection', (socket) => {
-  console.log(socket.id);
-  // socketRouter(socket);
+  socketRouter(socket);
 });
 
 // ------------ http static ---------- //
