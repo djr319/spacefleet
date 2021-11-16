@@ -6,8 +6,8 @@ const { Server } = require("socket.io");
 const app = express();
 const httpServer = http.createServer(app);
 const io = new Server(httpServer);
-const { socketRouter } = require('./socketRouter');
-require('./game');
+const { socketRouter } = require('./models/socket-controller');
+require('./models/game-controller');
 
 // ------------ sockets ---------- //
 io.on('connection', (socket) => {
