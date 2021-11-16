@@ -1,3 +1,5 @@
+
+
 // ---------------   Imports  --------------- //
 const { socketRouter } = require('./socket-controller');
 import { Vector, Entity } from './Vector';
@@ -7,6 +9,8 @@ const { User, users } = require ('../components/user')
 const { Bullet, bullets, explosions } = require ('../components/bullets')
 
 
+
+function setBroadcast(dsdsadas);
 // ---------------   Variables  --------------- //
 const fps = 1; // 60
 const fieldX = 5000;
@@ -16,10 +20,11 @@ const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spaw
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 
 // ---------------   Game --------------- //
-
-console.log('Game started');
-setInterval(() => { console.log("Still here " + new Date().getMinutes() );}, 10000);
-gameLoop();
+function game() {
+  console.log('Game started');
+  setInterval(() => { console.log("Still here " + new Date().getMinutes() );}, 10000);
+  gameLoop();
+}
 
 function gameLoop() {
   // receiveData();
@@ -192,3 +197,5 @@ function randomY() {
     // returns a random y value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
+
+Module.exports = game;
