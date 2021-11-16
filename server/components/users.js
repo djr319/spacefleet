@@ -1,4 +1,4 @@
-// const users = [];
+const users = [];
 
 class User {
   constructor(id) {
@@ -18,7 +18,7 @@ function addUser(id) {
 
 }
 
-export default {
+export {
   User,
-  users: []
+  users
 };

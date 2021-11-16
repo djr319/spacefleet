@@ -1,16 +1,13 @@
 
 
-// ---------------   Imports  --------------- //
-const { socketRouter } = require('./socket-controller');
-import { Vector, Entity } from './Vector';
-const { Asteroid, asteroids, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require('../components/asteroids');
-const { Ship, ships } = require ('../components/ships')
-const { User, users } = require ('../components/user')
-const { Bullet, bullets, explosions } = require ('../components/bullets')
+// ---------------   consts  --------------- //
+const socketRouter = require ( './socket-controller');
+const { Vector, Entity } = require ( '../components/vector');
+const { Asteroid, asteroids, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require ( '../components/asteroids');
+const { Ship, ships } = require ( '../components/ships');
+const { User, users } = require ( '../components/users');
+const { Bullet, bullets, explosions } = require ( '../components/bullets');
 
-
-
-function setBroadcast(dsdsadas);
 // ---------------   Variables  --------------- //
 const fps = 1; // 60
 const fieldX = 5000;
@@ -29,6 +26,11 @@ function game() {
 function gameLoop() {
   // receiveData();
   updatePositions();
+
+
+  // socketRouter.broadcast('message');
+
+
   // transmitData();
   setInterval(gameLoop, 1000 / fps);
 }
@@ -198,4 +200,4 @@ function randomY() {
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
 
-Module.exports = game;
+Modules.export = game;

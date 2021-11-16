@@ -1,5 +1,5 @@
-import Vector from './Vector';
-
+const Vector = require('./Vector');
+const asteroids = [];
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 20;
@@ -37,9 +37,9 @@ class Asteroid {
   }
 }
 
-export default {
+module.export {
   Asteroid,
-  asteroids: [],
+  asteroids,
   asteroidScale,
   asteroidMaxSize,
   noOfAsteroids,

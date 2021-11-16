@@ -1,6 +1,7 @@
-import Vector from './Vector';
+const Vector = require('./Vector');
 
-// const bullets = [];
+const bullets = [];
+const explosions = [];
 
 class Bullet extends Entity {
   constructor() {
@@ -14,8 +15,8 @@ class Bullet extends Entity {
   }
 }
 
-export default {
+export {
   Bullet,
-  bullets: [],
-  explosions: []
+  bullets,
+  explosions
 };

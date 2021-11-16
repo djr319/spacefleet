@@ -1,6 +1,6 @@
-import Vector from './Vector';
 
-// const ships = [];
+const Vector = require('./Vector');
+const ships = [];
 
 class Ship {
   constructor() {
@@ -21,7 +21,7 @@ class Ship {
   }
 }
 
-export default {
+export {
   Ship,
-  ships: []
+  ships
 };

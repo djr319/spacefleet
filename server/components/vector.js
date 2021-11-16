@@ -34,7 +34,4 @@ class Entity {
   }
 }
 
-export default {
-  Vector,
-  Entity
-}
+export { Vector, Entity };

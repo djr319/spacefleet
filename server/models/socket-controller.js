@@ -1,29 +1,36 @@
+const {io} = require('../index');
 const connections = [];
-
-function addConnection(socket) {
-  console.log('A user connected, id: ' + socket.id);
-  connections.push(socket);
-}
-
-function removeConnection(socket) {
-  connections.splice(connections.indexOf(socket), 1);
-}
 
 function playersOnline() {
   return connections.length;
 }
 
-function socketRouter(socket, io) {
-  // socket.join('default-room');
-  console.log('User connected: ' + socket.id);
-  addConnection(socket.id);
+function INCOMING_REQUEST_FROM_GAME(data) {
+  // called by a game method when it wants to transmit to clients
+  // io.emit(data);
+}
 
-  // ---------- receive ---------- //
-  socket.on('join', (name) => {
-    sendToast(name + ' joined the game');
+io.on('connection', (socket) => {
+  connections.push(socket.id);
+
+  socket.on('disconnect', function () {
+    console.log('User disconnected: ' + socket.id);
+    connections.splice(connections.indexOf(socket), 1);
   });
 
-  socket.on('shipUpdate', (bullet) => {
+  socket.on('join', (name) => {
+    console.log('User connected: ' + socket.id);
+    sendToast(io, `${name} joined the game`);
+  });
+
+});
+
+// ---------- receive ---------- //
+
+
+function socketRouter() {
+
+  socket.on('shipUpdate', (ship) => {
 
   });
 
@@ -31,16 +38,11 @@ function socketRouter(socket, io) {
 
   });
 
-  socket.on('disconnect', function (socket) {
-    console.log('User disconnected: ' + socket.id);
-    removeConnection(socket);
-  });
-
   // ---------- send ---------- //
 
-  function sendToast(message) {
-    socket.broadcast.emit('toast', message);
-  };
+  // function (message) {
+  //   io.broadcast.emit('toast', message);
+  // };
 
   // function sendToast(message) {
   //   socket.broadcast.emit('toast', message);
@@ -48,32 +50,23 @@ function socketRouter(socket, io) {
   // }
 
   function sendShips(positions) {
-    socket.broadcast.emit('ships', positions);
+    io.broadcast.emit('ships', positions);
   }
 
   function sendAsteroids(positions) {
-    socket.broadcast.emit('asteroids', positions);
+    io.broadcast.emit('asteroids', positions);
   }
 
   function sendBullets(positions) {
-    socket.broadcast.emit('bullets', positions);
+    io.broadcast.emit('bullets', positions);
   }
 
   function sendExplosions(positions) {
-    socket.broadcast.emit('explosions', positions);
+    io.broadcast.emit('explosions', positions);
   }
 
   function sendScores(scores) {
-    socket.broadcast.emit('scores', scores);
+    io.broadcast.emit('scores', scores);
   }
-
-  function INCOMING_REQUEST_FROM_GAME(data) {
-    // called by a game method when it wants to transmit to clients
-    socket.emit(data)
-  }
-
-  // return {
-  // }
-
 }
-export default socketRouter;
+Modules.export = socketRouter;
