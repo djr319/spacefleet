@@ -1,27 +1,13 @@
-
-const Vector = require('./Vector');
-const ships = [];
-
 class Ship {
   constructor() {
-    this.x = 0;
-    this.y = 0;
-    this.velocity = new Vector(0, 0);
+    this.x;
+    this.y;
     this.direction = 0;
-    this.width = 20;
-    this.height = 40;
-    this.thruster = true;
-    this.shields = 10;
-    this.user;
+    this.alive = true;
     this.socket;
-  }
-
-  get size() {
-    return Math.max(this.width, this.height);
+    this.user;
+    this.thruster = true;
   }
 }
 
-export {
-  Ship,
-  ships
-};
+module.exports = Ship;

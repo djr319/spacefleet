@@ -1,5 +1,4 @@
-const Vector = require('./Vector');
-const asteroids = [];
+const { Vector } = require('./Vector');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 20;
@@ -9,9 +8,6 @@ class Asteroid {
   constructor(x,y,v,s) {
     this.x = 0;
     this.y = 0;
-    this.velocity = new Vector(0, 0);
-    this.x = x || randomX();
-    this.y = y || randomY();
     this.velocity = v || new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
     this.size = s || asteroidMaxSize;
     this.strength = 5 + this.size * 5;
@@ -37,9 +33,8 @@ class Asteroid {
   }
 }
 
-module.export {
+module.exports = {
   Asteroid,
-  asteroids,
   asteroidScale,
   asteroidMaxSize,
   noOfAsteroids,

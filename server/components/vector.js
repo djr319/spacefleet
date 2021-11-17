@@ -34,4 +34,4 @@ class Entity {
   }
 }
 
-export { Vector, Entity };
+module.exports = { Vector, Entity };
