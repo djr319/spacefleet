@@ -22,7 +22,6 @@ function newGame() {
 
 function gameLoop(timestamp) {
   fps = 1000 / (timestamp - lastRender);
-  console.log('myShip', myShip);
   checkControls();
   updatePositions();
   drawAll();
@@ -43,6 +42,19 @@ window.addEventListener('DOMContentLoaded', () => {
     joinGame();
   });
 });
+
+function reportToServer() {
+
+  sendStatus('ship', {
+    x : myShip.x,
+    y : myShip.y,
+    direction : myShip.direction
+  });
+
+}
+  /*
+  shoot: x,y,velocity, (timestamp?)
+  */
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -77,12 +89,18 @@ function checkControls() {
   if (controller.thrust.pressed === false) {
     myShip.coast();
   }
+  reportToServer();
 }
 
 // -----------    functions: calculate positions    ------------------//
 
+function warp() {
+  // request from server
+  sendStatus('warp', 'dummy');
+}
+
 function updatePositions() {
-  // updateMyShip();
+  updateMyShip();
   // if (myStatus.alive === true) updateMyShip();
   updateViewport();
 //   updateAsteroids();
@@ -369,7 +387,7 @@ const controller = {
 }
 
 // event listeners
-controller.input = function controls (e) { // was controls
+const controls = function (e) {
   switch (e.key) {
     case 'm':
     case 'M':
@@ -405,7 +423,7 @@ controller.input = function controls (e) { // was controls
   }
 }
 
-controller.keyupControls = function (e) { // was keyupControls
+const keyupControls = function (e) { // was keyupControls
 
   switch (e.key) {
     case 'W':

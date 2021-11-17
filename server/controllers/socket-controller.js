@@ -43,15 +43,29 @@ function socketHandler(socketServer) {
 // ---------- receive ---------- //
 
     socket.on('ship', (ship) => {
-      console.log(ship);
+
       let thisShip = ships.filter(obj => {
         return obj.id === socket.id;
       })
+
       thisShip.x = ship.x;
       thisShip.y = ship.y;
-      thisShip.velocity = ship.velocity;
       thisShip.direction = ship.direction;
       thisShip.socket = socket.id;
+      // array updated OK
+    });
+
+    socket.on('warp', (ship) => {
+      let thisShip = ships.filter(obj => {
+        return obj.id === socket.id;
+      })
+      warp(thisShip);
+      socket.emit("warp",
+        {
+          x: myShip.x,
+          y: myShip.y
+        }
+      );
     });
 
     socket.on('shoot', (bullet) => {

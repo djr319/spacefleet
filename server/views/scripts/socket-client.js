@@ -11,7 +11,6 @@ socket.on("connect", () => {
   */
 function sendStatus(type, object) {
   socket.emit(type, object) // all buffered are sent
-  console.log(type + " status sent");
 }
   /*
   ship: x,y,velocity, direction (socketId is automatic)
@@ -77,6 +76,11 @@ socket.on('newGame', (data) => {
   myShip.y = data.y;
   console.log('myShip', myShip);
   newGame();
+});
+
+socket.on('warp', (data) => {
+  myShip.x = data.x;
+  myShip.y = data.y;
 });
 
 socket.on('bullets', (data) => {
