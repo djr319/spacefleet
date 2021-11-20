@@ -10,6 +10,7 @@ function resetStatus() {
 let camera = new Entity();
 
 function newGame() {
+  // canvas.requestFullscreen()
   // hideMouse();
   resetStatus();
   resizeCanvas();
@@ -18,6 +19,9 @@ function newGame() {
   window.requestAnimationFrame(gameLoop);
 }
 
+function exitGame() {
+  // Document.exitFullscreen()
+};
 // ----------------------    GAME LOOP    ---------------------------- //
 
 function gameLoop(timestamp) {
@@ -45,16 +49,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function reportToServer() {
 
-  sendStatus('ship', {
+  sendUpdate('ship', {
     x : myShip.x,
     y : myShip.y,
-    direction : myShip.direction
+    direction: myShip.direction,
+    thruster: myShip.thruster
   });
 
 }
-  /*
-  shoot: x,y,velocity, (timestamp?)
-  */
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;

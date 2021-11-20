@@ -22,7 +22,7 @@ const asteroidScale = 20;
 
 // -----------    Storage    ------------------//
 const ships = [];
-const bullets = [];
+const myBullets = [];
 const explosions = [];
 const asteroids = [];
 let scores = [];
@@ -97,7 +97,6 @@ class Ship extends Entity {
   constructor() {
     super();
     this.direction = 0;
-    this.alive = true;
     this.socket;
     this.user;
     this.thruster = false;
@@ -118,7 +117,7 @@ class MyShip extends Ship {
     shoot = () => {
       // rate control
       const now = new Date();
-      if (now - lastShot < 20 || this.alive === false) {
+      if (now - lastShot < 20 || myStatus.alive === false) {
         return;
       }
 
@@ -139,7 +138,14 @@ class MyShip extends Ship {
         bullet.velocity.size = this.velocity.size + 600;
         bullet.originX = bullet.x;
         bullet.originY = bullet.y;
-        bullets.push(bullet);
+        myBullets.push(bullet);
+        sendUpdate('shot', {
+          x: bullet.x,
+          y: bullet.y,
+          velocity: bullet.velocity,
+          reach: bullet.reach
+        });
+
       }
       lastShot = now;
     }
@@ -183,7 +189,8 @@ class MyShip extends Ship {
       super();
       this.originX = 0;
       this.originY = 0;
-    this.reach = Math.min(viewportWidth/1.5, viewportHeight/1.5, 600);
+
+    this.reach = 600;
   }
 }
 

@@ -2,8 +2,6 @@
 
 This is a remake of one of the earliest games available on Atari computers, Asteroids.
 
-![download](S:\codeworks\Senior\spacefleet\download.png)
-
 By the wonders of the modern internet, it would be great to be able to play this as a multiplayer game.
 
 # Install
@@ -18,12 +16,12 @@ By the wonders of the modern internet, it would be great to be able to play this
 
 - The front end is vanilla JS with `Canvas API`
 - The client connects to the backend server with `socket.io`
--  The backend creates the gaming environment and physics with pure vanilla JS
-- `Webpack` package manager was used to bundle
+- The backend creates the gaming environment and physics with pure vanilla JS
 
 ## Further Reading
 
-### Libraries
+If you are interested in forking and taking this further, the following libraries may be of interest:
+
 - https://brm.io/matter-js/ (2D physics engine)
 - https://threejs.org/ (3D rendering)
 - https://phaser.io/ (HTML5 Game framework)

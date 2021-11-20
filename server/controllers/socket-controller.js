@@ -1,6 +1,6 @@
 // const io = require("socket.io-client");
 // const outbound = io("http://localhost:3000");
-
+const Bullet = require('../components/bullets');
 const {
   asteroids,
   bullets,
@@ -38,6 +38,16 @@ function socketHandler(socketServer) {
       );
       // message all other users that user joined game
       socket.broadcast.emit("toast", `${name} joined the game`);
+      socket.broadcast.emit("newShip",
+        {
+          x: myShip.x,
+          y: myShip.y,
+          direction: 0,
+          socket: socket.id,
+          user: name,
+          thruster: false
+        }
+      );
       socket.emit("toast", 'Game joined');
     });
 // ---------- receive ---------- //
@@ -52,7 +62,15 @@ function socketHandler(socketServer) {
       thisShip.y = ship.y;
       thisShip.direction = ship.direction;
       thisShip.socket = socket.id;
+      thisShip.thruster = ship.thruster
       // array updated OK
+      socket.broadcast.emit("ship", {
+        x: thisShip.x,
+        y: thisShip.y,
+        direction: thisShip.direction,
+        socket: socket.id,
+        thruster: thisShip.thruster
+      });
     });
 
     socket.on('warp', (ship) => {
@@ -68,19 +86,17 @@ function socketHandler(socketServer) {
       );
     });
 
-    socket.on('shoot', (bullet) => {
+    socket.on('shot', (bullet) => {
       const newBullet = new Bullet();
       newBullet.x = bullet.x;
       newBullet.y = bullet.y;
       newBullet.velocity = bullet.velocity;
-      newBullet.originX = bullet.x;
-      newBullet.originY = bullet.y;
+      newBullet.user = socket.id;
+      newBullet.reach = bullet.reach
       bullets.push(newBullet);
     });
   });
 };
-
-
 
 module.exports = socketHandler;
 

@@ -18,7 +18,6 @@ function sendStatus(type, object) {
   */
 function sendUpdate(type, object) {
   socket.volatile.emit(type, object) // will only send lastest, no buffering
-  console.log(type + "update sent");
 }
 
 // -------------       Receive       -----------  //
@@ -32,7 +31,6 @@ function sendUpdate(type, object) {
   bullets
 */
 socket.on('toast', (data) => {
-  console.log("toast received");
   Toastify({
     text: data,
     duration: 3000
@@ -74,7 +72,6 @@ socket.on('asteroids', (data) => {
 socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
-  console.log('myShip', myShip);
   newGame();
 });
 
@@ -87,4 +84,25 @@ socket.on('bullets', (data) => {
 
 });
 
+socket.on('ship', (ship) => {
+  let thisShip = ships.filter(obj => {
+    return socket === ship.socket;
+  })
+  thisShip.x = ship.x;
+  thisShip.y = ship.y;
+  thisShip.direction = ship.direction;
+  thisShip.socket = socket.id;
+  thisShip.thruster = ship.thruster
+});
 
+socket.on('newShip', (ship) => {
+  let thisShip = new Ship;
+  thisShip.x = ship.x;
+  thisShip.y = ship.y;
+  thisShip.direction = ship.direction;
+  thisShip.socket = socket.id;
+  thisShip.user = ship.user;
+  thisShip.thruster = ship.thruster
+  ships.push(thisShip);
+  console.log("New Version of SHIP array", ships);
+});
