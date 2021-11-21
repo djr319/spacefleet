@@ -1,6 +1,8 @@
 
 // ----------------------    Start Game   ----------------------------//
 
+let reportRate = 30;
+
 function resetStatus() {
   myStatus.score = 0;
   myStatus.lives = 5;
@@ -16,6 +18,10 @@ function newGame() {
   resizeCanvas();
   hudInit();
 
+  setInterval(() => {
+    reportToServer();
+  }, reportRate);
+
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -30,47 +36,25 @@ function gameLoop(timestamp) {
   updatePositions();
   drawAll();
   lastRender = timestamp;
-  window.requestAnimationFrame(gameLoop)
+  window.requestAnimationFrame(gameLoop);
 }
 
-// -----------    functions: Spawn Components    ------------------ //
+// ---------------------    Initialize canvas    --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
+
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d', { alpha: false });
   makeStarField();
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+
+  // ------------------    User name / Join game    ------------------ //
   document.getElementById('name').value = sessionStorage.getItem('name');
   document.getElementById('join').addEventListener('click', () => {
     joinGame();
   });
 });
-
-function reportToServer() {
-
-  sendUpdate('ship', {
-    x : myShip.x,
-    y : myShip.y,
-    direction: myShip.direction,
-    thruster: myShip.thruster
-  });
-
-}
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.strokeStyle = 'black';
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function makeStarField() {
-  for (let x = 0; x < noOfStars; x++) {
-    starfield.push(new Star());
-  }
-}
 
 function joinGame() {
   let name = document.getElementById('name').value || '';
@@ -80,9 +64,35 @@ function joinGame() {
   setEventListeners();
 }
 
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.strokeStyle = 'black';
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+}
+
+function makeStarField() {
+  for (let x = 0; x < noOfStars; x++) {
+    starfield.push(new Star());
+  }
+}
+
 // function rejoin() {
 //   setEventListeners()
 // };
+
+function reportToServer() {
+    sendUpdate('ship', {
+      x : myShip.x,
+      y : myShip.y,
+      direction: myShip.direction,
+      thruster: myShip.thruster
+    });
+
+}
 
 function checkControls() {
   Object.values(controller).forEach(property => {
@@ -91,30 +101,29 @@ function checkControls() {
   if (controller.thrust.pressed === false) {
     myShip.coast();
   }
-  reportToServer();
-}
-
-// -----------    functions: calculate positions    ------------------//
-
-function warp() {
-  // request from server
-  sendStatus('warp', 'dummy');
 }
 
 function updatePositions() {
   updateMyShip();
-  // if (myStatus.alive === true) updateMyShip();
   updateViewport();
 //   updateAsteroids();
 //   updateBullets();
 //   updateExplosion();
 };
 
+// -----------    functions: update positions    ------------------//
+
+function warp() {
+  // request from server
+  sendStatus('warp', '');
+}
+
 function updateMyShip() {
 
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
   // wall collision: vector to push away from walls
+
   switch (true) {
     case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
     case myShip.x > fieldX - myShip.size/2: myShip.velocity = new Vector(Math.PI,20); break;
@@ -123,20 +132,6 @@ function updateMyShip() {
   }
 // TODO serverside
   // if (distToNearestObj().collision === true) die(new Explosion(ship.x, ship.y, distToNearestObj().nearestObj.velocity));
-}
-
-
-function updateViewport() {
-
-  if (myStatus.alive === true) {
-    // follow ship
-    camera.x = myShip.x;
-    camera.y = myShip.y;
-  }
-
-  // restrict viewport at bounderies
-  viewportX = clamp(camera.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
-  viewportY = clamp(camera.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
 }
 
 // function updateExplosion() {
@@ -160,7 +155,7 @@ function drawAll() {
   // render components
   drawStars();
   // drawBullets();
-  // drawAsteroids();
+  drawAsteroids();
   drawShips();
   drawPerimeter();
   // drawExplosions();
@@ -207,54 +202,69 @@ function drawStars() {
 
 function drawShips() {
 //   // will need to display all ships for multiplayer
-  if (myStatus.alive === true) ships.push(myShip);
-
+// if (myStatus.alive === true) ships.push(myShip);
+  drawShip(myShip);
   ships.forEach((ship) => {
-    // guard clause to check if ship is in the viewport
-    if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
-
-    // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
-    ctx.translate(ship.x-viewportX, ship.y-viewportY);
-    ctx.rotate(ship.direction);
-
-    // Draw ship
-    ctx.beginPath();
-    ctx.strokeStyle = '#555';
-    ctx.fillStyle = '#ccc';
-    ctx.lineWidth = '1';
-    ctx.moveTo(0, -ship.height / 2);
-    ctx.lineTo(ship.width / 2, ship.height / 2);
-    ctx.lineTo(0, ship.height * 0.3);
-    ctx.lineTo(-ship.width / 2, ship.height / 2);
-    ctx.lineTo(0, -ship.height / 2);
-    ctx.fill();
-    ctx.closePath();
-
-    // Draw thrust flame
-    if (ship.thruster) {
-      ctx.beginPath();
-      ctx.strokeStyle = "#FFA500";
-      ctx.fillStyle = "#FF0";
-      ctx.moveTo(0, 23);
-      ctx.lineTo(ship.width / 4, 25);
-      ctx.lineTo(0, 30);
-      ctx.lineTo(-ship.width / 4, 25);
-      ctx.lineTo(0, 23);
-      ctx.fill();
-      ctx.stroke();
-      ctx.closePath();
-    }
-
-    // reset canvas position from rotation
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    drawShip(ship);
   });
+}
 
-  if (myShip.alive === true) ships.pop();
+function drawShip(ship) {
+  // need to add oversize buffer so that ships are drawn if slightly off screen
+
+  // guard clause to check if ship is in the viewport
+  if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
+
+  // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
+  ctx.translate(ship.x - viewportX, ship.y - viewportY);
+
+  if (ship !== myShip) {
+    // label:
+    ctx.font = "10px Space Mono";
+    ctx.fillStyle = "red";
+    ctx.fillText(ship.user || "unknown", 20, 20);
+  }
+
+  ctx.rotate(ship.direction);
+  // Draw ship
+  ctx.beginPath();
+  ctx.strokeStyle = '#555';
+  ctx.fillStyle = '#ccc';
+  ctx.lineWidth = '1';
+  ctx.moveTo(0, -ship.height / 2);
+  ctx.lineTo(ship.width / 2, ship.height / 2);
+  ctx.lineTo(0, ship.height * 0.3);
+  ctx.lineTo(-ship.width / 2, ship.height / 2);
+  ctx.lineTo(0, -ship.height / 2);
+  ctx.fill();
+  ctx.closePath();
+
+  // Draw thrust flame
+  if (ship.thruster) {
+    ctx.beginPath();
+    ctx.strokeStyle = "#FFA500";
+    ctx.fillStyle = "#FF0";
+    ctx.moveTo(0, 23);
+    ctx.lineTo(ship.width / 4, 25);
+    ctx.lineTo(0, 30);
+    ctx.lineTo(-ship.width / 4, 25);
+    ctx.lineTo(0, 23);
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  // reset canvas position from rotation
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function drawAsteroids() {
 
   asteroids.forEach((asteroid) => {
+
+    // guard clause to check if ship is in the viewport
+    if (asteroid.x < viewportX - viewportBuffer || asteroid.x > viewportX + viewportWidth + viewportBuffer || asteroid.y < viewportY - viewportBuffer || asteroid.y > viewportY + viewportHeight + viewportBuffer) return;
+
     ctx.beginPath();
     ctx.arc(asteroid.x-viewportX, asteroid.y-viewportY, asteroid.size * asteroidScale, 0, 2 * Math.PI, false);
     ctx.fillStyle = '#222';
@@ -262,7 +272,7 @@ function drawAsteroids() {
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#555';
     ctx.stroke();
-    });
+  });
 }
 
 function drawExplosions() {
@@ -299,6 +309,20 @@ function drawPerimeter() {
     ctx.fillStyle = border;
     ctx.fillRect(0, fieldY - viewportY, viewportWidth, viewportHeight);
   }
+}
+
+function updateViewport() {
+
+  if (myStatus.alive === true) {
+    // follow ship
+    camera.x = myShip.x;
+    camera.y = myShip.y;
+  }
+
+
+  // restrict viewport at bounderies
+  viewportX = clamp(camera.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
+  viewportY = clamp(camera.y - viewportHeight / 2, -viewportBuffer, fieldY - viewportHeight + viewportBuffer);
 }
 
 // -----------    functions: game control     ------------------//

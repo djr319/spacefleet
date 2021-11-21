@@ -6,6 +6,10 @@ let viewportHeight = window.innerHeight;
 let viewportX = 0; // top left of viewport
 let viewportY = 0;
 const viewportBuffer = 100;
+const asteroidScale = 20;
+const asteroidMaxSize = 5;
+const biggestAsteroid = asteroidMaxSize * asteroidScale;
+const fieldBuffer = Math.max(50, biggestAsteroid);
 
 // init canvas when document loaded
 let canvas;
@@ -18,13 +22,12 @@ const fieldX = 5000;
 const fieldY = 5000;
 const starfield = [];
 const noOfStars = 1000;
-const asteroidScale = 20;
 
 // -----------    Storage    ------------------//
-const ships = [];
+let ships = [];
 const myBullets = [];
 const explosions = [];
-const asteroids = [];
+let asteroids = [];
 let scores = [];
 
 // ship control
@@ -100,6 +103,11 @@ class Ship extends Entity {
     this.socket;
     this.user;
     this.thruster = false;
+    this.width = 20;
+    this.height = 40;
+  }
+  get size() {
+    return Math.max(this.width, this.height);
   }
 }
 
@@ -108,8 +116,7 @@ class MyShip extends Ship {
     super();
     this.thrustValue = 0;
     this.thrustMax = 10;
-    this.width = 20;
-    this.height = 40;
+    this.velocity = new Vector(0,0);
     this.maxSpeed = 800;
     this.rotationRate = 8;
     this.ammo = 15;
@@ -179,9 +186,7 @@ class MyShip extends Ship {
       if (this.direction > 2*Math.PI) this.direction = 0;
     }
 
-    get size() {
-      return Math.max(this.width, this.height);
-    }
+
   }
 
   class Bullet extends Entity {
@@ -193,7 +198,6 @@ class MyShip extends Ship {
     this.reach = 600;
   }
 }
-
 
 const myStatus = {
   score: 0,

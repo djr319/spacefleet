@@ -1,6 +1,7 @@
 // const io = require("socket.io-client");
 // const outbound = io("http://localhost:3000");
 const Bullet = require('../components/bullets');
+const Ship = require('../components/ships');
 const {
   asteroids,
   bullets,
@@ -11,79 +12,74 @@ const {
   messageQueue
 } = require('../models/storage')
 
-const { joinGame } = require('./game-controller');
-
+const { joinGame, warp } = require('./game-controller');
 
 function socketHandler(socketServer) {
 
   // ---------- initialize  ---------- //
   socketServer.on('connection', (socket) => {
-    //   // connections.push(socket.id);
     console.log('User connected: ' + socket.id);
 
     socket.on('disconnect', function () {
-      console.log('User disconnected: ' + socket.id);
+      // would be nice to try to rejoin on same socket
+      let oneDeadShip = ships.findIndex((el) => { return el.socket === socket.id });
+      if (oneDeadShip !== -1) {
+        socket.emit("toast", `${oneDeadShip} lost connection`);
+        ships.splice(ships[oneDeadShip], 1);
+      } else {
+        console.warn("Unable to delete disconnected ship");
+      }
     });
 
     socket.on('join', (name) => {
-      socket.data.username = name; // attach to socket
-      console.log(socket.data.username, 'joined');
-      let myShip = joinGame(name, socket.id);
-      // message user with ship position and status
-      socket.emit("newGame",
-        {
-          x: myShip.x,
-          y: myShip.y
-        }
-      );
+      // socket.data.username = name; // attach to socket
+      console.log(name, 'joined');
+      let newShip = joinGame(name, socket.id);
+
       // message all other users that user joined game
       socket.broadcast.emit("toast", `${name} joined the game`);
-      socket.broadcast.emit("newShip",
+      socket.emit("toast", `Welcome, ${name}`);
+
+      // message user with ship position
+      socket.emit("newGame",
         {
-          x: myShip.x,
-          y: myShip.y,
-          direction: 0,
-          socket: socket.id,
-          user: name,
-          thruster: false
-        }
-      );
-      socket.emit("toast", 'Game joined');
+          x: newShip.x,
+          y: newShip.y,
+        });
     });
-// ---------- receive ---------- //
+    // ---------- receive ---------- //
 
     socket.on('ship', (ship) => {
-
-      let thisShip = ships.filter(obj => {
-        return obj.id === socket.id;
-      })
-
-      thisShip.x = ship.x;
-      thisShip.y = ship.y;
-      thisShip.direction = ship.direction;
-      thisShip.socket = socket.id;
-      thisShip.thruster = ship.thruster
-      // array updated OK
-      socket.broadcast.emit("ship", {
-        x: thisShip.x,
-        y: thisShip.y,
-        direction: thisShip.direction,
-        socket: socket.id,
-        thruster: thisShip.thruster
+      let thisShip = ships.find(obj => {
+        return obj.socket === socket.id;
       });
+      if (thisShip === undefined) {
+        // do nothing
+      } else {
+        thisShip.x = ship.x;
+        thisShip.y = ship.y;
+        thisShip.direction = ship.direction;
+        thisShip.thruster = ship.thruster;
+        // array updated OK
+      };
     });
 
-    socket.on('warp', (ship) => {
-      let thisShip = ships.filter(obj => {
-        return obj.id === socket.id;
+    socket.on('warp', () => {
+      let thisShip = ships.find(obj => {
+        return obj.socket === socket.id;
       })
-      warp(thisShip);
-      socket.emit("warp",
+      if (thisShip === undefined) {
+        console.log('who said warp?');
+
+      } else {
+        warp(thisShip);
+        socket.emit("warp",
         {
-          x: myShip.x,
-          y: myShip.y
+          x: thisShip.x,
+          y: thisShip.y
         }
-      );
+        );
+      }
     });
 
     socket.on('shot', (bullet) => {
@@ -96,45 +92,32 @@ function socketHandler(socketServer) {
       bullets.push(newBullet);
     });
   });
+
+
+  // ---------- send ---------- //
+
+  setInterval(() => {
+    pushAsteroids();
+    pushShips();
+    // pushBullets();
+  }, 200);
+
+  function pushAsteroids() {
+        // need to be sent sperately
+    socketServer.emit('asteroids', asteroids);
+  }
+
+  // ---------- send ---------- //
+
+  function pushShips() {
+    // need to be sent sperately
+    socketServer.emit('ships', ships);
+  }
+
+  function deathNotice(user, mode='silent') {
+    console.log(user, "has died");
+    socketServer.emit("toast", `${user} died`);
+  };
 };
 
 module.exports = socketHandler;
-
-
-
-//   //   // ---------- send ---------- //
-// function socketSend(type, message) {
-//   outbound.emit(`server-${type}`, message);
-//   console.log('outbound sent');
-// }
-
-//     /*
-//     emit('asteroids', positions);
-//       emit('bullets', positions);
-//     emit('explosions', positions);
-//     io.broadcast.emit('scores', scores);
-//     */
-
-//     // socketSend('asteroids', asteroids);
-//     // socketSend('bullets', bullets);
-//     // socketSend('explosions', explosions);
-//     // socketSend('scores', scores);
-//     // socketSend('death', socketId);
-//   }
-
-
-
-// // const Bullet = require('./Components/bullets');
-// // const { Vector } = require('./Vector');
-
-
-
-
-
-function pushUpdates() {
-  pushAsteroids();
-}
-
-function pushAsteroids () {
-  socket.emit('asteroids', asteroids);
-}

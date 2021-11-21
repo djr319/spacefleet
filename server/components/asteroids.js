@@ -1,16 +1,18 @@
+// const { randomX, randomY } = require('../controllers/game-controller');
 const { Vector } = require('./Vector');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 20;
 const biggestAsteroid = asteroidMaxSize * asteroidScale;
-
+const { v4: uuidv4 } = require('uuid');
 class Asteroid {
   constructor(x,y,v,s) {
-    this.x = 0;
-    this.y = 0;
+    this.x = x;
+    this.y = y;
     this.velocity = v || new Vector(Math.random() * 2*Math.PI, Math.random() * 40);
     this.size = s || asteroidMaxSize;
     this.strength = 5 + this.size * 5;
+    this.id = uuidv4();
   }
 
   hit() {

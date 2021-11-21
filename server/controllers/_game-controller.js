@@ -1,32 +1,4 @@
 
-
-
-
-// // ---------------   Variables  --------------- //
-
-
-// let scoreTable = {
-//   5: 50,
-//   4: 100,
-//   3: 200,
-//   2: 300,
-//   1: 500,
-//   'hurtEnemy': 1000,
-//   'killEnemy': 5000
-// }
-
-
-
-
-
-
-
-// // -----------    functions: calculate positions    ------------------//
-
-
-
-
-
 // function updateBullets() {
 
 //   bullets.forEach((bullet) => {
@@ -82,7 +54,3 @@
 //   });
 // });
 // };
-
-
-
-

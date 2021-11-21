@@ -7,6 +7,8 @@ class Ship {
     this.socket;
     this.user;
     this.thruster = true;
+    this.width = 20;
+    this.height = 40;
   }
 }
 

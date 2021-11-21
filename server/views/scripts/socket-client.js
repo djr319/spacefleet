@@ -37,17 +37,15 @@ socket.on('toast', (data) => {
     }).showToast();
 });
 
-socket.on('death', (data) => {
-  if (data.socket = socket.id) {
-    console.log("killed");
-    die();
-  } else {
-    ships.
-    Toastify({
-      text: `${data.userName} died`,
-      duration: 3000
-      }).showToast();
-  }
+
+socket.on('newGame', (data) => {
+  myShip.x = data.x;
+  myShip.y = data.y;
+  newGame();
+});
+
+socket.on('asteroids', (incoming) => {
+  asteroids = incoming;
 });
 
 socket.on('score', (data) => {
@@ -65,44 +63,30 @@ socket.on('score', (data) => {
   scores = tempScores;
 });
 
-socket.on('asteroids', (data) => {
-
-});
-
-socket.on('newGame', (data) => {
-  myShip.x = data.x;
-  myShip.y = data.y;
-  newGame();
-});
 
 socket.on('warp', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
+  console.log('warp data received');
 });
 
 socket.on('bullets', (data) => {
 
 });
 
-socket.on('ship', (ship) => {
-  let thisShip = ships.filter(obj => {
-    return socket === ship.socket;
-  })
-  thisShip.x = ship.x;
-  thisShip.y = ship.y;
-  thisShip.direction = ship.direction;
-  thisShip.socket = socket.id;
-  thisShip.thruster = ship.thruster
+socket.on('ships', (pushedShips) => {
+  ships = [];
+  pushedShips.forEach((el) => {
+    if (el.socket === socket.id) {
+      // do nothing
+      } else {
+      ships.push(el);
+      }
+  });
+
+
 });
 
-socket.on('newShip', (ship) => {
-  let thisShip = new Ship;
-  thisShip.x = ship.x;
-  thisShip.y = ship.y;
-  thisShip.direction = ship.direction;
-  thisShip.socket = socket.id;
-  thisShip.user = ship.user;
-  thisShip.thruster = ship.thruster
-  ships.push(thisShip);
-  console.log("New Version of SHIP array", ships);
-});
+
+
+
