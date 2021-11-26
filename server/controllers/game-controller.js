@@ -1,5 +1,5 @@
 
-const fps = 60; // 60
+const FPS = 30; // 60
 // (change to 0.1 if no ships)
 
 const {
@@ -8,15 +8,15 @@ const {
   explosions,
   ships,
   users,
-  scores
+  scores,
+  obituries
 } = require('../models/storage');
 
-const { Vector } = require ( '../components/vector');
-const { Asteroid, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require ( '../components/asteroids');
-const Ship = require ( '../components/ships');
-// const { User } = require ( '../components/users');
+const { Vector } = require('../components/vector');
+const { Asteroid, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require('../components/asteroids');
+const Ship = require('../components/ships');
+const Explosion = require('../components/explosions');
 // const { Bullet } = require ( '../components/bullets');
-//   require('./socket-controller.js'); // ./socket-controller');
 
 // ---------------   Variables  --------------- //
 
@@ -25,6 +25,9 @@ const fieldY = 5000;
 
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
+
+const SPAWN_BUFFER = 400;
+const WARP_BUFFER = 100;
 
 // let scoreTable = {
 //   5: 50,
@@ -37,23 +40,31 @@ if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer to
 // }
 
 function game() {
+  purge();
   console.log('Game started');
   spawnAsteroids();
-  console.table(asteroids);
   gameLoop();
 };
 
-function gameLoop() {
-  // updateShips();
-  updateAsteroids();
-  // updateBullets();
-
-  // calculateCollisions();
-  // updateScores();
-  setTimeout(gameLoop, 1000 / fps);
+function purge() {
+  ships.splice(0, ships.length);
+  asteroids.splice(0, asteroids.length);
+  bullets.splice(0, bullets.length);
 }
 
-function joinGame(username, socketId) {
+function gameLoop() {
+  updateAsteroids();
+  checkCollisions();
+  // updateBullets();
+  // checkShots();
+  checkShipCollisions();
+  updateExplosions();
+  // updateScores();
+  setTimeout(gameLoop, 1000 / FPS);
+}
+
+function joinGame(username, socketId) { // from socket
+  // spawn ship
   let newShip = new Ship();
   newShip.x = 100 // randomX();
   newShip.y = 100 // randomY();
@@ -61,46 +72,80 @@ function joinGame(username, socketId) {
   newShip.user = username;
   newShip.socket = socketId;
 
-  // need to check for proximity to other ships
-
-  // check for proximity of asteroids
-  if (distToNearestObj(newShip, 400).collision === true) warp(400);
-  newShip.velocity = new Vector(3 / 2 * Math.PI, 20);
+  // check for proximity of asteroids & ships
+  // while (!freeSpace(newShip)) {
+  //   warp(newShip, SPAWN_BUFFER);
+  // };
+  // newShip.velocity = new Vector(3 / 2 * Math.PI, 20);
   ships.push(newShip);
   console.table(ships);
   return newShip;
-}
 
-
-function initGame() {
+  // init game
   // should send gamefield size number of lives etc from server
 }
 
-function warp(ship, buffer) {
+function warp(ship, buffer = WARP_BUFFER) {
   console.log('warped ', ship.socket);
   do {
     ship.x = randomX();
     ship.y = randomY();
   }
-  while (distToNearestObj(ship, buffer).collision === true)
+  while (!freeSpace(ship, buffer))
 }
 
-function distToNearestObj(ship, buffer = 0) {
+function freeSpace(ship, buffer) {
+  return buffer < Math.min(
+    distToNearestAsteroid(ship),
+    distToNearestShip(ship),
+  )
+}
+
+function checkCollisions() {
+  ships.forEach((ship) => {
+    if (freeSpace(ship, 0) < 0) {
+      die(ship);
+      let newExplosion = new Explosion(ship.x, ship.y, collisionAsteroid.velocity);
+      explosions.push(newExplosion);
+    }
+  })
+}
+
+function distToNearestAsteroid(ship) {
   let nearestDist = Infinity;
-  let nearestObj = new Asteroid;
+  let nearestAsteroid;
+
   asteroids.forEach((asteroid) => {
     let dist = Math.sqrt((ship.x - asteroid.x) ** 2 + (ship.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - ship.size / 2;
     if (dist < nearestDist) {
-      nearestObj = asteroid;
-      nearestDist = dist
+      nearestAsteroid = asteroid;
+      nearestDist = dist;
     }
+    return [nearestAsteroid, nearestDist];
   });
-  let collision = nearestDist - buffer < 0 ? true : false;
-  return {
-    collision,
-    nearestObj,
-    // nearestDist
-  }
+}
+
+function distToNearestShip(thisShip) {
+  let nearestDist = Infinity;
+
+  ships.forEach((ship) => {
+    if (ship === thisShip) return;
+    let dist = Math.sqrt((thisShip.x - ship.x) ** 2 + (thisShip.y - ship.y) ** 2) - ship.size;
+    if (dist < nearestDist) {
+      nearestDist = dist;
+    }
+    return nearestDist;
+  });
+}
+
+function checkShipCollisions() {
+  ships.forEach(() => {
+    if (distToNearestShip < 0) die();
+  });
+}
+
+function checkShots() {
+
 }
 
 function spawnAsteroids(offscreen = false) {
@@ -122,17 +167,26 @@ function updateAsteroids() {
     }
 
     // move
-    el.x = el.x + el.velocity.x / fps;
-    el.y = el.y + el.velocity.y / fps;
+    el.x = el.x + el.velocity.x / FPS;
+    el.y = el.y + el.velocity.y / FPS;
 
     // asteroids going off-field re-enter on the other side
     if (el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
     if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
     if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
     if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
-
-    // push asteroids to storage !
   })
+}
+
+function updateExplosions() {
+  explosions.forEach((exp, index) => {
+    exp.x = exp.x + exp.velocity.x / FPS;
+    exp.y = exp.y + exp.velocity.y / FPS;
+    exp.size = exp.size + 1;
+    if (exp.size > exp.end) {
+      explosions.splice(index, 1);
+    }
+  });
 }
 
 function randomX() {
@@ -144,8 +198,10 @@ function randomY() {
   // returns a random y value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
-module.exports = { game, joinGame, warp, randomX, randomY };
 
-function die () {
-
+function die(ship) {
+  ship.alive = false;
+  obituries.push(ship);
 }
+
+module.exports = { game, joinGame, warp, randomX, randomY, purge, FPS };

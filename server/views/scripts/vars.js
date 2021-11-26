@@ -24,10 +24,10 @@ const starfield = [];
 const noOfStars = 1000;
 
 // -----------    Storage    ------------------//
-let ships = [];
+const ships = [];
 const myBullets = [];
 const explosions = [];
-let asteroids = [];
+const asteroids = [];
 let scores = [];
 
 // ship control
@@ -96,9 +96,10 @@ class Explosion extends Entity {
   }
 }
 
-class Ship extends Entity {
-  constructor() {
-    super();
+class Ship {
+  constructor(x, y, s, u) {
+    this.x = x;
+    this.y = y;
     this.direction = 0;
     this.socket;
     this.user;
@@ -106,94 +107,100 @@ class Ship extends Entity {
     this.width = 20;
     this.height = 40;
   }
-  get size() {
-    return Math.max(this.width, this.height);
-  }
 }
 
-class MyShip extends Ship {
-  constructor() {
-    super();
+class MyShip {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.direction = 0;
     this.thrustValue = 0;
     this.thrustMax = 10;
-    this.velocity = new Vector(0,0);
+    this.velocity = new Vector(0, 0);
     this.maxSpeed = 800;
     this.rotationRate = 8;
     this.ammo = 15;
   }
-    shoot = () => {
-      // rate control
-      const now = new Date();
-      if (now - lastShot < 20 || myStatus.alive === false) {
-        return;
-      }
 
-      // burst control
-      this.ammo--;
-      if (this.ammo < 0) {
-        controller.shoot.pressed = false;
-        document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
-        this.ammo = 10;
-        setTimeout(() => {
-          document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-        }, 200);
-      } else {
-        let bullet = new Bullet;
-        bullet.x = this.x;
-        bullet.y = this.y;
-        bullet.velocity.angle = this.direction - 1 / 2 * Math.PI;
-        bullet.velocity.size = this.velocity.size + 600;
-        bullet.originX = bullet.x;
-        bullet.originY = bullet.y;
-        myBullets.push(bullet);
-        sendUpdate('shot', {
-          x: bullet.x,
-          y: bullet.y,
-          velocity: bullet.velocity,
-          reach: bullet.reach
-        });
-
-      }
-      lastShot = now;
+  shoot = () => {
+    // rate control
+    const now = new Date();
+    if (now - lastShot < 20 || myStatus.alive === false) {
+      return;
     }
 
-    thrust = () => {
-      this.thruster = true;
-      // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
-      let vectorAngle = this.direction - 1/2 * Math.PI;
-      vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
-
-      this.thrustValue = Math.min(this.thrustMax, this.thrustValue +1);
-
-      let thrustVector = new Vector(vectorAngle, this.thrustValue);
-
-      this.velocity.add(thrustVector);
-      this.velocity.size = Math.min(this.maxSpeed, this.velocity.size);
+    // burst control
+    this.ammo--;
+    if (this.ammo < 0) {
+      controller.shoot.pressed = false;
+      document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
+      this.ammo = 10;
+      setTimeout(() => {
+        document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
+      }, 200);
+    } else {
+      let bullet = new Bullet;
+      bullet.x = this.x;
+      bullet.y = this.y;
+      bullet.velocity.angle = this.direction - 1 / 2 * Math.PI;
+      bullet.velocity.size = this.velocity.size + 600;
+      bullet.originX = bullet.x;
+      bullet.originY = bullet.y;
+      myBullets.push(bullet);
+      sendUpdate('shot', {
+        x: bullet.x,
+        y: bullet.y,
+        velocity: bullet.velocity,
+        reach: bullet.reach
+      });
     }
-
-    coast = () => {
-      this.thruster = false;
-      this.velocity.size *= 0.998;
-    }
-
-    rotateL = () => {
-      this.direction = this.direction - this.rotationRate / fps;
-      if (this.direction < 0) this.direction += 2*Math.PI;
-    }
-
-    rotateR = () => {
-      this.direction = this.direction + this.rotationRate/fps;
-      if (this.direction > 2*Math.PI) this.direction = 0;
-    }
-
-
+    lastShot = now;
   }
 
-  class Bullet extends Entity {
-    constructor() {
-      super();
-      this.originX = 0;
-      this.originY = 0;
+  thrust = () => {
+    this.thruster = true;
+    // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
+    let vectorAngle = this.direction - 1 / 2 * Math.PI;
+    vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
+
+    this.thrustValue = Math.min(this.thrustMax, this.thrustValue + 1);
+
+    let thrustVector = new Vector(vectorAngle, this.thrustValue);
+
+    this.velocity.add(thrustVector);
+    this.velocity.size = Math.min(this.maxSpeed, this.velocity.size);
+  }
+
+  coast = () => {
+    this.thruster = false;
+    this.velocity.size *= 0.998;
+  }
+
+  rotateL = () => {
+    this.direction = this.direction - this.rotationRate / fps;
+    if (this.direction < 0) this.direction += 2 * Math.PI;
+  }
+
+  rotateR = () => {
+    this.direction = this.direction + this.rotationRate / fps;
+    if (this.direction > 2 * Math.PI) this.direction = 0;
+  }
+}
+
+class Asteroid {
+  constructor(x, y, s, id) {
+    this.x = x;
+    this.y = y;
+    this.size = s;
+    this.id = id;
+  }
+}
+
+class Bullet extends Entity {
+  constructor() {
+    super();
+    this.originX = 0;
+    this.originY = 0;
 
     this.reach = 600;
   }
@@ -205,3 +212,12 @@ const myStatus = {
   alive: false,
 }
 let myShip = new MyShip;
+
+
+function resetStatus() {
+  myStatus.score = 0;
+  myStatus.lives = 5;
+  myStatus.alive = true;
+}
+
+let camera = new Entity();

@@ -1,15 +1,20 @@
 
-// ----------------------    Start Game   ----------------------------//
-
 let reportRate = 30;
 
-function resetStatus() {
-  myStatus.score = 0;
-  myStatus.lives = 5;
-  myStatus.alive = true;
-}
+// ------------------    User name / Join game    ------------------ //
 
-let camera = new Entity();
+function joinGame() {
+  let name = document.getElementById('name').value || '';
+  sessionStorage.setItem('name', name, newGame);
+  document.getElementById('splash').style.display = "none";
+  sendStatus('join', name);   // ---> Server
+
+  myShip.x = reply.x;
+  myShip.y = reply.y;
+  myShip.velocity = new Vector(reply.velocity.angle, reply.velocity.size);
+  ships.splice(0, ships.length);
+  setEventListeners();
+}
 
 function newGame() {
   // canvas.requestFullscreen()
@@ -49,20 +54,11 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  // ------------------    User name / Join game    ------------------ //
-  document.getElementById('name').value = sessionStorage.getItem('name');
+  document.getElementById('name').value = sessionStorage.getItem('name') || "";
   document.getElementById('join').addEventListener('click', () => {
     joinGame();
   });
 });
-
-function joinGame() {
-  let name = document.getElementById('name').value || '';
-  sessionStorage.setItem('name', name);
-  document.getElementById('splash').style.display = "none";
-  sendStatus('join', name);
-  setEventListeners();
-}
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
@@ -85,13 +81,12 @@ function makeStarField() {
 // };
 
 function reportToServer() {
-    sendUpdate('ship', {
-      x : myShip.x,
-      y : myShip.y,
-      direction: myShip.direction,
-      thruster: myShip.thruster
-    });
-
+  sendUpdate('ship', {
+    x: myShip.x,
+    y: myShip.y,
+    direction: myShip.direction,
+    thruster: myShip.thruster
+  });
 }
 
 function checkControls() {
@@ -106,9 +101,9 @@ function checkControls() {
 function updatePositions() {
   updateMyShip();
   updateViewport();
-//   updateAsteroids();
-//   updateBullets();
-//   updateExplosion();
+  //   updateAsteroids();
+  //   updateBullets();
+  //   updateExplosion();
 };
 
 // -----------    functions: update positions    ------------------//
@@ -125,25 +120,12 @@ function updateMyShip() {
   // wall collision: vector to push away from walls
 
   switch (true) {
-    case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
-    case myShip.x > fieldX - myShip.size/2: myShip.velocity = new Vector(Math.PI,20); break;
-    case myShip.y < myShip.size/2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
-    case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
+    case myShip.x < myShip.size / 2: myShip.velocity = new Vector(0, 20); break;
+    case myShip.x > fieldX - myShip.size / 2: myShip.velocity = new Vector(Math.PI, 20); break;
+    case myShip.y < myShip.size / 2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
+    case myShip.y > fieldY - myShip.size / 2: myShip.velocity = new Vector(Math.PI * 1.5, 20); break;
   }
-// TODO serverside
-  // if (distToNearestObj().collision === true) die(new Explosion(ship.x, ship.y, distToNearestObj().nearestObj.velocity));
 }
-
-// function updateExplosion() {
-//   explosions.forEach((exp, index) => {
-//     exp.x = exp.x + exp.velocity.x / fps;
-//     exp.y = exp.y + exp.velocity.y / fps;
-//     exp.size = exp.size + 1;
-//     if (exp.size > exp.end) {
-//       explosions.splice(index, 1);
-//     }
-//   });
-// }
 
 // -----------    functions: draw on screen    ------------------//
 
@@ -201,8 +183,8 @@ function drawStars() {
 // }
 
 function drawShips() {
-//   // will need to display all ships for multiplayer
-// if (myStatus.alive === true) ships.push(myShip);
+  //   // will need to display all ships for multiplayer
+  // if (myStatus.alive === true) ships.push(myShip);
   drawShip(myShip);
   ships.forEach((ship) => {
     drawShip(ship);
@@ -222,7 +204,7 @@ function drawShip(ship) {
     // label:
     ctx.font = "10px Space Mono";
     ctx.fillStyle = "red";
-    ctx.fillText(ship.user || "unknown", 20, 20);
+    ctx.fillText(ship.user + ": " + ship.x + "," + ship.y || "unknown", 20, 20);
   }
 
   ctx.rotate(ship.direction);
@@ -266,7 +248,7 @@ function drawAsteroids() {
     if (asteroid.x < viewportX - viewportBuffer || asteroid.x > viewportX + viewportWidth + viewportBuffer || asteroid.y < viewportY - viewportBuffer || asteroid.y > viewportY + viewportHeight + viewportBuffer) return;
 
     ctx.beginPath();
-    ctx.arc(asteroid.x-viewportX, asteroid.y-viewportY, asteroid.size * asteroidScale, 0, 2 * Math.PI, false);
+    ctx.arc(asteroid.x - viewportX, asteroid.y - viewportY, asteroid.size * asteroidScale, 0, 2 * Math.PI, false);
     ctx.fillStyle = '#222';
     ctx.fill();
     ctx.lineWidth = 5;
@@ -278,7 +260,7 @@ function drawAsteroids() {
 function drawExplosions() {
   explosions.forEach((exp) => {
     ctx.beginPath();
-    ctx.arc(exp.x-viewportX, exp.y-viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
+    ctx.arc(exp.x - viewportX, exp.y - viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
     ctx.fillStyle = '#fcba03';
     ctx.fill();
     ctx.lineWidth = 1;
@@ -292,12 +274,12 @@ function drawPerimeter() {
   const border = '#222'
   if (viewportX < 0) {
     ctx.fillStyle = border;
-    ctx.fillRect(0, 0, 0-viewportX, viewportHeight);
+    ctx.fillRect(0, 0, 0 - viewportX, viewportHeight);
   }
 
   if (viewportY < 0) {
     ctx.fillStyle = border;
-    ctx.fillRect(0, 0, viewportWidth, 0-viewportY);
+    ctx.fillRect(0, 0, viewportWidth, 0 - viewportY);
   }
 
   if (viewportX + viewportWidth > fieldX) {
@@ -318,7 +300,6 @@ function updateViewport() {
     camera.x = myShip.x;
     camera.y = myShip.y;
   }
-
 
   // restrict viewport at bounderies
   viewportX = clamp(camera.x - viewportWidth / 2, -viewportBuffer, fieldX - viewportWidth + viewportBuffer);
@@ -357,7 +338,7 @@ function scoreUpdate() {
 
 function removeHeart() {
   let lives = document.getElementById('lives');
-  while ( lives.childElementCount > myStatus.lives ) {
+  while (lives.childElementCount > myStatus.lives) {
     lives.removeChild(lives.lastChild);
   }
 }
@@ -390,145 +371,3 @@ function clamp(num, min, max) {
   // limits num to between min and max
   return Math.min(Math.max(num, min), max);
 }
-// -----------    functions: event listeners    ------------------//
-
-// User Input object
-const controller = {
-  rotateL: {
-    pressed: false,
-    func: myShip.rotateL
-  },
-  rotateR: {
-    pressed: false,
-    func: myShip.rotateR
-  },
-  thrust: {
-    pressed: false,
-    func: myShip.thrust
-  },
-  shoot: {
-    pressed: false,
-    func: myShip.shoot
-  }
-}
-
-// event listeners
-const controls = function (e) {
-  switch (e.key) {
-    case 'm':
-    case 'M':
-      toggleMusic();
-      break;
-
-    case 'W':
-    case 'ArrowUp':
-    case 'w': controller.thrust.pressed = true;
-      break;
-
-    case 'A':
-    case 'ArrowLeft':
-    case 'a': controller.rotateL.pressed = true;
-      break;
-
-    case 'S':
-    case 'ArrowDown':
-    case 's': {
-      if (!e.repeat) { warp() };
-      break;
-    }
-
-    case 'D':
-    case 'ArrowRight':
-    case 'd': controller.rotateR.pressed = true;
-      break;
-
-    case ' ': controller.shoot.pressed = true;
-      break;
-
-    default: break;
-  }
-}
-
-const keyupControls = function (e) { // was keyupControls
-
-  switch (e.key) {
-    case 'W':
-    case 'ArrowUp':
-    case 'w': controller.thrust.pressed = false; break;
-
-    case 'A':
-    case 'ArrowLeft':
-    case 'a': controller.rotateL.pressed = false; break;
-
-    case 'D':
-    case 'ArrowRight':
-    case 'd': controller.rotateR.pressed = false; break;
-
-    case ' ': controller.shoot.pressed = false; break;
-    default: break;
-  };
-}
-
-function setEventListeners() {
-  controller.thrust.pressed = false;
-  controller.rotateL.pressed = false;
-  controller.rotateR.pressed = false;
-  controller.shoot.pressed = false;
-
-  document.addEventListener("keydown", controls);
-  document.addEventListener("keyup", keyupControls);
-  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
-
-  document.addEventListener('mousedown', (e) => { e.preventDefault(); });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === 'Escape') {
-      abortGame();
-     }
-  });
-}
-
-function removeEventListeners() {
-  document.removeEventListener("keydown", controls);
-  document.removeEventListener("keyup", keyupControls);
-  document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.removeEventListener('mouseup', () => { controller.shoot.pressed = false });
-}
-
-function hideMouse() {
-  document.body.style.cursor = 'none';
-}
-
-function showMouse() {
-  document.body.style.cursor = 'auto';
-}
-
-
-// -----------    Music / Sound Effects    ------------------//
-
-let tunes = [];
-let backgroundMusic = './assets/sounds/51239__rutgermuller__8-bit-electrohouse.wav';
-let fireball = './assets/sounds/fireball.mp3';
-
-function playSound(url, repeat) {
-  const audio = new Audio(url);
-  audio.play();
-  if (repeat) audio.loop = true;
-  tunes.push(audio);
-}
-
-let music = false;
-function toggleMusic() {
-
-  if (music === true) {
-    music = false;
-    tunes.map((tune) => { tune.pause(); tune.currentTime = 0; });
-    tunes = [];
-  } else {
-
-    music = true;
-    playSound(backgroundMusic);
-    }
-  }
-
-
