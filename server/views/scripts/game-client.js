@@ -1,7 +1,7 @@
 
 // ----------------------    Start Game   ----------------------------//
 
-let reportRate = 30;
+let reportRate = 60;
 
 function resetStatus() {
   myStatus.score = 0;
@@ -85,12 +85,12 @@ function makeStarField() {
 // };
 
 function reportToServer() {
-    sendUpdate('ship', {
-      x : myShip.x,
-      y : myShip.y,
-      direction: myShip.direction,
-      thruster: myShip.thruster
-    });
+  sendUpdate('ship', {
+    x: myShip.x,
+    y: myShip.y,
+    direction: myShip.direction,
+    thruster: myShip.thruster
+  });
 
 }
 
@@ -106,9 +106,9 @@ function checkControls() {
 function updatePositions() {
   updateMyShip();
   updateViewport();
-//   updateAsteroids();
-//   updateBullets();
-//   updateExplosion();
+  //   updateAsteroids();
+  //   updateBullets();
+  //   updateExplosion();
 };
 
 // -----------    functions: update positions    ------------------//
@@ -125,12 +125,12 @@ function updateMyShip() {
   // wall collision: vector to push away from walls
 
   switch (true) {
-    case myShip.x < myShip.size/2: myShip.velocity = new Vector(0,20); break;
-    case myShip.x > fieldX - myShip.size/2: myShip.velocity = new Vector(Math.PI,20); break;
-    case myShip.y < myShip.size/2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
-    case myShip.y > fieldY - myShip.size/2: myShip.velocity = new Vector(Math.PI * 1.5,20); break;
+    case myShip.x < myShip.size / 2: myShip.velocity = new Vector(0, 20); break;
+    case myShip.x > fieldX - myShip.size / 2: myShip.velocity = new Vector(Math.PI, 20); break;
+    case myShip.y < myShip.size / 2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
+    case myShip.y > fieldY - myShip.size / 2: myShip.velocity = new Vector(Math.PI * 1.5, 20); break;
   }
-// TODO serverside
+  // TODO serverside
   // if (distToNearestObj().collision === true) die(new Explosion(ship.x, ship.y, distToNearestObj().nearestObj.velocity));
 }
 
@@ -201,8 +201,8 @@ function drawStars() {
 // }
 
 function drawShips() {
-//   // will need to display all ships for multiplayer
-// if (myStatus.alive === true) ships.push(myShip);
+  //   // will need to display all ships for multiplayer
+  // if (myStatus.alive === true) ships.push(myShip);
   drawShip(myShip);
   ships.forEach((ship) => {
     drawShip(ship);
@@ -266,7 +266,7 @@ function drawAsteroids() {
     if (asteroid.x < viewportX - viewportBuffer || asteroid.x > viewportX + viewportWidth + viewportBuffer || asteroid.y < viewportY - viewportBuffer || asteroid.y > viewportY + viewportHeight + viewportBuffer) return;
 
     ctx.beginPath();
-    ctx.arc(asteroid.x-viewportX, asteroid.y-viewportY, asteroid.size * asteroidScale, 0, 2 * Math.PI, false);
+    ctx.arc(asteroid.x - viewportX, asteroid.y - viewportY, asteroid.size * asteroidScale, 0, 2 * Math.PI, false);
     ctx.fillStyle = '#222';
     ctx.fill();
     ctx.lineWidth = 5;
@@ -278,7 +278,7 @@ function drawAsteroids() {
 function drawExplosions() {
   explosions.forEach((exp) => {
     ctx.beginPath();
-    ctx.arc(exp.x-viewportX, exp.y-viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
+    ctx.arc(exp.x - viewportX, exp.y - viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
     ctx.fillStyle = '#fcba03';
     ctx.fill();
     ctx.lineWidth = 1;
@@ -292,12 +292,12 @@ function drawPerimeter() {
   const border = '#222'
   if (viewportX < 0) {
     ctx.fillStyle = border;
-    ctx.fillRect(0, 0, 0-viewportX, viewportHeight);
+    ctx.fillRect(0, 0, 0 - viewportX, viewportHeight);
   }
 
   if (viewportY < 0) {
     ctx.fillStyle = border;
-    ctx.fillRect(0, 0, viewportWidth, 0-viewportY);
+    ctx.fillRect(0, 0, viewportWidth, 0 - viewportY);
   }
 
   if (viewportX + viewportWidth > fieldX) {
@@ -357,7 +357,7 @@ function scoreUpdate() {
 
 function removeHeart() {
   let lives = document.getElementById('lives');
-  while ( lives.childElementCount > myStatus.lives ) {
+  while (lives.childElementCount > myStatus.lives) {
     lives.removeChild(lives.lastChild);
   }
 }
@@ -484,7 +484,7 @@ function setEventListeners() {
   document.addEventListener("keydown", (e) => {
     if (e.key === 'Escape') {
       abortGame();
-     }
+    }
   });
 }
 
@@ -528,7 +528,7 @@ function toggleMusic() {
 
     music = true;
     playSound(backgroundMusic);
-    }
   }
+}
 
 
