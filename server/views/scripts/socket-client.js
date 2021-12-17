@@ -6,20 +6,21 @@ socket.on("connect", () => {
 
 // -------------       Send       -----------  //
 
-function sendStatus(type, object, callback = () => { }) {
+function sendStatus(type, object) { // join, warp,
   socket.emit(type, object) // buffered & assured
 }
 
-function sendUpdate(type, object) {
+function sendUpdate(type, object) { // ship,
   socket.volatile.emit(type, object) // only lastest, no buffering
 }
 // for testing
 function sendPurge() {
   console.log("purge request sent!");
+  console.table(ships);
   socket.emit("purge", "") // request game reset
 }
 
-// -------------       Receive       -----------  //
+// -------------       Listeners       -----------  //
 
 socket.on('toast', (data) => {
   console.log("toast received");
@@ -32,17 +33,52 @@ socket.on('toast', (data) => {
 socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
-  myShip.velocity = new Vector(data.velocity.angle, data.velocity.size);
-  ships.splice(0, ships.length);
+  myShip.velocity = new Vector(3 * Math.PI / 2, 20);
+
+  // purge ships[]
+  ships.length = 0;
+  // repopulate ships[]
+  // data.shipList.forEach((ship) => {
+  //   let newShip = new Ship;
+  //   newShip.socket = ship.socket;
+  //   newShip.user = ship.user;
+  //   newShip.x = ship.x;
+  //   newShip.y = ship.y;
+  //   newShip.direction = ship.direction;
+  //   newShip.thruster = ship.thruster;
+  // });
+
 });
 
-socket.on('newShip', (pushedShip) => {
-  ships.push(new Ship(
-    pushedShip.x,
-    pushedShip.y,
-    pushedShip.id,
-    pushedShip.user
-  ))
+socket.on('ship', (pushedShip) => {
+  let thisShip = ships.find(ship => {
+    return ship.socket === pushedShip.socket;
+  })
+
+  if (thisShip === undefined) {
+    console.log("unknown ship data received", pushedShip.socket, ships);
+    // don't add ship.. causes multiple crashes
+    // refactor
+    thisShip.direction = pushedShip.direction;
+    thisShip.thruster = pushedShip.thruster;
+
+  } else {
+    thisShip.x = pushedShip.x;
+    thisShip.y = pushedShip.y;
+    thisShip.direction = pushedShip.direction;
+    thisShip.thruster = pushedShip.thruster;
+    console.log('valid ship data received');
+  }
+});
+
+socket.on("die", () => {
+  exitGame();
+  // change to die();
+});
+
+socket.on("boot", () => {
+  console.log("booted from server");
+  exitGame();
 });
 
 socket.on('deadShip', (pushedShip) => {
@@ -50,7 +86,7 @@ socket.on('deadShip', (pushedShip) => {
   let thisShip = ships.findIndex(ship => {
     return ship.socket === pushedShip.socket;
   })
-  ships.splice([thisShip], 1);
+  if (thisShip !== -1) ships.splice([thisShip], 1);
 });
 
 socket.on('asteroid', (incoming) => {
@@ -96,18 +132,6 @@ socket.on('warp', (data) => {
 //   // TODO
 // });
 
-socket.on('ship', (pushedShip) => {
-  let thisShip = ships.findIndex(ship => {
-    return ship.socket === pushedShip.socket;
-  })
-  if (thisShip === -1) {
-    console.log("unknown ship data received");
-  } else {
-    ships[thisShip].x = pushedShip.x;
-    ships[thisShip].y = pushedShip.y;
-    ships[thisShip].direction = pushedShip.direction;
-    ships[thisShip].thruster = pushedShip.thruster;
-  }
-});
+
 
 

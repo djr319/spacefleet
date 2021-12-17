@@ -1,7 +1,4 @@
-// const io = require("socket.io-client");
-// const outbound = io("http://localhost:3000");
 const Bullet = require('../components/bullets');
-const Ship = require('../components/ships');
 const {
   asteroids,
   bullets,
@@ -13,34 +10,15 @@ const {
   obituries
 } = require('../models/storage')
 
-const { joinGame, warp, purge, fps: FPS } = require('./game-controller');
+const { joinGame, warp, purge, die, fps: FPS } = require('./game-controller');
+
+const blockList = [];
 
 function socketHandler(socketServer) {
 
   // ---------- initialize  ---------- //
   socketServer.on('connection', (socket) => {
     console.log('User connected: ' + socket.id);
-
-    socket.on('disconnect', function () {
-      console.log(socket.id + " disconnected");
-      // would be nice to try to rejoin on same socket
-      let deadShips = ships.filter((el) => { return el.socket === socket.id });
-      if (deadShips.length > 0) {
-        socket.emit("toast", `${deadShips} lost connection`);
-        deathAnnoucment(deadShips);
-        deadShips.forEach((el) => {
-          ships.splice(ships[ships.indexOf(el.socket)], 1);
-        });
-
-      } else {
-        console.table(ships);
-        console.warn("Unable to delete disconnected ship: ", socket.id);
-      }
-    });
-
-    socket.on("reconnect", () => {
-      console.log("reconnected");
-    });
 
     socket.on('join', (name) => {
       console.log(name, 'joined');
@@ -49,42 +27,40 @@ function socketHandler(socketServer) {
       socket.emit("toast", `Welcome, ${name}`);
       socket.emit("newGame", {
         x: newShip.x,
-        y: newShip.y,
-        velocity: { angle: 0, size: 0 }
+        y: newShip.y
       })
       // message all other users that user joined game
       socket.broadcast.emit("toast", `${name} joined the game`);
-      socket.broadcast.emit("newShip", {
-        x: newShip.x,
-        y: newShip.y,
-        socket: socket.id,
-        user: name
-      })
-
-
     });
-    // ---------- receive ---------- //
+    // ---------- listeners ---------- //
 
     socket.on('ship', (ship) => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
       if (thisShip === undefined) {
-        // do nothing
+        if (blockList.indexOf(socket.id) === -1) {
+          console.log("received data from unknown ship");
+          blockList.push(socket.id);
+          socket.emit("boot", "");
+        }
       } else {
+        // update server array
         thisShip.x = ship.x;
         thisShip.y = ship.y;
         thisShip.direction = ship.direction;
         thisShip.thruster = ship.thruster;
-        // array updated OK
+
+        // transmit to other players
+        socket.broadcast.emit("ship", {
+          x: thisShip.x,
+          y: thisShip.y,
+          direction: thisShip.direction,
+          thruster: thisShip.thruster,
+          socket: thisShip.socket,
+          user: thisShip.user
+        });
       };
-      socket.broadcast.emit("ship", {
-        x: ship.x,
-        y: ship.y,
-        direction: ship.direction,
-        thruster: ship.thruster,
-        socket: socket.id
-      });
     });
 
     socket.on('warp', () => {
@@ -92,8 +68,8 @@ function socketHandler(socketServer) {
         return obj.socket === socket.id;
       })
       if (thisShip === undefined) {
-        console.log('who said warp?');
-
+        console.log('who said warp? ', socket.id);
+        socket.emit("toast", "Can't warp!");
       } else {
         warp(thisShip);
         socket.emit("warp",
@@ -102,24 +78,26 @@ function socketHandler(socketServer) {
             y: thisShip.y
           }
         );
+        console.log('warp details sent to ' + socket.id);
+
       }
     });
 
-    // socket.on('shot', (bullet) => {
-    //   const newBullet = new Bullet();
-    //   newBullet.x = bullet.x;
-    //   newBullet.y = bullet.y;
-    //   newBullet.velocity = bullet.velocity;
-    //   newBullet.user = socket.id;
-    //   newBullet.reach = bullet.reach
-    //   bullets.push(newBullet);
-    // });
+    socket.on('shot', (bullet) => {
+      console.log('shot received!');
 
-    socket.on('purge', () => {
-      purge();
-      console.log(ships);
+      const newBullet = new Bullet();
+      newBullet.x = bullet.x;
+      newBullet.y = bullet.y;
+      newBullet.velocity = bullet.velocity;
+      newBullet.user = socket.id;
+      newBullet.reach = bullet.reach
+      bullets.push(newBullet);
     });
 
+    socket.on('purge', () => {
+      resetAll();
+    });
 
     // ---------- send ---------- //
 
@@ -138,26 +116,49 @@ function socketHandler(socketServer) {
           id: asteroid.id
         });
       })
-
     }
-
-    // ---------- send ---------- //
-
-    // ships are sent by reflection
 
     function checkObituries() {
       while (obituries.length > 0) {
         let deadShip = obituries[0];
-        deathAnnoucment(deadShip, 'loud');
+        console.log("obituries page ", deadShip.user);
+        deathAnnouncement(deadShip, 'loud');
+        obituries.shift();
       };
     }
 
-    function deathAnnoucment(user, mode = 'silent') {
-      console.log(user, "has died");
-      mode !== 'silent' && socketServer.emit("toast", `${user} died`);
+    function deathAnnouncement(deadship, mode = 'silent') {
+      console.log("mode :", mode);
+      console.log(deadship.user, "has died");
+      // mode !== 'silent' &&
+        socket.emit("toast", `${deadship.user} died`);
+        socket.emit("die", "");
       socket.broadcast.emit("deadShip", { socket: socket.id });
     }
+
+    // ---------- connection issues ---------- //
+
+    socket.on('disconnect', function () {
+
+      console.log(socket.id + " disconnected");
+      // would be nice to try to rejoin on same socket
+      let deadShips = ships.filter((el) => { return el.socket === socket.id });
+      if (deadShips.length > 0) {
+        socket.emit("toast", `${deadShips} lost connection`);
+        deathAnnouncement(deadShips);
+        deadShips.forEach((el) => {
+          ships.splice(ships[ships.indexOf(el.socket)], 1);
+        });
+        console.table(ships);
+      } else {
+        console.table(ships);
+        console.warn("Unable to delete disconnected ship: ", socket.id);
+      }
+    });
+
+    socket.on("reconnect", () => {
+      console.log("reconnected");
+    });
   });
 };
-
 module.exports = socketHandler;

@@ -25,7 +25,7 @@ const noOfStars = 1000;
 
 // -----------    Storage    ------------------//
 const ships = [];
-const myBullets = [];
+const bullets = [];
 const explosions = [];
 const asteroids = [];
 let scores = [];
@@ -101,8 +101,8 @@ class Ship {
     this.x = x;
     this.y = y;
     this.direction = 0;
-    this.socket;
-    this.user;
+    this.socket = s;
+    this.user = u;
     this.thruster = false;
     this.width = 20;
     this.height = 40;
@@ -117,9 +117,15 @@ class MyShip {
     this.thrustValue = 0;
     this.thrustMax = 10;
     this.velocity = new Vector(0, 0);
+    this.width = 20;
+    this.height = 40;
     this.maxSpeed = 800;
     this.rotationRate = 8;
     this.ammo = 15;
+  }
+
+  get size() {
+    return Math.max(this.width, this.height);
   }
 
   shoot = () => {
@@ -146,7 +152,7 @@ class MyShip {
       bullet.velocity.size = this.velocity.size + 600;
       bullet.originX = bullet.x;
       bullet.originY = bullet.y;
-      myBullets.push(bullet);
+      bullets.push(bullet);
       sendUpdate('shot', {
         x: bullet.x,
         y: bullet.y,

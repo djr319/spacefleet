@@ -3,50 +3,8 @@
 
 let reportRate = 60;
 
-// ------------------    User name / Join game    ------------------ //
-
-function joinGame() {
-  let name = document.getElementById('name').value || '';
-  sessionStorage.setItem('name', name, newGame);
-  document.getElementById('splash').style.display = "none";
-  sendStatus('join', name);   // ---> Server
-
-  myShip.x = reply.x;
-  myShip.y = reply.y;
-  myShip.velocity = new Vector(reply.velocity.angle, reply.velocity.size);
-  ships.splice(0, ships.length);
-  setEventListeners();
-}
-
-function newGame() {
-  // canvas.requestFullscreen()
-  // hideMouse();
-  resetStatus();
-  resizeCanvas();
-  hudInit();
-
-  setInterval(() => {
-    reportToServer();
-  }, reportRate);
-
-  window.requestAnimationFrame(gameLoop);
-}
-
-function exitGame() {
-  // Document.exitFullscreen()
-};
-// ----------------------    GAME LOOP    ---------------------------- //
-
-function gameLoop(timestamp) {
-  fps = 1000 / (timestamp - lastRender);
-  checkControls();
-  updatePositions();
-  drawAll();
-  lastRender = timestamp;
-  window.requestAnimationFrame(gameLoop);
-}
-
-// ---------------------    Initialize canvas    --------------------- //
+// ---------------------    Initial Listener     --------------------- //
+// ---------------------    LOGIC STARTS HERE    --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
 
@@ -56,20 +14,52 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  document.getElementById('name').value = sessionStorage.getItem('name') || "";
+  document.getElementById('name').value = sessionStorage.getItem('name') || "noob";
+
   document.getElementById('join').addEventListener('click', () => {
     joinGame();
   });
 });
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.strokeStyle = 'black';
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  viewportWidth = window.innerWidth;
-  viewportHeight = window.innerHeight;
+// ------------------    User name / Join game    ------------------ //
+
+function joinGame() {
+  getShip();
+  setEventListeners();
+  // canvas.requestFullscreen()
+  // hideMouse();
+  resetStatus();
+  resizeCanvas();
+  hudInit();
+
+  setInterval(() => {
+    reportToServer();
+  }, 1000 / reportRate);
+
+  window.requestAnimationFrame(gameLoop);
+}
+
+function getShip() {
+  let name = document.getElementById('name').value || '';
+  sessionStorage.setItem('name', name);
+  document.getElementById('splash').style.display = "none";
+  sendStatus('join', name);   // ---> Server
+}
+
+function exitGame() {
+  console.log('gameover');
+};
+// ----------------------    GAME LOOP    ---------------------------- //
+
+function gameLoop(timestamp) {
+  fps = 1000 / (timestamp - lastRender);
+  checkControls();
+  updatePositions();
+  drawAll();
+
+  debug();
+  lastRender = timestamp;
+  window.requestAnimationFrame(gameLoop);
 }
 
 function makeStarField() {
@@ -103,15 +93,13 @@ function checkControls() {
 function updatePositions() {
   updateMyShip();
   updateViewport();
-  //   updateAsteroids();
-  //   updateBullets();
-  //   updateExplosion();
 };
 
 // -----------    functions: update positions    ------------------//
 
 function warp() {
   // request from server
+  console.log('warp requested');
   sendStatus('warp', '');
 }
 
@@ -119,16 +107,26 @@ function updateMyShip() {
 
   myShip.x = myShip.x + myShip.velocity.x / fps;
   myShip.y = myShip.y + myShip.velocity.y / fps;
-  // wall collision: vector to push away from walls
 
+  // wall collision: vector to push away from walls
   switch (true) {
-    case myShip.x < myShip.size / 2: myShip.velocity = new Vector(0, 20); break;
-    case myShip.x > fieldX - myShip.size / 2: myShip.velocity = new Vector(Math.PI, 20); break;
-    case myShip.y < myShip.size / 2: myShip.velocity = new Vector(Math.PI * 0.5, 20); break;
-    case myShip.y > fieldY - myShip.size / 2: myShip.velocity = new Vector(Math.PI * 1.5, 20); break;
+    case myShip.x < myShip.size / 2:
+      myShip.velocity = new Vector(0, 20);
+      break;
+
+    case myShip.x > fieldX - myShip.size / 2:
+      myShip.velocity = new Vector(Math.PI, 20);
+      break;
+
+    case myShip.y < myShip.size / 2:
+      myShip.velocity = new Vector(Math.PI * 0.5, 20);
+      break;
+
+    case myShip.y > fieldY - myShip.size / 2:
+      myShip.velocity = new Vector(Math.PI * 1.5, 20);
+      break;
   }
 }
-
 // -----------    functions: draw on screen    ------------------//
 
 function drawAll() {
@@ -136,9 +134,8 @@ function drawAll() {
   ctx.fillStyle = 'black';
   ctx.fillRect(0, 0, viewportWidth, viewportHeight);
 
-  // render components
   drawStars();
-  // drawBullets();
+  drawBullets();
   drawAsteroids();
   drawShips();
   drawPerimeter();
@@ -163,30 +160,29 @@ function drawStars() {
   });
 }
 
-// function drawBullets() {
+function drawBullets() {
 
-//   bullets.forEach((bullet, index) => {
-//     // remove off-field and spent bullets
-//     if (
-//       bullet.x < 0 ||
-//       bullet.x > fieldX ||
-//       bullet.y < 0 ||
-//       bullet.y > fieldY ||
-//       Math.sqrt((bullet.x - bullet.originX)**2 + (bullet.y - bullet.originY)**2) > bullet.reach
-//       ) {
-//       bullets.splice(index, 1);
-//     }
+  bullets.forEach((bullet, index) => {
+    // remove off-field and spent bullets
+    if (
+      bullet.x < 0 ||
+      bullet.x > fieldX ||
+      bullet.y < 0 ||
+      bullet.y > fieldY ||
+      Math.sqrt((bullet.x - bullet.originX)**2 + (bullet.y - bullet.originY)**2) > bullet.reach
+      ) {
+      bullets.splice(index, 1);
+    }
 
-//     ctx.beginPath();
-//     ctx.arc(bullet.x-viewportX, bullet.y-viewportY, 1, 0, 2 * Math.PI, false);
-//     ctx.fillStyle = '#FFF';
-//     ctx.fill();
-//     });
-// }
+    ctx.beginPath();
+    ctx.arc(bullet.x-viewportX, bullet.y-viewportY, 1, 0, 2 * Math.PI, false);
+    ctx.fillStyle = '#FFF';
+    ctx.fill();
+    });
+}
 
 function drawShips() {
-  //   // will need to display all ships for multiplayer
-  // if (myStatus.alive === true) ships.push(myShip);
+
   drawShip(myShip);
   ships.forEach((ship) => {
     drawShip(ship);
@@ -206,13 +202,13 @@ function drawShip(ship) {
     // label:
     ctx.font = "10px Space Mono";
     ctx.fillStyle = "red";
-    ctx.fillText(ship.user + ": " + ship.x + "," + ship.y || "unknown", 20, 20);
+    ctx.fillText(ship.user || "unknown", 20 , 20);
   }
 
   ctx.rotate(ship.direction);
   // Draw ship
   ctx.beginPath();
-  ctx.strokeStyle = '#555';
+  ctx.strokeStyle = 'white';
   ctx.fillStyle = '#ccc';
   ctx.lineWidth = '1';
   ctx.moveTo(0, -ship.height / 2);
@@ -338,6 +334,25 @@ function scoreUpdate() {
   score.innerText = `Score: ${myStatus.score}`;
 }
 
+function die(bigHole = 0) {
+  myShip.alive = false;
+  if (bigHole = 0) bigHole = new Explosion(myShip.x, myShip.y, new Vector(0, 0))
+  bigHole.end = 50;
+  explosions.push(bigHole);
+  playSound(fireball);
+  myStatus.lives--;
+  removeHeart();
+  if (myStatus.lives < 1) {
+    setTimeout(() => {
+      gameOver();
+    }, 2000);
+  } else {
+    setTimeout(() => {
+      spawnMyShip();
+    }, 3000);
+  }
+}
+
 function removeHeart() {
   let lives = document.getElementById('lives');
   while (lives.childElementCount > myStatus.lives) {
@@ -345,11 +360,10 @@ function removeHeart() {
   }
 }
 
-// function abortGame() {
-// // TODO Abort game
-//   showMouse();
-//   // go to lobby
-// }
+function exitGame() {
+  gameOver();
+  // go to lobby
+}
 
 function gameOver() {
 
@@ -368,6 +382,24 @@ function gameOver() {
     location.reload();
   }, 2000);
 }
+
+function debug() {
+  let bugbox = document.getElementById('debug');
+  bugbox.innerHTML = `x: ${myShip.x}<br>y: ${myShip.y}<br>`
+}
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.strokeStyle = 'black';
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+}
+
+
+// -----------    functions: helper function     ------------------//
 
 function clamp(num, min, max) {
   // limits num to between min and max

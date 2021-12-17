@@ -1,5 +1,5 @@
-
-const FPS = 30; // 60
+let gameLoopInterval;
+const FPS = 10; // 60
 // (change to 0.1 if no ships)
 
 const {
@@ -40,17 +40,10 @@ const WARP_BUFFER = 100;
 // }
 
 function game() {
-  purge();
   console.log('Game started');
   spawnAsteroids();
-  gameLoop();
+  gameLoopInterval = setInterval(gameLoop, 1000 / FPS);
 };
-
-function purge() {
-  ships.splice(0, ships.length);
-  asteroids.splice(0, asteroids.length);
-  bullets.splice(0, bullets.length);
-}
 
 function gameLoop() {
   updateAsteroids();
@@ -60,7 +53,7 @@ function gameLoop() {
   checkShipCollisions();
   updateExplosions();
   // updateScores();
-  setTimeout(gameLoop, 1000 / FPS);
+
 }
 
 function joinGame(username, socketId) { // from socket
@@ -68,7 +61,7 @@ function joinGame(username, socketId) { // from socket
   let newShip = new Ship();
   newShip.x = 100 // randomX();
   newShip.y = 100 // randomY();
-  newShip.alive = true;
+  // newShip.alive = true;
   newShip.user = username;
   newShip.socket = socketId;
 
@@ -95,57 +88,68 @@ function warp(ship, buffer = WARP_BUFFER) {
 }
 
 function freeSpace(ship, buffer) {
-  return buffer < Math.min(
+
+  if (buffer < Math.min(
     distToNearestAsteroid(ship),
     distToNearestShip(ship),
-  )
+  )) {
+    return true;
+  }
+  return false;
 }
 
 function checkCollisions() {
   ships.forEach((ship) => {
-    if (freeSpace(ship, 0) < 0) {
+    if (!freeSpace(ship, 0)) {
+      console.log("died because... no freespace");
       die(ship);
-      let newExplosion = new Explosion(ship.x, ship.y, collisionAsteroid.velocity);
+      let newExplosion = new Explosion(ship.x, ship.y, ship.velocity);
       explosions.push(newExplosion);
     }
   })
 }
 
 function distToNearestAsteroid(ship) {
+
   let nearestDist = Infinity;
-  let nearestAsteroid;
 
   asteroids.forEach((asteroid) => {
-    let dist = Math.sqrt((ship.x - asteroid.x) ** 2 + (ship.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - ship.size / 2;
+    let dist = Math.sqrt((ship.x - asteroid.x) ** 2 + (ship.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - ship.size / 2 - 0.5 * (ship.size - asteroid.size);
     if (dist < nearestDist) {
-      nearestAsteroid = asteroid;
       nearestDist = dist;
     }
-    return [nearestAsteroid, nearestDist];
+    if (nearestDist < 200) {
+      console.log("closure: ", nearestDist - 0.5 * (ship.size - asteroid.size));
+    }
   });
+  return nearestDist;
 }
 
 function distToNearestShip(thisShip) {
   let nearestDist = Infinity;
 
   ships.forEach((ship) => {
-    if (ship === thisShip) return;
+    if (ship === thisShip) return Infinity;
     let dist = Math.sqrt((thisShip.x - ship.x) ** 2 + (thisShip.y - ship.y) ** 2) - ship.size;
     if (dist < nearestDist) {
       nearestDist = dist;
     }
-    return nearestDist;
   });
+  return nearestDist;
 }
 
 function checkShipCollisions() {
   ships.forEach(() => {
-    if (distToNearestShip < 0) die();
+    if (distToNearestShip < 0) {
+      console.log(distToNearestShip);
+      die();
+    }
   });
 }
 
 function checkShots() {
-
+  // checkAsteroidHit();
+  // checkEnemyHit();
 }
 
 function spawnAsteroids(offscreen = false) {
@@ -178,15 +182,26 @@ function updateAsteroids() {
   })
 }
 
-function updateExplosions() {
-  explosions.forEach((exp, index) => {
-    exp.x = exp.x + exp.velocity.x / FPS;
-    exp.y = exp.y + exp.velocity.y / FPS;
-    exp.size = exp.size + 1;
-    if (exp.size > exp.end) {
-      explosions.splice(index, 1);
-    }
+function updateBullets() {
+
+  bullets.forEach((bullet) => {
+    bullet.x = bullet.x + bullet.velocity.x / FPS;
+    bullet.y = bullet.y + bullet.velocity.y / FPS;
+    // check bullet range
   });
+}
+
+function updateExplosions() {
+  if (explosions.length !== 0) {
+   explosions.forEach((exp, index) => {
+      exp.x = exp.x + exp.velocity.x / FPS;
+      exp.y = exp.y + exp.velocity.y / FPS;
+      exp.size = exp.size + 1;
+      if (exp.size > exp.end) {
+        explosions.splice(index, 1);
+      }
+    });
+  }
 }
 
 function randomX() {
@@ -200,8 +215,21 @@ function randomY() {
 }
 
 function die(ship) {
-  ship.alive = false;
-  obituries.push(ship);
+  // ship.alive = false;
+  if (obituries.indexOf(ship) === -1) {
+    obituries.push(ship);
+    console.log("a death has occured");
+  }
 }
 
-module.exports = { game, joinGame, warp, randomX, randomY, purge, FPS };
+function resetAll() {
+  clearInterval(gameLoopInterval);
+  asteroids.splice(0,asteroids.length);
+  bullets.splice(0,bullets.length);
+  explosions.splice(0, explosions.length);
+  io.sockets.emit("boot", "everyone!");
+  ships.splice(0, ships.length);
+  game();
+}
+
+module.exports = { game, joinGame, warp, randomX, randomY, resetAll, die, FPS };

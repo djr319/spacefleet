@@ -2,7 +2,7 @@
 const { Vector } = require('./Vector');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
-const noOfAsteroids = 20;
+const noOfAsteroids = 1;
 const biggestAsteroid = asteroidMaxSize * asteroidScale;
 const { nanoid } = require('nanoid')
 

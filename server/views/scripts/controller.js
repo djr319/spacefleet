@@ -21,6 +21,7 @@ const controller = {
 }
 
 // event listeners
+
 const controls = function (e) {
   switch (e.key) {
     case 'm':
@@ -87,6 +88,11 @@ function setEventListeners() {
   controller.rotateR.pressed = false;
   controller.shoot.pressed = false;
 
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === 'hidden') exitGame();
+
+  });
+
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
   document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
@@ -101,6 +107,11 @@ function setEventListeners() {
 }
 
 function removeEventListeners() {
+
+  document.removeEventListener("visibilitychange", function () {
+  if (document.visibilityState === 'hidden') exitGame();
+  });
+
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
