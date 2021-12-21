@@ -95,6 +95,7 @@ function checkControls() {
 
 function updatePositions() {
   updateMyShip();
+  updateBullets();
   updateViewport();
 };
 
@@ -130,6 +131,14 @@ function updateMyShip() {
       break;
   }
 }
+
+function updateBullets() {
+  bullets.forEach((bullet) => {
+    bullet.x = bullet.x + bullet.velocity.x / fps;
+    bullet.y = bullet.y + bullet.velocity.y / fps;
+  });
+}
+
 // -----------    functions: draw on screen    ------------------//
 
 function drawAll() {

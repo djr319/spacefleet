@@ -33,7 +33,6 @@ socket.on('toast', (data) => {
 socket.on("init", (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
-  console.log("Field-size: ", data.fX, data.fY);
 });
 
 socket.on('newGame', (data) => {
@@ -137,9 +136,16 @@ socket.on('warp', (data) => {
   console.log('warp data received');
 });
 
-// socket.on('bullets', (data) => {
-//   // TODO
-// });
+socket.on('bullet', (data) => {
+  console.log("bullet received", data);
+  let newBullet = new Bullet();
+  newBullet.x = data.x;
+  newBullet.y = data.y;
+  newBullet.velocity = new Vector(data.v.angle, data.v.size)
+  bullets.push(newBullet);
+  console.table(bullets);
+
+});
 
 
 

@@ -48,7 +48,7 @@ function game() {
 function gameLoop() {
   updateAsteroids();
   checkCollisions();
-  // updateBullets();
+  updateBullets();
   // checkShots();
   checkShipCollisions();
   updateExplosions();

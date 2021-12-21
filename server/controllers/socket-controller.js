@@ -98,6 +98,13 @@ function socketHandler(socketServer) {
       newBullet.user = socket.id;
       newBullet.reach = bullet.reach
       bullets.push(newBullet);
+
+      socketServer.emit('bullet', {
+        x: newBullet.x,
+        y: newBullet.y,
+        v: newBullet.velocity,
+        id: newBullet.id
+      })
     });
 
     socket.on('purge', () => {

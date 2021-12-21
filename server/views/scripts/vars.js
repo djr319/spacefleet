@@ -145,6 +145,7 @@ class MyShip {
         document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
       }, 200);
     } else {
+
       let bullet = new Bullet;
       bullet.x = this.x;
       bullet.y = this.y;
@@ -152,7 +153,7 @@ class MyShip {
       bullet.velocity.size = this.velocity.size + 600;
       bullet.originX = bullet.x;
       bullet.originY = bullet.y;
-      bullets.push(bullet);
+      // bullets.push(bullet);
       sendUpdate('shot', {
         x: bullet.x,
         y: bullet.y,
@@ -205,10 +206,7 @@ class Asteroid {
 class Bullet extends Entity {
   constructor() {
     super();
-    this.originX = 0;
-    this.originY = 0;
-
-    this.reach = 600;
+    this.id = '';
   }
 }
 
@@ -217,8 +215,8 @@ const myStatus = {
   lives: 0,
   alive: false,
 }
-let myShip = new MyShip;
 
+let myShip = new MyShip;
 
 function resetStatus() {
   myStatus.score = 0;
