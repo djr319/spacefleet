@@ -144,7 +144,6 @@ socket.on('bullet', (data) => {
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
   console.table(bullets);
-
 });
 
 

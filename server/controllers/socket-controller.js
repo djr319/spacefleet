@@ -96,7 +96,7 @@ function socketHandler(socketServer) {
       newBullet.y = bullet.y;
       newBullet.velocity = bullet.velocity;
       newBullet.user = socket.id;
-      newBullet.reach = bullet.reach
+      newBullet.reach = bullet.reach;
       bullets.push(newBullet);
 
       socketServer.emit('bullet', {

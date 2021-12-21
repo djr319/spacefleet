@@ -195,7 +195,7 @@ function drawBullets() {
 
 function drawShips() {
 
-  drawShip(myShip);
+  if (myStatus.alive === true) drawShip(myShip);
   ships.forEach((ship) => {
     drawShip(ship);
   });

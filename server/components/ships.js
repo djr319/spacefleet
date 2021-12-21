@@ -6,7 +6,6 @@ class Ship {
     this.y;
     this.direction = 0;
     this.velocity = new Vector(0, 0);
-    // this.alive = true;
     this.strength = 5;
     this.socket;
     this.user;

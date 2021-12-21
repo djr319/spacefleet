@@ -61,7 +61,6 @@ function joinGame(username, socketId) { // from socket
   let newShip = new Ship();
   newShip.x = 100 // randomX();
   newShip.y = 100 // randomY();
-  // newShip.alive = true;
   newShip.user = username;
   newShip.socket = socketId;
 
@@ -73,9 +72,6 @@ function joinGame(username, socketId) { // from socket
   ships.push(newShip);
   console.table(ships);
   return newShip;
-
-  // init game
-  // should send gamefield size number of lives etc from server
 }
 
 function warp(ship, buffer = WARP_BUFFER) {
@@ -188,6 +184,7 @@ function updateBullets() {
     bullet.x = bullet.x + bullet.velocity.x / FPS;
     bullet.y = bullet.y + bullet.velocity.y / FPS;
     // check bullet range
+
   });
 }
 
@@ -215,9 +212,14 @@ function randomY() {
 }
 
 function die(ship) {
-  // ship.alive = false;
+
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
+    console.log("a death has occured");
+  }
+
+  if (ships.indexOf(ship) !== -1) {
+    ships.splice(ships.indexOf(ship),1);
     console.log("a death has occured");
   }
 }
