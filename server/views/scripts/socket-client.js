@@ -30,6 +30,12 @@ socket.on('toast', (data) => {
   }).showToast();
 });
 
+socket.on("init", (data) => {
+  fieldX = data.fX;
+  fieldY = data.fY;
+  console.log("Field-size: ", data.fX, data.fY);
+});
+
 socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;

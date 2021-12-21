@@ -10,9 +10,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d', { alpha: false });
-  makeStarField();
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
+  makeStarField();
 
   document.getElementById('name').value = sessionStorage.getItem('name') || "noob";
 
@@ -25,6 +25,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function joinGame() {
   getShip();
+  resizeCanvas();
+  makeStarField();
   setEventListeners();
   // canvas.requestFullscreen()
   // hideMouse();
@@ -63,6 +65,7 @@ function gameLoop(timestamp) {
 }
 
 function makeStarField() {
+  starfield.length = 0;
   for (let x = 0; x < noOfStars; x++) {
     starfield.push(new Star());
   }

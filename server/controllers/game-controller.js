@@ -232,4 +232,4 @@ function resetAll() {
   game();
 }
 
-module.exports = { game, joinGame, warp, randomX, randomY, resetAll, die, FPS };
+module.exports = { game, joinGame, warp, randomX, randomY, resetAll, die, FPS, fieldX, fieldY };

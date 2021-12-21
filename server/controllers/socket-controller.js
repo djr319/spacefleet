@@ -10,7 +10,7 @@ const {
   obituries
 } = require('../models/storage')
 
-const { joinGame, warp, purge, die, fps: FPS } = require('./game-controller');
+const { joinGame, warp, purge, die, fps: FPS, fieldX, fieldY } = require('./game-controller');
 
 const blockList = [];
 
@@ -19,6 +19,10 @@ function socketHandler(socketServer) {
   // ---------- initialize  ---------- //
   socketServer.on('connection', (socket) => {
     console.log('User connected: ' + socket.id);
+    socket.emit("init", {
+      fX: fieldX,
+      fY: fieldY
+    })
 
     socket.on('join', (name) => {
       console.log(name, 'joined');
@@ -27,8 +31,9 @@ function socketHandler(socketServer) {
       socket.emit("toast", `Welcome, ${name}`);
       socket.emit("newGame", {
         x: newShip.x,
-        y: newShip.y
+        y: newShip.y,
       })
+
       // message all other users that user joined game
       socket.broadcast.emit("toast", `${name} joined the game`);
     });

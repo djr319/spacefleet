@@ -18,8 +18,8 @@ let ctx;
 // animation & background
 let lastRender = 0;
 let fps = 0;
-const fieldX = 5000;
-const fieldY = 5000;
+let fieldX;
+let fieldY;
 const starfield = [];
 const noOfStars = 1000;
 
