@@ -65,9 +65,12 @@ socket.on('ship', (pushedShip) => {
     console.log("unknown ship data received", pushedShip.socket, ships);
     // don't add ship.. causes multiple crashes
     // refactor
-    thisShip.direction = pushedShip.direction;
-    thisShip.thruster = pushedShip.thruster;
-
+    ships.push(new Ship(
+      pushedShip.x,
+      pushedShip.y,
+      pushedShip.socket,
+      pushedShip.user
+    ));
   } else {
     thisShip.x = pushedShip.x;
     thisShip.y = pushedShip.y;
