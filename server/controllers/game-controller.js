@@ -95,12 +95,16 @@ function freeSpace(ship, buffer) {
 }
 
 function checkCollisions() {
+
   ships.forEach((ship) => {
-    if (!freeSpace(ship, 0)) {
-      console.log("died because... no freespace");
+    if (distToNearestAsteroid(ship) < 0) {
+      console.log('hit asteroid!');
       die(ship);
-      let newExplosion = new Explosion(ship.x, ship.y, ship.velocity);
-      explosions.push(newExplosion);
+    }
+
+    if (distToNearestShip(ship) < 0) {
+      console.log('collision!');
+      die(ship);
     }
   })
 }
@@ -137,8 +141,7 @@ function distToNearestShip(thisShip) {
 function checkShipCollisions() {
   ships.forEach(() => {
     if (distToNearestShip < 0) {
-      console.log(distToNearestShip);
-      die();
+      // kill both ships
     }
   });
 }
@@ -212,15 +215,12 @@ function randomY() {
 }
 
 function die(ship) {
-
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     console.log("a death has occured");
-  }
-
-  if (ships.indexOf(ship) !== -1) {
+    let newExplosion = new Explosion(ship.x, ship.y, ship.velocity);
+    explosions.push(newExplosion);
     ships.splice(ships.indexOf(ship),1);
-    console.log("a death has occured");
   }
 }
 

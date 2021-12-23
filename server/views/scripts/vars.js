@@ -122,6 +122,7 @@ class MyShip {
     this.maxSpeed = 800;
     this.rotationRate = 8;
     this.ammo = 15;
+    this.alive = false;
   }
 
   get size() {
@@ -131,7 +132,7 @@ class MyShip {
   shoot = () => {
     // rate control
     const now = new Date();
-    if (now - lastShot < 20 || myStatus.alive === false) {
+    if (now - lastShot < 20 || myShip.alive === false) {
       return;
     }
 
@@ -210,18 +211,10 @@ class Bullet extends Entity {
   }
 }
 
-const myStatus = {
-  score: 0,
-  lives: 0,
-  alive: false,
-}
-
 let myShip = new MyShip;
-
+let myScore = 0;
 function resetStatus() {
-  myStatus.score = 0;
-  myStatus.lives = 5;
-  myStatus.alive = true;
+
 }
 
 let camera = new Entity();

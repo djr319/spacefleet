@@ -39,31 +39,20 @@ socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
   myShip.velocity = new Vector(3 * Math.PI / 2, 20);
-
-  // purge ships[]
+  myShip.alive = true;
   ships.length = 0;
-  // repopulate ships[]
-  // data.shipList.forEach((ship) => {
-  //   let newShip = new Ship;
-  //   newShip.socket = ship.socket;
-  //   newShip.user = ship.user;
-  //   newShip.x = ship.x;
-  //   newShip.y = ship.y;
-  //   newShip.direction = ship.direction;
-  //   newShip.thruster = ship.thruster;
-  // });
-
 });
 
 socket.on('ship', (pushedShip) => {
+  if (myShip.alive === false) {
+    return;
+  }
   let thisShip = ships.find(ship => {
     return ship.socket === pushedShip.socket;
   })
 
   if (thisShip === undefined) {
     console.log("unknown ship data received", pushedShip.socket, ships);
-    // don't add ship.. causes multiple crashes
-    // refactor
     ships.push(new Ship(
       pushedShip.x,
       pushedShip.y,
@@ -75,13 +64,11 @@ socket.on('ship', (pushedShip) => {
     thisShip.y = pushedShip.y;
     thisShip.direction = pushedShip.direction;
     thisShip.thruster = pushedShip.thruster;
-    console.log('valid ship data received');
   }
 });
 
 socket.on("die", () => {
-  exitGame();
-  // change to die();
+  die();
 });
 
 socket.on("boot", () => {
@@ -91,10 +78,12 @@ socket.on("boot", () => {
 
 socket.on('deadShip', (pushedShip) => {
   console.log(pushedShip.socket);
-  let thisShip = ships.findIndex(ship => {
+  let deadShip = ships.findIndex(ship => {
     return ship.socket === pushedShip.socket;
   })
-  if (thisShip !== -1) ships.splice([thisShip], 1);
+  console.log('deadship index: ', deadShip);
+
+  if (deadShip !== -1) ships.splice([deadShip], 1);
 });
 
 socket.on('asteroid', (incoming) => {
@@ -137,15 +126,9 @@ socket.on('warp', (data) => {
 });
 
 socket.on('bullet', (data) => {
-  console.log("bullet received", data);
   let newBullet = new Bullet();
   newBullet.x = data.x;
   newBullet.y = data.y;
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
-  console.table(bullets);
 });
-
-
-
-

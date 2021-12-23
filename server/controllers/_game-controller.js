@@ -1,13 +1,4 @@
 
-// function updateBullets() {
-
-//   bullets.forEach((bullet) => {
-//     bullet.x = bullet.x + bullet.velocity.x / fps;
-//     bullet.y = bullet.y + bullet.velocity.y / fps;
-//     checkAsteroidHit();
-//     checkEnemyHit();
-//   });
-// }
 
 // function checkEnemyHit() {
 //   // ship / bullet collision detection

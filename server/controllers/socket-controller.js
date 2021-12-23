@@ -47,7 +47,13 @@ function socketHandler(socketServer) {
         if (blockList.indexOf(socket.id) === -1) {
           console.log("received data from unknown ship");
           blockList.push(socket.id);
-          socket.emit("boot", "");
+          // socket.emit("boot", "");
+          setTimeout(()=>{
+            let deadShip = blockList.find(obj => {
+              return obj === socket.id;
+            });
+            blockList.splice(blockList[deadShip], 1)
+          }, 5000);
         }
       } else {
         // update server array
@@ -89,7 +95,6 @@ function socketHandler(socketServer) {
     });
 
     socket.on('shot', (bullet) => {
-      console.log('shot received!');
 
       const newBullet = new Bullet();
       newBullet.x = bullet.x;
@@ -143,9 +148,9 @@ function socketHandler(socketServer) {
       console.log("mode :", mode);
       console.log(deadship.user, "has died");
       // mode !== 'silent' &&
-        socket.emit("toast", `${deadship.user} died`);
+        socket.broadcast.emit("toast", `${deadship.user} died`);
+        socket.broadcast.emit("deadShip", { socket: socket.id });
         socket.emit("die", "");
-      socket.broadcast.emit("deadShip", { socket: socket.id });
     }
 
     // ---------- connection issues ---------- //

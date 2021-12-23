@@ -195,7 +195,7 @@ function drawBullets() {
 
 function drawShips() {
 
-  if (myStatus.alive === true) drawShip(myShip);
+  if (myShip.alive === true) drawShip(myShip);
   ships.forEach((ship) => {
     drawShip(ship);
   });
@@ -305,7 +305,7 @@ function drawPerimeter() {
 
 function updateViewport() {
 
-  if (myStatus.alive === true) {
+  if (myShip.alive === true) {
     // follow ship
     camera.x = myShip.x;
     camera.y = myShip.y;
@@ -324,26 +324,15 @@ function hudInit() {
   hud.id = 'hud';
   document.body.appendChild(hud);
 
-  let lives = document.createElement('div');
-  lives.id = 'lives';
-  hud.appendChild(lives);
-
-  for (let i = 0; i < myStatus.lives; i++) {
-    let heart = document.createElement('span');
-    heart.classList.add('heart');
-    heart.innerText = '♥';
-    lives.appendChild(heart);
-  }
-
   let p = document.createElement('p');
   p.id = 'hud-score';
-  p.innerText = `Score: ${myStatus.score}`;
+  p.innerText = `Score: ${myScore}`;
   hud.appendChild(p);
 }
 
 function scoreUpdate() {
   let score = document.getElementById('hud-score');
-  score.innerText = `Score: ${myStatus.score}`;
+  score.innerText = `Score: ${myScore}`;
 }
 
 function die(bigHole = 0) {
@@ -352,24 +341,10 @@ function die(bigHole = 0) {
   bigHole.end = 50;
   explosions.push(bigHole);
   playSound(fireball);
-  myStatus.lives--;
-  removeHeart();
-  if (myStatus.lives < 1) {
-    setTimeout(() => {
-      gameOver();
-    }, 2000);
-  } else {
-    setTimeout(() => {
-      spawnMyShip();
-    }, 3000);
-  }
-}
 
-function removeHeart() {
-  let lives = document.getElementById('lives');
-  while (lives.childElementCount > myStatus.lives) {
-    lives.removeChild(lives.lastChild);
-  }
+  setTimeout(() => {
+    gameOver();
+  }, 2000);
 }
 
 function exitGame() {
@@ -384,9 +359,9 @@ function gameOver() {
   showMouse();
   // local storage
   const pb = localStorage.getItem('pb');
-  if (myStatus.score > pb) {
-    localStorage.setItem('pb', myStatus.score);
-    alert("New personal best!" + myStatus.score);
+  if (myScore > pb) {
+    localStorage.setItem('pb', myScore);
+    alert("New personal best!" + myScore);
   }
 
   setTimeout(() => {
