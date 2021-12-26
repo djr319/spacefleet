@@ -11,7 +11,7 @@ function sendStatus(type, object) { // join, warp,
 }
 
 function sendUpdate(type, object) { // ship,
-  socket.volatile.emit(type, object) // only lastest, no buffering
+    socket.volatile.emit(type, object) // only lastest, no buffering
 }
 // for testing
 function sendPurge() {
@@ -23,7 +23,7 @@ function sendPurge() {
 // -------------       Listeners       -----------  //
 
 socket.on('toast', (data) => {
-  console.log("toast received");
+  console.log("toast; ", data);
   Toastify({
     text: data,
     duration: 3000
@@ -68,6 +68,8 @@ socket.on('ship', (pushedShip) => {
 });
 
 socket.on("die", () => {
+  console.log('they told me to die!');
+
   die();
 });
 
@@ -103,6 +105,15 @@ socket.on('asteroid', (incoming) => {
     asteroids[thisAsteroid].size = incoming.size;
   }
 });
+
+socket.on('newExplosion', (data) => {
+  let newExplosion = new Explosion(data.x, data.y, data.v);
+  newExplosion.start = data.start;
+  newExplosion.id = data.id;
+  explosions.push(newExplosion);
+  console.table(explosions);
+
+})
 
 // socket.on('score', (data) => {
 //   let tempScores = [];

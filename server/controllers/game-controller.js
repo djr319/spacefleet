@@ -15,7 +15,7 @@ const {
 const { Vector } = require('../components/vector');
 const { Asteroid, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require('../components/asteroids');
 const Ship = require('../components/ships');
-const Explosion = require('../components/explosions');
+// const Explosion = require('../components/explosions');
 // const { Bullet } = require ( '../components/bullets');
 
 // ---------------   Variables  --------------- //
@@ -51,9 +51,7 @@ function gameLoop() {
   updateBullets();
   // checkShots();
   checkShipCollisions();
-  updateExplosions();
   // updateScores();
-
 }
 
 function joinGame(username, socketId) { // from socket
@@ -191,18 +189,18 @@ function updateBullets() {
   });
 }
 
-function updateExplosions() {
-  if (explosions.length !== 0) {
-   explosions.forEach((exp, index) => {
-      exp.x = exp.x + exp.velocity.x / FPS;
-      exp.y = exp.y + exp.velocity.y / FPS;
-      exp.size = exp.size + 1;
-      if (exp.size > exp.end) {
-        explosions.splice(index, 1);
-      }
-    });
-  }
-}
+// function updateExplosions() {
+//   if (explosions.length !== 0) {
+//    explosions.forEach((exp, index) => {
+//       exp.x = exp.x + exp.velocity.x / FPS;
+//       exp.y = exp.y + exp.velocity.y / FPS;
+//       exp.size = exp.size + 1;
+//       if (exp.size > exp.end) {
+//         explosions.splice(index, 1);
+//       }
+//     });
+//   }
+// }
 
 function randomX() {
   // returns a random x value on the field
@@ -218,9 +216,8 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     console.log("a death has occured");
-    let newExplosion = new Explosion(ship.x, ship.y, ship.velocity);
-    explosions.push(newExplosion);
-    ships.splice(ships.indexOf(ship),1);
+    // explosions.push(newExplosion);
+    ships.splice(ships.indexOf(ship), 1);
   }
 }
 

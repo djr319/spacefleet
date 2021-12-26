@@ -48,9 +48,6 @@ function getShip() {
   sendStatus('join', name);   // ---> Server
 }
 
-function exitGame() {
-  console.log('gameover');
-};
 // ----------------------    GAME LOOP    ---------------------------- //
 
 function gameLoop(timestamp) {
@@ -76,12 +73,14 @@ function makeStarField() {
 // };
 
 function reportToServer() {
+  if (myShip.alive === true) {
   sendUpdate('ship', {
     x: myShip.x,
     y: myShip.y,
     direction: myShip.direction,
     thruster: myShip.thruster
   });
+}
 }
 
 function checkControls() {
@@ -94,17 +93,19 @@ function checkControls() {
 }
 
 function updatePositions() {
-  updateMyShip();
+  if (myShip.alive === true) {
+    updateMyShip();
+  }
   updateBullets();
+  updateExplosions();
   updateViewport();
 };
 
 // -----------    functions: update positions    ------------------//
 
 function warp() {
-  // request from server
-  console.log('warp requested');
-  sendStatus('warp', '');
+
+    sendStatus('warp', '');
 }
 
 function updateMyShip() {
@@ -139,6 +140,15 @@ function updateBullets() {
   });
 }
 
+function updateExplosions() {
+  explosions.forEach((explosion) => {
+    explosion.size = explosion.size + 50 / fps;
+    if (explosion.size > explosion.end) {
+      explosions.splice(explosions.indexOf(explosion.id, 1))
+    }
+  });
+}
+
 // -----------    functions: draw on screen    ------------------//
 
 function drawAll() {
@@ -151,7 +161,7 @@ function drawAll() {
   drawAsteroids();
   drawShips();
   drawPerimeter();
-  // drawExplosions();
+  drawExplosions();
   updateViewport();
 }
 
@@ -195,7 +205,10 @@ function drawBullets() {
 
 function drawShips() {
 
-  if (myShip.alive === true) drawShip(myShip);
+  if (myShip.alive === true) {
+    drawShip(myShip);
+  }
+
   ships.forEach((ship) => {
     drawShip(ship);
   });
@@ -269,6 +282,8 @@ function drawAsteroids() {
 
 function drawExplosions() {
   explosions.forEach((exp) => {
+    console.log('explosion!!!', exp.x, exp.y - viewportY);
+
     ctx.beginPath();
     ctx.arc(exp.x - viewportX, exp.y - viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
     ctx.fillStyle = '#fcba03';
@@ -365,8 +380,7 @@ function gameOver() {
   }
 
   setTimeout(() => {
-    // newGame();
-    location.reload();
+    document.getElementById('splash').style.display = "flex";
   }, 2000);
 }
 

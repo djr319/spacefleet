@@ -1,12 +1,11 @@
 const Bullet = require('../components/bullets');
+const Explosion = require('../components/explosions');
 const {
   asteroids,
   bullets,
-  explosions,
   ships,
   users,
   scores,
-  messageQueue,
   obituries
 } = require('../models/storage')
 
@@ -121,7 +120,6 @@ function socketHandler(socketServer) {
     setInterval(() => {
       pushAsteroids();
       checkObituries();
-      // pushBullets();
     }, FPS);
 
     function pushAsteroids() {
@@ -140,6 +138,14 @@ function socketHandler(socketServer) {
         let deadShip = obituries[0];
         console.log("obituries page ", deadShip.user);
         deathAnnouncement(deadShip, 'loud');
+        let newExplosion = new Explosion(deadShip.x, deadShip.y, deadShip.velocity);
+        socketServer.emit('newExplosion', {
+          x: newExplosion.x,
+          y: newExplosion.y,
+          v: newExplosion.velocity,
+          start: newExplosion.start,
+          id: newExplosion.id
+        });
         obituries.shift();
       };
     }

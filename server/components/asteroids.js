@@ -1,10 +1,9 @@
-// const { randomX, randomY } = require('../controllers/game-controller');
 const { Vector } = require('./Vector');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 10;
 const biggestAsteroid = asteroidMaxSize * asteroidScale;
-const { nanoid } = require('nanoid')
+const { nanoid } = require('nanoid');
 
 class Asteroid {
   constructor(x, y, v, s) {
