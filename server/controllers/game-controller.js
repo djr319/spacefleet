@@ -5,15 +5,21 @@ const FPS = 10; // 60
 const {
   asteroids,
   bullets,
-  explosions,
   ships,
   users,
   scores,
-  obituries
+  obituries,
+  broadcasts
 } = require('../models/storage');
 
-const { Vector } = require('../components/vector');
-const { Asteroid, asteroidScale, asteroidMaxSize, noOfAsteroids, biggestAsteroid } = require('../components/asteroids');
+const {
+  Asteroid,
+  asteroidScale,
+  asteroidMaxSize,
+  noOfAsteroids,
+  biggestAsteroid
+} = require('../components/asteroids');
+
 const Ship = require('../components/ships');
 // const Explosion = require('../components/explosions');
 // const { Bullet } = require ( '../components/bullets');
@@ -40,7 +46,8 @@ const WARP_BUFFER = 100;
 // }
 
 function game() {
-  console.log('Game started');
+  console.log('Server started & reset');
+  resetAll();
   spawnAsteroids();
   gameLoopInterval = setInterval(gameLoop, 1000 / FPS);
 };
@@ -102,6 +109,7 @@ function checkCollisions() {
 
     if (distToNearestShip(ship) < 0) {
       console.log('collision!');
+      // get other ship! then kill both
       die(ship);
     }
   })
@@ -116,30 +124,52 @@ function distToNearestAsteroid(ship) {
     if (dist < nearestDist) {
       nearestDist = dist;
     }
-    if (nearestDist < 200) {
-      console.log("closure: ", nearestDist - 0.5 * (ship.size - asteroid.size));
-    }
   });
   return nearestDist;
 }
 
 function distToNearestShip(thisShip) {
   let nearestDist = Infinity;
+  let nearestShip = {};
 
   ships.forEach((ship) => {
-    if (ship === thisShip) return Infinity;
+    if (ship === thisShip) return;
     let dist = Math.sqrt((thisShip.x - ship.x) ** 2 + (thisShip.y - ship.y) ** 2) - ship.size;
     if (dist < nearestDist) {
       nearestDist = dist;
+      nearestShip = ship;
     }
   });
-  return nearestDist;
+  return [nearestDist, nearestShip];
 }
 
+// function checkEnemyHit() {
+//   // ship / bullet collision detection
+//   bullets.forEach((bullet, bulletIndex) => {
+//     ships.forEach((ship, shipIndex) => {
+//       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
+//       if (distance < 0) {
+//         ship.shield--;
+//         if (ship.shields < 1) {
+//           // ship has been killed
+//           die(shipIndex);
+//           // add score to the one shooting
+//           users[bullet.owner].score += score.killEnemy;
+//           explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
+//           ships.splice(shipIndex,1);
+//         } else {
+//           users[bullet.owner].score += score.hurtEnemy;
+//         }
+//         bullets.splice(bulletIndex, 1);
+//       }
+//     });
+//   });
+// }
+
 function checkShipCollisions() {
-  ships.forEach(() => {
-    if (distToNearestShip < 0) {
-      // kill both ships
+  ships.forEach((ship) => {
+    if (distToNearestShip(ship) < 0) {
+      die(ship);
     }
   });
 }
@@ -185,22 +215,8 @@ function updateBullets() {
     bullet.x = bullet.x + bullet.velocity.x / FPS;
     bullet.y = bullet.y + bullet.velocity.y / FPS;
     // check bullet range
-
   });
 }
-
-// function updateExplosions() {
-//   if (explosions.length !== 0) {
-//    explosions.forEach((exp, index) => {
-//       exp.x = exp.x + exp.velocity.x / FPS;
-//       exp.y = exp.y + exp.velocity.y / FPS;
-//       exp.size = exp.size + 1;
-//       if (exp.size > exp.end) {
-//         explosions.splice(index, 1);
-//       }
-//     });
-//   }
-// }
 
 function randomX() {
   // returns a random x value on the field
@@ -216,7 +232,6 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     console.log("a death has occured");
-    // explosions.push(newExplosion);
     ships.splice(ships.indexOf(ship), 1);
   }
 }
@@ -225,10 +240,7 @@ function resetAll() {
   clearInterval(gameLoopInterval);
   asteroids.splice(0,asteroids.length);
   bullets.splice(0,bullets.length);
-  explosions.splice(0, explosions.length);
-  io.sockets.emit("boot", "everyone!");
   ships.splice(0, ships.length);
-  game();
 }
 
-module.exports = { game, joinGame, warp, randomX, randomY, resetAll, die, FPS, fieldX, fieldY };
+module.exports = { game, joinGame, warp, FPS, fieldX, fieldY };

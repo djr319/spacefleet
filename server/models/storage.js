@@ -1,10 +1,10 @@
-// ------------ storage ---------- //
 const asteroids = [];
 const bullets = [];
 const ships = [];
 const users = [];
 const scores = [];
 const obituries = [];
+const broadcasts = [];
 
 module.exports = {
   asteroids,
@@ -12,5 +12,6 @@ module.exports = {
   ships,
   users,
   scores,
-  obituries
-};
+  obituries,
+  broadcasts
+}

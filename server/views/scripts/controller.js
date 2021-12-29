@@ -54,10 +54,15 @@ const controls = function (e) {
     case ' ': controller.shoot.pressed = true;
       break;
 
-      case 'p':
-        case 'P':
-          sendPurge();
-          break;
+    case 'p':
+    case 'P':
+      sendPurge();
+      break;
+
+    case 'Escape':
+      exitGame();
+      break;
+
     default: break;
   }
 }
@@ -88,34 +93,42 @@ function setEventListeners() {
   controller.rotateR.pressed = false;
   controller.shoot.pressed = false;
 
-  document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === 'hidden') exitGame();
-
-  });
+  // document.addEventListener("visibilitychange", function () {
+  //   if (document.visibilityState === 'hidden') exitGame();
+  // });
 
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
-  document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.addEventListener('mouseup', () => { controller.shoot.pressed = false });
+  document.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    controller.shoot.pressed = true;
+  });
 
-  document.addEventListener('mousedown', (e) => { e.preventDefault(); });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === 'Escape') {
-      abortGame();
-     }
+  document.addEventListener('mouseup', () => {
+    controller.shoot.pressed = false
   });
 }
 
 function removeEventListeners() {
+  controller.thrust.pressed = false;
+  controller.rotateL.pressed = false;
+  controller.rotateR.pressed = false;
+  controller.shoot.pressed = false;
 
-  document.removeEventListener("visibilitychange", function () {
-  if (document.visibilityState === 'hidden') exitGame();
-  });
+  // document.removeEventListener("visibilitychange", function () {
+  // if (document.visibilityState === 'hidden') exitGame();
+  // });
 
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
-  document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
-  document.removeEventListener('mouseup', () => { controller.shoot.pressed = false });
+  document.removeEventListener('mousedown', (e) => {
+    e.preventDefault();
+    controller.shoot.pressed = true;
+  });
+
+  document.removeEventListener('mouseup', () => {
+    controller.shoot.pressed = false
+  });
 }
 
 function hideMouse() {

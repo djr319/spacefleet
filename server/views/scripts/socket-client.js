@@ -23,7 +23,7 @@ function sendPurge() {
 // -------------       Listeners       -----------  //
 
 socket.on('toast', (data) => {
-  console.log("toast; ", data);
+  console.log("toast: ", data);
   Toastify({
     text: data,
     duration: 3000
@@ -52,7 +52,7 @@ socket.on('ship', (pushedShip) => {
   })
 
   if (thisShip === undefined) {
-    console.log("unknown ship data received", pushedShip.socket, ships);
+    console.log("data received from new ship", pushedShip.socket, ships);
     ships.push(new Ship(
       pushedShip.x,
       pushedShip.y,
@@ -67,21 +67,20 @@ socket.on('ship', (pushedShip) => {
   }
 });
 
-socket.on("die", () => {
-  console.log('they told me to die!');
-
+socket.on("die", (data) => {
+  console.log("I'm dead! ", data);
   die();
 });
 
 socket.on("boot", () => {
   console.log("booted from server");
-  exitGame();
+  boot();
 });
 
-socket.on('deadShip', (pushedShip) => {
-  console.log(pushedShip.socket);
+socket.on('deadShip', (deadshipId) => {
+  console.log(deadshipId, " has been reported dead");
   let deadShip = ships.findIndex(ship => {
-    return ship.socket === pushedShip.socket;
+    return ship.socket === deadshipId;
   })
   console.log('deadship index: ', deadShip);
 
@@ -107,12 +106,9 @@ socket.on('asteroid', (incoming) => {
 });
 
 socket.on('newExplosion', (data) => {
-  let newExplosion = new Explosion(data.x, data.y, data.v);
-  newExplosion.start = data.start;
-  newExplosion.id = data.id;
+  let newExplosion = new Explosion(data.x, data.y, new Vector(data.angle, data.size));
   explosions.push(newExplosion);
-  console.table(explosions);
-
+  console.log("new explosion received on socket-client");
 })
 
 // socket.on('score', (data) => {

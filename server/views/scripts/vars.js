@@ -67,15 +67,14 @@ class Vector {
 
 class Entity {
   constructor() {
-    this.x = 0;
-    this.y = 0;
+    this.x = 100;
+    this.y = 100;
     this.velocity = new Vector(0, 0);
   }
 }
 
-class Star extends Entity {
+class Star {
   constructor() {
-    super();
     this.x = Math.floor(Math.random() * fieldX);
     this.y = Math.floor(Math.random() * fieldY);
     this.z = Math.random();
@@ -84,9 +83,8 @@ class Star extends Entity {
   }
 }
 
-class Explosion extends Entity {
+class Explosion {
   constructor(x, y, v) {
-    super();
     this.x = x;
     this.y = y;
     this.velocity = v;
@@ -214,7 +212,7 @@ class Bullet extends Entity {
 let myShip = new MyShip;
 let myScore = 0;
 function resetStatus() {
-
+  myScore = 0;
 }
 
 let camera = new Entity();

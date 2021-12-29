@@ -1,5 +1,5 @@
 const Bullet = require('../components/bullets');
-const Explosion = require('../components/explosions');
+
 const {
   asteroids,
   bullets,
@@ -9,9 +9,13 @@ const {
   obituries
 } = require('../models/storage')
 
-const { joinGame, warp, purge, die, fps: FPS, fieldX, fieldY } = require('./game-controller');
-
-const blockList = [];
+const {
+  joinGame,
+  warp,
+  FPS,
+  fieldX,
+  fieldY
+} = require('./game-controller');
 
 function socketHandler(socketServer) {
 
@@ -24,6 +28,7 @@ function socketHandler(socketServer) {
     })
 
     socket.on('join', (name) => {
+
       console.log(name, 'joined');
       let newShip = joinGame(name, socket.id);
 
@@ -42,19 +47,7 @@ function socketHandler(socketServer) {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
-      if (thisShip === undefined) {
-        if (blockList.indexOf(socket.id) === -1) {
-          console.log("received data from unknown ship");
-          blockList.push(socket.id);
-          // socket.emit("boot", "");
-          setTimeout(()=>{
-            let deadShip = blockList.find(obj => {
-              return obj === socket.id;
-            });
-            blockList.splice(blockList[deadShip], 1)
-          }, 5000);
-        }
-      } else {
+      if (thisShip) {
         // update server array
         thisShip.x = ship.x;
         thisShip.y = ship.y;
@@ -70,7 +63,12 @@ function socketHandler(socketServer) {
           socket: thisShip.socket,
           user: thisShip.user
         });
-      };
+      } else {
+        // ship unknown... probably died!
+        if (obituries.indexOf(socket.id) !== -1) {
+          socket.emit("die", "not listed on server");
+        }
+      }
     });
 
     socket.on('warp', () => {
@@ -79,7 +77,7 @@ function socketHandler(socketServer) {
       })
       if (thisShip === undefined) {
         console.log('who said warp? ', socket.id);
-        socket.emit("toast", "Can't warp!");
+        socket.emit("toast", "Can't warp! - ship not registered on server");
       } else {
         warp(thisShip);
         socket.emit("warp",
@@ -112,14 +110,16 @@ function socketHandler(socketServer) {
     });
 
     socket.on('purge', () => {
-      resetAll();
-    });
+      console.table(ships);
+      socket.broadcast.emit("boot", "all");
+    })
 
     // ---------- send ---------- //
 
     setInterval(() => {
       pushAsteroids();
       checkObituries();
+      // sendBroadcasts();
     }, FPS);
 
     function pushAsteroids() {
@@ -138,25 +138,31 @@ function socketHandler(socketServer) {
         let deadShip = obituries[0];
         console.log("obituries page ", deadShip.user);
         deathAnnouncement(deadShip, 'loud');
-        let newExplosion = new Explosion(deadShip.x, deadShip.y, deadShip.velocity);
         socketServer.emit('newExplosion', {
-          x: newExplosion.x,
-          y: newExplosion.y,
-          v: newExplosion.velocity,
-          start: newExplosion.start,
-          id: newExplosion.id
+          x: deadShip.x,
+          y: deadShip.y,
+          angle: deadShip.velocity.angle,
+          size: deadShip.velocity.size,
         });
         obituries.shift();
       };
     }
 
+    // function sendBroadcasts() {
+    // while (broadcasts.length > 0) {
+    //   socketServer.emit(broadcasts[0].flag, broadcasts[0].message);
+    //   broadcasts.shift();
+    //   }
+    // }
+
     function deathAnnouncement(deadship, mode = 'silent') {
       console.log("mode :", mode);
       console.log(deadship.user, "has died");
       // mode !== 'silent' &&
+      socket.emit("Your socketID: ",socket.id)
         socket.broadcast.emit("toast", `${deadship.user} died`);
-        socket.broadcast.emit("deadShip", { socket: socket.id });
-        socket.emit("die", "");
+        socket.broadcast.emit("deadShip", deadship.id);
+        socket.emit("die", "you were killed!");
     }
 
     // ---------- connection issues ---------- //
@@ -184,4 +190,4 @@ function socketHandler(socketServer) {
     });
   });
 };
-module.exports = socketHandler;
+module.exports = { socketHandler };

@@ -25,8 +25,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
 function joinGame() {
   getShip();
-  resizeCanvas();
-  makeStarField();
   setEventListeners();
   // canvas.requestFullscreen()
   // hideMouse();
@@ -281,9 +279,8 @@ function drawAsteroids() {
 }
 
 function drawExplosions() {
-  explosions.forEach((exp) => {
-    console.log('explosion!!!', exp.x, exp.y - viewportY);
 
+  explosions.forEach((exp) => {
     ctx.beginPath();
     ctx.arc(exp.x - viewportX, exp.y - viewportY, Math.abs(exp.size), 0, 2 * Math.PI, false);
     ctx.fillStyle = '#fcba03';
@@ -350,11 +347,13 @@ function scoreUpdate() {
   score.innerText = `Score: ${myScore}`;
 }
 
-function die(bigHole = 0) {
+function die() {
   myShip.alive = false;
-  if (bigHole = 0) bigHole = new Explosion(myShip.x, myShip.y, new Vector(0, 0))
-  bigHole.end = 50;
-  explosions.push(bigHole);
+  // if (bigHole === 0) {
+  //   bigHole = new Explosion(myShip.x, myShip.y, new Vector(0, 0));
+  // }
+  // bigHole.end = 50;
+  // explosions.push(bigHole);
   playSound(fireball);
 
   setTimeout(() => {
@@ -362,16 +361,36 @@ function die(bigHole = 0) {
   }, 2000);
 }
 
+function boot() {
+  // called if server is reset
+  if (myShip.alive === true) {
+    myShip.alive = false;
+    gameOver();
+  }
+  purge();
+}
+
+function purge() {
+  asteroids.splice(0,asteroids.length);
+  bullets.splice(0,bullets.length);
+  explosions.splice(0,explosions.length);
+  ships.splice(0,ships.length);
+}
+
 function exitGame() {
-  gameOver();
-  // go to lobby
+  // called if browser tab loses focus
+  // called if ESC is pressed
+  if (myShip.alive === true) {
+    gameOver();
+  }
 }
 
 function gameOver() {
-
+  // return to lobby
   let hud = document.getElementById('hud');
   document.body.removeChild(hud);
   showMouse();
+  removeEventListeners();
   // local storage
   const pb = localStorage.getItem('pb');
   if (myScore > pb) {
@@ -386,7 +405,9 @@ function gameOver() {
 
 function debug() {
   let bugbox = document.getElementById('debug');
-  bugbox.innerHTML = `x: ${myShip.x}<br>y: ${myShip.y}<br>`
+  bugbox.innerHTML = `x: ${myShip.x}
+  <br>y: ${myShip.y}
+  <br>alive: ${myShip.alive}`
 }
 
 function resizeCanvas() {
