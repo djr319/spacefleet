@@ -4,6 +4,10 @@ socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
 });
 
+socket.on("disconnect", () => {
+  console.log("disconnected ", socket.id); // undefined
+});
+
 // -------------       Send       -----------  //
 
 function sendStatus(type, object) { // join, warp,
@@ -13,7 +17,7 @@ function sendStatus(type, object) { // join, warp,
 function sendUpdate(type, object) { // ship,
     socket.volatile.emit(type, object) // only lastest, no buffering
 }
-// for testing
+   // for testing purposes
 function sendPurge() {
   console.log("purge request sent!");
   console.table(ships);
@@ -33,6 +37,7 @@ socket.on('toast', (data) => {
 socket.on("init", (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
+  purge();
 });
 
 socket.on('newGame', (data) => {
@@ -77,6 +82,14 @@ socket.on("boot", () => {
   boot();
 });
 
+socket.on("reset", () => {
+  console.log("all reset!!!");
+  asteroids.length = 0;
+  console.table(asteroids);
+  ships.length = 0;
+  bullets.length = 0;
+});
+
 socket.on('deadShip', (deadshipId) => {
   console.log(deadshipId, " has been reported dead");
   let deadShip = ships.findIndex(ship => {
@@ -84,7 +97,11 @@ socket.on('deadShip', (deadshipId) => {
   })
   console.log('deadship index: ', deadShip);
 
-  if (deadShip !== -1) ships.splice([deadShip], 1);
+  if (deadShip !== -1) {
+    ships.splice([deadShip], 1)
+  } else {
+
+  }
 });
 
 socket.on('asteroid', (incoming) => {
@@ -97,7 +114,8 @@ socket.on('asteroid', (incoming) => {
       incoming.y,
       incoming.size,
       incoming.id
-    ))
+      ))
+      console.table(asteroids);
   } else {
     asteroids[thisAsteroid].x = incoming.x;
     asteroids[thisAsteroid].y = incoming.y;

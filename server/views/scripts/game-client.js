@@ -7,13 +7,11 @@ let reportRate = 60;
 // ---------------------    LOGIC STARTS HERE    --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
-
+  console.clear();
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d', { alpha: false });
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
-  makeStarField();
-
   document.getElementById('name').value = sessionStorage.getItem('name') || "noob";
 
   document.getElementById('join').addEventListener('click', () => {
@@ -28,14 +26,13 @@ function joinGame() {
   setEventListeners();
   // canvas.requestFullscreen()
   // hideMouse();
-  resetStatus();
+  // resetStatus();
   resizeCanvas();
   hudInit();
-
+  makeStarField();
   setInterval(() => {
     reportToServer();
   }, 1000 / reportRate);
-
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -407,7 +404,8 @@ function debug() {
   let bugbox = document.getElementById('debug');
   bugbox.innerHTML = `x: ${myShip.x}
   <br>y: ${myShip.y}
-  <br>alive: ${myShip.alive}`
+  <br>alive: ${myShip.alive}
+  <br>No. of asteroids: ${asteroids.length}`
 }
 
 function resizeCanvas() {

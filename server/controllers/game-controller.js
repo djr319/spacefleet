@@ -1,5 +1,5 @@
 let gameLoopInterval;
-const FPS = 10; // 60
+const updatesPerSecond = 10; // 60
 // (change to 0.1 if no ships)
 
 const {
@@ -46,10 +46,10 @@ const WARP_BUFFER = 100;
 // }
 
 function game() {
-  console.log('Server started & reset');
+
   resetAll();
   spawnAsteroids();
-  gameLoopInterval = setInterval(gameLoop, 1000 / FPS);
+  gameLoopInterval = setInterval(gameLoop, 1000 / updatesPerSecond);
 };
 
 function gameLoop() {
@@ -58,7 +58,15 @@ function gameLoop() {
   updateBullets();
   // checkShots();
   checkShipCollisions();
+  checkOutOfBounds();
   // updateScores();
+  // checkEmptyShipList();
+}
+
+function checkEmptyShipList() {
+  if (ships.length === 0) {
+    console.log("SHIP LIST IS EMPTY");
+  }
 }
 
 function joinGame(username, socketId) { // from socket
@@ -174,6 +182,15 @@ function checkShipCollisions() {
   });
 }
 
+function checkOutOfBounds() {
+  ships.forEach((ship) => {
+    if (ship.x < 0 || ship.x > fieldX || ship.y < 0 || ship.y > fieldY) {
+      die(ship);
+  }
+  });
+}
+
+
 function checkShots() {
   // checkAsteroidHit();
   // checkEnemyHit();
@@ -198,8 +215,8 @@ function updateAsteroids() {
     }
 
     // move
-    el.x = el.x + el.velocity.x / FPS;
-    el.y = el.y + el.velocity.y / FPS;
+    el.x = el.x + el.velocity.x / updatesPerSecond;
+    el.y = el.y + el.velocity.y / updatesPerSecond;
 
     // asteroids going off-field re-enter on the other side
     if (el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
@@ -212,8 +229,8 @@ function updateAsteroids() {
 function updateBullets() {
 
   bullets.forEach((bullet) => {
-    bullet.x = bullet.x + bullet.velocity.x / FPS;
-    bullet.y = bullet.y + bullet.velocity.y / FPS;
+    bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
+    bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
     // check bullet range
   });
 }
@@ -237,10 +254,12 @@ function die(ship) {
 }
 
 function resetAll() {
+  console.log('Server reset');
   clearInterval(gameLoopInterval);
   asteroids.splice(0,asteroids.length);
   bullets.splice(0,bullets.length);
   ships.splice(0, ships.length);
+  broadcasts.push(["boot","all"]);
 }
 
-module.exports = { game, joinGame, warp, FPS, fieldX, fieldY };
+module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };

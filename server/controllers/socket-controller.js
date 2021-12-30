@@ -6,13 +6,14 @@ const {
   ships,
   users,
   scores,
-  obituries
+  obituries,
+  broadcasts
 } = require('../models/storage')
 
 const {
   joinGame,
   warp,
-  FPS,
+  updatesPerSecond,
   fieldX,
   fieldY
 } = require('./game-controller');
@@ -109,9 +110,11 @@ function socketHandler(socketServer) {
       })
     });
 
+    // for testing purposes
     socket.on('purge', () => {
       console.table(ships);
-      socket.broadcast.emit("boot", "all");
+      // boots everone else
+      socket.broadcast.emit("boot", "purge all ships");
     })
 
     // ---------- send ---------- //
@@ -119,8 +122,8 @@ function socketHandler(socketServer) {
     setInterval(() => {
       pushAsteroids();
       checkObituries();
-      // sendBroadcasts();
-    }, FPS);
+      sendBroadcasts();
+    }, updatesPerSecond);
 
     function pushAsteroids() {
       asteroids.forEach((asteroid) => {
@@ -148,21 +151,22 @@ function socketHandler(socketServer) {
       };
     }
 
-    // function sendBroadcasts() {
-    // while (broadcasts.length > 0) {
-    //   socketServer.emit(broadcasts[0].flag, broadcasts[0].message);
-    //   broadcasts.shift();
-    //   }
-    // }
+    function sendBroadcasts() {
+      while (broadcasts.length > 0) {
+      console.log('broadcast sent: ', broadcasts[0]);
+      socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
+      broadcasts.shift();
+      }
+    }
 
     function deathAnnouncement(deadship, mode = 'silent') {
       console.log("mode :", mode);
       console.log(deadship.user, "has died");
       // mode !== 'silent' &&
-      socket.emit("Your socketID: ",socket.id)
-        socket.broadcast.emit("toast", `${deadship.user} died`);
-        socket.broadcast.emit("deadShip", deadship.id);
-        socket.emit("die", "you were killed!");
+      socket.emit("Your socketID: ", socket.id);
+      socket.broadcast.emit("toast", `${deadship.user} died`);
+      socket.broadcast.emit("deadShip", deadship.socket);
+      socket.emit("die", "you were killed!");
     }
 
     // ---------- connection issues ---------- //
