@@ -54,10 +54,10 @@ function game() {
 
 function gameLoop() {
   updateAsteroids();
-  checkCollisions();
+  checkAsteroidCollisions();
+  checkShipCollisions();
   updateBullets();
   // checkShots();
-  checkShipCollisions();
   checkOutOfBounds();
   // updateScores();
   // checkEmptyShipList();
@@ -107,17 +107,11 @@ function freeSpace(ship, buffer) {
   return false;
 }
 
-function checkCollisions() {
+function checkAsteroidCollisions() {
 
   ships.forEach((ship) => {
     if (distToNearestAsteroid(ship) < 0) {
       console.log('hit asteroid!');
-      die(ship);
-    }
-
-    if (distToNearestShip(ship) < 0) {
-      console.log('collision!');
-      // get other ship! then kill both
       die(ship);
     }
   })
@@ -175,10 +169,14 @@ function distToNearestShip(thisShip) {
 // }
 
 function checkShipCollisions() {
+  let collisionList = [];
   ships.forEach((ship) => {
     if (distToNearestShip(ship) < 0) {
-      die(ship);
+      collisionList.push(ship);
     }
+    collisionList.forEach((ship) => {
+      die(ship);
+    });
   });
 }
 

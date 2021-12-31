@@ -23,31 +23,34 @@ function socketHandler(socketServer) {
   // ---------- initialize  ---------- //
   socketServer.on('connection', (socket) => {
     console.log('User connected: ' + socket.id);
+
     socket.emit("init", {
       fX: fieldX,
       fY: fieldY
-    })
+    });
 
     socket.on('join', (name) => {
-
       console.log(name, 'joined');
       let newShip = joinGame(name, socket.id);
 
       socket.emit("toast", `Welcome, ${name}`);
+
       socket.emit("newGame", {
         x: newShip.x,
         y: newShip.y,
-      })
+      });
 
       // message all other users that user joined game
       socket.broadcast.emit("toast", `${name} joined the game`);
     });
+
     // ---------- listeners ---------- //
 
     socket.on('ship', (ship) => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
+
       if (thisShip) {
         // update server array
         thisShip.x = ship.x;
@@ -64,8 +67,9 @@ function socketHandler(socketServer) {
           socket: thisShip.socket,
           user: thisShip.user
         });
+
       } else {
-        // ship unknown... probably died!
+        // ship unknown... if not already killed... kill
         if (obituries.indexOf(socket.id) !== -1) {
           socket.emit("die", "not listed on server");
         }
@@ -75,7 +79,8 @@ function socketHandler(socketServer) {
     socket.on('warp', () => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
-      })
+      });
+
       if (thisShip === undefined) {
         console.log('who said warp? ', socket.id);
         socket.emit("toast", "Can't warp! - ship not registered on server");
@@ -88,12 +93,10 @@ function socketHandler(socketServer) {
           }
         );
         console.log('warp details sent to ' + socket.id);
-
       }
     });
 
     socket.on('shot', (bullet) => {
-
       const newBullet = new Bullet();
       newBullet.x = bullet.x;
       newBullet.y = bullet.y;
@@ -114,7 +117,7 @@ function socketHandler(socketServer) {
     socket.on('purge', () => {
       console.table(ships);
       // boots everone else
-      socket.broadcast.emit("boot", "purge all ships");
+      socketServer.broadcast.emit("boot", "purge all ships");
     })
 
     // ---------- send ---------- //
@@ -163,10 +166,15 @@ function socketHandler(socketServer) {
       console.log("mode :", mode);
       console.log(deadship.user, "has died");
       // mode !== 'silent' &&
-      socket.emit("Your socketID: ", socket.id);
-      socket.broadcast.emit("toast", `${deadship.user} died`);
-      socket.broadcast.emit("deadShip", deadship.socket);
-      socket.emit("die", "you were killed!");
+      // create array of active sockets and iterate through to send toast to all except the deadShip
+      ships.forEach((ship) => {
+        if (ship.socket !== deadship.socket) {
+          socketServer.to(ship.socket).emit("toast", `${deadship.user} died`);
+          socketServer.to(ship.socket).emit("deadShip", deadship.socket);
+        }
+      });
+
+      socketServer.to(deadship.socket).emit("die","KIA");
     }
 
     // ---------- connection issues ---------- //

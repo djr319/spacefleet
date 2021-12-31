@@ -2,10 +2,12 @@ const socket = io("http://localhost:5000");
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
+  if (myShip.alive === true) die();
 });
 
 socket.on("disconnect", () => {
-  console.log("disconnected ", socket.id); // undefined
+  console.log("disconnected from server"); // undefined
+  die();
 });
 
 // -------------       Send       -----------  //
@@ -115,7 +117,6 @@ socket.on('asteroid', (incoming) => {
       incoming.size,
       incoming.id
       ))
-      console.table(asteroids);
   } else {
     asteroids[thisAsteroid].x = incoming.x;
     asteroids[thisAsteroid].y = incoming.y;
