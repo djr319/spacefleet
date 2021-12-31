@@ -13,7 +13,8 @@ socket.on("disconnect", () => {
 // -------------       Send       -----------  //
 
 function sendStatus(type, object) { // join, warp,
-  socket.emit(type, object) // buffered & assured
+  console.log('status sent: ' + type);
+  socket.emit(type, object); // buffered & assured
 }
 
 function sendUpdate(type, object) { // ship,
@@ -45,7 +46,7 @@ socket.on("init", (data) => {
 socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
-  myShip.velocity = new Vector(3 * Math.PI / 2, 20);
+  myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
   ships.length = 0;
 });

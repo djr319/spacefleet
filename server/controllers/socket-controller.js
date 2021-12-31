@@ -38,6 +38,8 @@ function socketHandler(socketServer) {
       socket.emit("newGame", {
         x: newShip.x,
         y: newShip.y,
+        angle: newShip.velocity.angle,
+        size: newShip.velocity.size
       });
 
       // message all other users that user joined game
@@ -80,13 +82,13 @@ function socketHandler(socketServer) {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
-
+      console.log("warp requested by", thisShip.socket);
       if (thisShip === undefined) {
         console.log('who said warp? ', socket.id);
         socket.emit("toast", "Can't warp! - ship not registered on server");
       } else {
         warp(thisShip);
-        socket.emit("warp",
+        socket.emit('warp',
           {
             x: thisShip.x,
             y: thisShip.y

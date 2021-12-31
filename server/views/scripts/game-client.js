@@ -99,7 +99,6 @@ function updatePositions() {
 // -----------    functions: update positions    ------------------//
 
 function warp() {
-
     sendStatus('warp', '');
 }
 

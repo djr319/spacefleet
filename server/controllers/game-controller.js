@@ -2,6 +2,7 @@ let gameLoopInterval;
 const updatesPerSecond = 10; // 60
 // (change to 0.1 if no ships)
 
+const { Vector } = require('../components/vector')
 const {
   asteroids,
   bullets,
@@ -81,19 +82,18 @@ function joinGame(username, socketId) { // from socket
   // while (!freeSpace(newShip)) {
   //   warp(newShip, SPAWN_BUFFER);
   // };
-  // newShip.velocity = new Vector(3 / 2 * Math.PI, 20);
+  newShip.velocity = new Vector(1 / 2 * Math.PI, 20);
   ships.push(newShip);
   console.table(ships);
   return newShip;
 }
 
 function warp(ship, buffer = WARP_BUFFER) {
-  console.log('warped ', ship.socket);
   do {
     ship.x = randomX();
     ship.y = randomY();
-  }
-  while (!freeSpace(ship, buffer))
+  } while (!freeSpace(ship, buffer))
+  console.log('warped ', ship.socket);
 }
 
 function freeSpace(ship, buffer) {
