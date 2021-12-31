@@ -97,10 +97,10 @@ function warp(ship, buffer = WARP_BUFFER) {
 }
 
 function freeSpace(ship, buffer) {
-
+  console.log("checking freespace");
   if (buffer < Math.min(
     distToNearestAsteroid(ship),
-    distToNearestShip(ship),
+    distToNearestShip(ship)[0],
   )) {
     return true;
   }
