@@ -105,7 +105,7 @@ function setEventListeners() {
   });
 
   document.addEventListener('mouseup', () => {
-    controller.shoot.pressed = false
+    controller.shoot.pressed = false;
   });
 }
 
@@ -127,7 +127,7 @@ function removeEventListeners() {
   });
 
   document.removeEventListener('mouseup', () => {
-    controller.shoot.pressed = false
+    controller.shoot.pressed = false;
   });
 }
 

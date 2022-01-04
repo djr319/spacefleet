@@ -49,8 +49,10 @@ function gameLoop(timestamp) {
   fps = 1000 / (timestamp - lastRender);
   checkControls();
   updatePositions();
+  if (myShip.alive === false) {
+    console.log('myShip should be hidden')
+  }
   drawAll();
-
   debug();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop);

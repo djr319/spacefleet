@@ -1,5 +1,5 @@
 let gameLoopInterval;
-const updatesPerSecond = 10; // 60
+let updatesPerSecond = 10; // 60
 // (change to 0.1 if no ships)
 
 const { Vector } = require('../components/vector')
@@ -47,26 +47,39 @@ const WARP_BUFFER = 100;
 // }
 
 function game() {
-
-  resetAll();
-  spawnAsteroids();
-  gameLoopInterval = setInterval(gameLoop, 1000 / updatesPerSecond);
+  initServer();
+  console.log('update rate: ', updatesPerSecond);
+  gameLoop();
 };
 
+function initServer() {
+  asteroids.splice(0,asteroids.length);
+  spawnAsteroids();
+  bullets.splice(0,bullets.length);
+  ships.splice(0, ships.length);
+  // broadcasts.push(["boot","all"]);
+  console.log('Server initialized');
+}
+
 function gameLoop() {
+  checkEmptyShipList();
   updateAsteroids();
-  checkAsteroidCollisions();
+  checkShipAsteroidCollisions();
   checkShipCollisions();
   updateBullets();
   // checkShots();
   checkOutOfBounds();
   // updateScores();
-  // checkEmptyShipList();
+  setTimeout(gameLoop, 1000 / updatesPerSecond);
 }
 
 function checkEmptyShipList() {
-  if (ships.length === 0) {
-    console.log("SHIP LIST IS EMPTY");
+  if (ships.length === 0 && updatesPerSecond > 1) {
+    updatesPerSecond = 0.5;
+    console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
+  } else if (ships.length > 0 && updatesPerSecond < 1) {
+    updatesPerSecond = 10;
+    console.log('GAME ON! Update rate: ', updatesPerSecond);
   }
 }
 
@@ -107,7 +120,7 @@ function freeSpace(ship, buffer) {
   return false;
 }
 
-function checkAsteroidCollisions() {
+function checkShipAsteroidCollisions() {
 
   ships.forEach((ship) => {
     if (distToNearestAsteroid(ship) < 0) {
@@ -171,12 +184,12 @@ function distToNearestShip(thisShip) {
 function checkShipCollisions() {
   let collisionList = [];
   ships.forEach((ship) => {
-    if (distToNearestShip(ship) < 0) {
+    if (distToNearestShip(ship)[0] < 0) {
       collisionList.push(ship);
     }
+    });
     collisionList.forEach((ship) => {
       die(ship);
-    });
   });
 }
 
@@ -249,15 +262,6 @@ function die(ship) {
     console.log("a death has occured");
     ships.splice(ships.indexOf(ship), 1);
   }
-}
-
-function resetAll() {
-  console.log('Server reset');
-  clearInterval(gameLoopInterval);
-  asteroids.splice(0,asteroids.length);
-  bullets.splice(0,bullets.length);
-  ships.splice(0, ships.length);
-  broadcasts.push(["boot","all"]);
 }
 
 module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };
