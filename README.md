@@ -1,16 +1,15 @@
 # Description
 
-This is a remake of one of the earliest games available on Atari computers, Asteroids.
-
-By the wonders of the modern internet, it would be great to be able to play this as a multiplayer game.
+This is a remake of one of the earliest games available on Atari computers, Asteroids. Refactored as a MMO game though the wonders of socket.io.
 
 # Install
 
-- Run `npm i` inside both the `/server` and `/client`
-- The server runs on port 5000 and can be started by running `Nodemon` from the `/server` folder
+- Run `npm i` inside `/server`
 
-- Client can be built with `npm run build` from the `/client`folder if required
-- Client application is at `/client/index.html`
+# Run
+
+- The server can be started by running `Nodemon` from the `/server` folder
+- Navigate in browser to http:/localhost:5000
 
 # About
 
