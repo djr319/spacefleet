@@ -9,13 +9,14 @@ This is a remake of one of the earliest games available on Atari computers, Aste
 # Run
 
 - The server can be started by running `Nodemon` from the `/server` folder
-- Navigate in browser to http:/localhost:5000
+- Navigate in browser to http://localhost:5000
 
 # About
 
-- The front end is vanilla JS with `Canvas API`
+- The front end uses canvas API
 - The client connects to the backend server with `socket.io`
-- The backend creates the gaming environment and physics with pure vanilla JS
+- The backend creates the gaming environment and physics
+- Project uses vanilla JS rather than any library as it is a project I am making to further my knowledge and experience of game design 
 
 ## Further Reading
 
