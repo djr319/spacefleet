@@ -59,6 +59,10 @@ const controls = function (e) {
       sendPurge();
       break;
 
+    case 'q':
+      consoleDebug();
+      break;
+
     case 'Escape':
       exitGame();
       break;
@@ -67,7 +71,7 @@ const controls = function (e) {
   }
 }
 
-const keyupControls = function (e) { // was keyupControls
+const keyupControls = function (e) {
 
   switch (e.key) {
     case 'W':
@@ -87,7 +91,7 @@ const keyupControls = function (e) { // was keyupControls
   };
 }
 
-function setEventListeners() {
+function setControlListeners() {
   controller.thrust.pressed = false;
   controller.rotateL.pressed = false;
   controller.rotateR.pressed = false;
@@ -109,7 +113,7 @@ function setEventListeners() {
   });
 }
 
-function removeEventListeners() {
+function removeControlListeners() {
   controller.thrust.pressed = false;
   controller.rotateL.pressed = false;
   controller.rotateR.pressed = false;
@@ -139,6 +143,9 @@ function showMouse() {
   document.body.style.cursor = 'auto';
 }
 
+function consoleDebug() {
+  console.table(myShip);
+}
 
 // -----------    Music / Sound Effects    ------------------//
 

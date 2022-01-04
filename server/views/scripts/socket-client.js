@@ -48,13 +48,9 @@ socket.on('newGame', (data) => {
   myShip.y = data.y;
   myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
-  ships.length = 0;
 });
 
 socket.on('ship', (pushedShip) => {
-  if (myShip.alive === false) {
-    return;
-  }
   let thisShip = ships.find(ship => {
     return ship.socket === pushedShip.socket;
   })

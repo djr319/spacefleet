@@ -124,11 +124,14 @@ function socketHandler(socketServer) {
 
     // ---------- send ---------- //
 
-    setInterval(() => {
+    broadcastAsteroids();
+
+    function broadcastAsteroids() {
       pushAsteroids();
       checkObituries();
       sendBroadcasts();
-    }, updatesPerSecond);
+      setTimeout(broadcastAsteroids, updatesPerSecond);
+    }
 
     function pushAsteroids() {
       asteroids.forEach((asteroid) => {
@@ -188,14 +191,11 @@ function socketHandler(socketServer) {
       let deadShips = ships.filter((el) => { return el.socket === socket.id });
       if (deadShips.length > 0) {
         socket.emit("toast", `${deadShips} lost connection`);
-        deathAnnouncement(deadShips);
-        deadShips.forEach((el) => {
-          ships.splice(ships[ships.indexOf(el.socket)], 1);
+        deadShips.forEach((ship) => {
+          deathAnnouncement(ship);
+          ships.splice(ships.indexOf(ship), 1);
         });
         console.table(ships);
-      } else {
-        console.table(ships);
-        console.warn("Unable to delete disconnected ship: ", socket.id);
       }
     });
 

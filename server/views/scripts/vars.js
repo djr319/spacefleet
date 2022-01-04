@@ -15,15 +15,19 @@ const fieldBuffer = Math.max(50, biggestAsteroid);
 let canvas;
 let ctx;
 
+// position reporting
+let reportRate = 60;
+let reportInterval;
+
 // animation & background
-let lastRender = 0;
+let lastRender;
 let fps = 0;
 let fieldX;
 let fieldY;
-const starfield = [];
-const noOfStars = 1000;
 
 // -----------    Storage    ------------------//
+const starfield = [];
+const noOfStars = 1000;
 const ships = [];
 const bullets = [];
 const explosions = [];
