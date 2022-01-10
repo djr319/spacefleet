@@ -86,15 +86,17 @@ function checkEmptyShipList() {
 function joinGame(username, socketId) { // from socket
   // spawn ship
   let newShip = new Ship();
-  newShip.x = 100 // randomX();
-  newShip.y = 100 // randomY();
+  newShip.x = randomX();
+  newShip.y = randomY();
   newShip.user = username;
   newShip.socket = socketId;
 
   // check for proximity of asteroids & ships
-  // while (!freeSpace(newShip)) {
-  //   warp(newShip, SPAWN_BUFFER);
-  // };
+  if (freeSpace(newShip) === false) {
+    warp(newShip, SPAWN_BUFFER);
+    console.log('position ', newShip.x, newShip.y);
+
+  };
   newShip.velocity = new Vector(1 / 2 * Math.PI, 20);
   ships.push(newShip);
   console.table(ships);
