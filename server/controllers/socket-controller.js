@@ -172,14 +172,8 @@ function socketHandler(socketServer) {
       console.log(deadship.user, "has died");
       // mode !== 'silent' &&
       // create array of active sockets and iterate through to send toast to all except the deadShip
-      ships.forEach((ship) => {
-        if (ship.socket !== deadship.socket) {
-          socketServer.to(ship.socket).emit("toast", `${deadship.user} died`);
-          socketServer.to(ship.socket).emit("deadShip", deadship.socket);
-        }
-      });
-
-      socketServer.to(deadship.socket).emit("die","KIA");
+      socketServer.to(deadship.socket).emit("die", "KIA");
+      socketServer.except(deadship.socket).emit("deadShip", deadship.socket);
     }
 
     // ---------- connection issues ---------- //
