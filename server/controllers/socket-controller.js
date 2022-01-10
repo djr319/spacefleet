@@ -38,6 +38,7 @@ function socketHandler(socketServer) {
       socket.emit("newGame", {
         x: newShip.x,
         y: newShip.y,
+        direction: newShip.direction,
         angle: newShip.velocity.angle,
         size: newShip.velocity.size
       });

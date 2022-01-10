@@ -46,6 +46,7 @@ socket.on("init", (data) => {
 socket.on('newGame', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
+  myShip.direction = data.direction;
   myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
 });

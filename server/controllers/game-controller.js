@@ -88,6 +88,7 @@ function joinGame(username, socketId) { // from socket
   let newShip = new Ship();
   newShip.x = randomX();
   newShip.y = randomY();
+  newShip.direction = Math.random() * 2 * Math.PI;
   newShip.user = username;
   newShip.socket = socketId;
 
@@ -97,7 +98,9 @@ function joinGame(username, socketId) { // from socket
     console.log('position ', newShip.x, newShip.y);
 
   };
-  newShip.velocity = new Vector(1 / 2 * Math.PI, 20);
+  let vectorAngle = newShip.direction - 1 / 2 * Math.PI;
+  vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
+  newShip.velocity = new Vector(vectorAngle, 20);
   ships.push(newShip);
   console.table(ships);
   return newShip;
