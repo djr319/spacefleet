@@ -1,4 +1,5 @@
 const Bullet = require('../components/bullets');
+const {Vector} = require('../components/vector');
 
 const {
   asteroids,
@@ -103,9 +104,8 @@ function socketHandler(socketServer) {
       const newBullet = new Bullet();
       newBullet.x = bullet.x;
       newBullet.y = bullet.y;
-      newBullet.velocity = bullet.velocity;
+      newBullet.velocity = new Vector(bullet.angle, bullet.size);
       newBullet.user = socket.id;
-      newBullet.reach = bullet.reach;
       bullets.push(newBullet);
 
       socketServer.emit('bullet', {

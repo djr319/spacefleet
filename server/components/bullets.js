@@ -1,10 +1,10 @@
 const { nanoid } = require('nanoid');
 
 module.exports = class Bullet {
-  constructor(x,y,reach,user) {
+  constructor(x,y,user) {
     this.x = x;
     this.y = y;
-    this.reach = reach;
+    this.range = 200;
     this.user = user;
     this.id = nanoid();
   }

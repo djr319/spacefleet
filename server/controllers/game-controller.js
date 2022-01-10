@@ -36,15 +36,15 @@ if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer to
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
 
-// let scoreTable = {
-//   5: 50,
-//   4: 100,
-//   3: 200,
-//   2: 300,
-//   1: 500,
-//   'hurtEnemy': 1000,
-//   'killEnemy': 5000
-// }
+let scoreTable = {
+  5: 50,
+  4: 100,
+  3: 200,
+  2: 300,
+  1: 500,
+  'hurtEnemy': 1000,
+  'killEnemy': 5000
+}
 
 function game() {
   initServer();
@@ -67,7 +67,7 @@ function gameLoop() {
   checkShipAsteroidCollisions();
   checkShipCollisions();
   updateBullets();
-  // checkShots();
+  checkShots();
   checkOutOfBounds();
   // updateScores();
   setTimeout(gameLoop, 1000 / updatesPerSecond);
@@ -163,28 +163,32 @@ function distToNearestShip(thisShip) {
   return [nearestDist, nearestShip];
 }
 
-// function checkEnemyHit() {
-//   // ship / bullet collision detection
-//   bullets.forEach((bullet, bulletIndex) => {
-//     ships.forEach((ship, shipIndex) => {
-//       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
-//       if (distance < 0) {
-//         ship.shield--;
-//         if (ship.shields < 1) {
-//           // ship has been killed
-//           die(shipIndex);
-//           // add score to the one shooting
-//           users[bullet.owner].score += score.killEnemy;
-//           explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
-//           ships.splice(shipIndex,1);
-//         } else {
-//           users[bullet.owner].score += score.hurtEnemy;
-//         }
-//         bullets.splice(bulletIndex, 1);
-//       }
-//     });
-//   });
-// }
+function checkEnemyHit() {
+  // ship / bullet collision detection
+  bullets.forEach((bullet, bulletIndex) => {
+
+    ships.forEach((ship, shipIndex) => {
+      if (ship.socket === bullet.user) return;
+      let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
+      if (distance < 0) {
+        ship.shield--;
+        console.log("shild strngth:  ", ship.shield);
+        // transmit to ship
+        if (ship.shield < 5) {
+          // ship has been killed
+          die(shipIndex);
+          // add score to the one shooting
+          // users[bullet.owner].score += scoreTable.killEnemy;
+          // explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
+          // ships.splice(shipIndex,1);
+        } else {
+          users[bullet.owner].score += score.hurtEnemy;
+        }
+        bullets.splice(bulletIndex, 1);
+      }
+    });
+  });
+}
 
 function checkShipCollisions() {
   let collisionList = [];
@@ -209,7 +213,7 @@ function checkOutOfBounds() {
 
 function checkShots() {
   // checkAsteroidHit();
-  // checkEnemyHit();
+  checkEnemyHit();
 }
 
 function spawnAsteroids(offscreen = false) {
@@ -245,8 +249,16 @@ function updateAsteroids() {
 function updateBullets() {
 
   bullets.forEach((bullet) => {
+    bullet.range = bullet.range - bullet.velocity.size/updatesPerSecond;
+    console.log(bullet.range);
     bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
     bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
+    if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.range < 0) {
+      bullets.splice(bullets.indexOf(bullet), 1);
+      console.log('bullet out of range');
+    } else {
+      console.log('bullet in play: ', bullet.x, bullet.y);
+    }
     // check bullet range
   });
 }

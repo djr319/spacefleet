@@ -134,7 +134,7 @@ class MyShip {
   shoot = () => {
     // rate control
     const now = new Date();
-    if (now - lastShot < 20 || myShip.alive === false) {
+    if (now - lastShot < 20) {
       return;
     }
 
@@ -142,26 +142,13 @@ class MyShip {
     this.ammo--;
     if (this.ammo < 0) {
       controller.shoot.pressed = false;
-      document.removeEventListener('mousedown', () => { controller.shoot.pressed = true });
       this.ammo = 10;
-      setTimeout(() => {
-        document.addEventListener('mousedown', () => { controller.shoot.pressed = true });
-      }, 200);
     } else {
-
-      let bullet = new Bullet;
-      bullet.x = this.x;
-      bullet.y = this.y;
-      bullet.velocity.angle = this.direction - 1 / 2 * Math.PI;
-      bullet.velocity.size = this.velocity.size + 600;
-      bullet.originX = bullet.x;
-      bullet.originY = bullet.y;
-      // bullets.push(bullet);
       sendUpdate('shot', {
-        x: bullet.x,
-        y: bullet.y,
-        velocity: bullet.velocity,
-        reach: bullet.reach
+        x: this.x,
+        y: this.y,
+        angle: this.direction - 1 / 2 * Math.PI,
+        size: this.velocity.size + 600
       });
     }
     lastShot = now;
