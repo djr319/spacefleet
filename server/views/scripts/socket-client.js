@@ -49,6 +49,7 @@ socket.on('toast', (data) => {
 socket.on("init", (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
+  bulletRange = data.bulletRange;
   purge();
 });
 

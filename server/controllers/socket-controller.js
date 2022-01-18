@@ -1,5 +1,5 @@
-const Bullet = require('../components/bullets');
-const {Vector} = require('../components/vector');
+const { bulletRange, Bullet } = require('../components/bullets');
+const { Vector } = require('../components/vector');
 
 const {
   asteroids,
@@ -29,7 +29,8 @@ function socketHandler(socketServer) {
 
     socket.emit("init", {
       fX: fieldX,
-      fY: fieldY
+      fY: fieldY,
+      bulletRange
     });
 
     socket.on('join', (name) => {

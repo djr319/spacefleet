@@ -222,7 +222,7 @@ function drawShip(ship) {
       ctx.fillStyle = '#ccf5';
       ctx.strokeStyle = 'blue';
       ctx.lineWidth = 2;
-      ctx.arc(0, 0, 200, 0, 2 * Math.PI);
+      ctx.arc(0, 0, bulletRange, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
   }
@@ -362,6 +362,7 @@ function boot() {
   // called if server is reset
   if (myShip.alive === true) {
     myShip.alive = false;
+    clearInterval(reportInterval);
     gameOver();
   }
   purge();
@@ -379,11 +380,13 @@ function exitGame() {
   // called if ESC is pressed
   if (myShip.alive === true) {
     myShip.alive = false;
+    clearInterval(reportInterval);
     gameOver();
   }
 }
 
 function gameOver() {
+  // doesn't matter if listeners are already removed
   removeControlListeners();
   showMouse();
   // high score to local storage

@@ -25,6 +25,9 @@ let fps = 0;
 let fieldX;
 let fieldY;
 
+// other
+let bulletRange;
+
 // -----------    Storage    ------------------//
 const starfield = [];
 const noOfStars = 1000;

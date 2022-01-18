@@ -1,5 +1,5 @@
-const defaultUPS = 60; // must be > 5
-const idleUPS = 2; // must be < 5
+const defaultUPS = 60;
+const idleUPS = 10;
 let updatesPerSecond = idleUPS;
 // (change to 0.1 if no ships)
 
@@ -76,10 +76,10 @@ function gameLoop() {
 }
 
 function checkEmptyShipList() {
-  if (ships.length === 0 && updatesPerSecond > 5) {
+  if (ships.length === 0 && updatesPerSecond !== idleUPS) {
     updatesPerSecond = idleUPS;
     console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
-  } else if (ships.length > 0 && updatesPerSecond < 5) {
+  } else if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
     updatesPerSecond = defaultUPS;
     console.log('GAME ON! Update rate: ', updatesPerSecond);
   }
@@ -165,6 +165,11 @@ function distToNearestShip(thisShip) {
   return [nearestDist, nearestShip];
 }
 
+function checkShots() {
+  checkAsteroidHit();
+  checkEnemyHit();
+}
+
 function checkAsteroidHit() {
   // asteroid / bullet collision detection
   bullets.forEach((bullet, bulletIndex) => {
@@ -239,11 +244,6 @@ function checkOutOfBounds() {
       die(ship);
   }
   });
-}
-
-function checkShots() {
-  checkAsteroidHit();
-  checkEnemyHit();
 }
 
 function spawnAsteroids(offscreen = false) {
