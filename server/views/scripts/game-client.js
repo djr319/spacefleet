@@ -355,9 +355,7 @@ function die() {
   // explosions.push(bigHole);
   playSound(fireball);
   clearInterval(reportInterval);
-  setTimeout(() => {
-    gameOver();
-  }, 2000);
+  gameOver();
 }
 
 function boot() {
@@ -380,20 +378,21 @@ function exitGame() {
   // called if browser tab loses focus
   // called if ESC is pressed
   if (myShip.alive === true) {
+    myShip.alive = false;
     gameOver();
   }
 }
 
 function gameOver() {
+  removeControlListeners();
+  showMouse();
   // high score to local storage
+  setTimeout(() => {
   const pb = localStorage.getItem('pb');
   if (myScore > pb) {
     localStorage.setItem('pb', myScore);
     alert("New personal best!" + myScore);
   }
-  showMouse();
-  removeControlListeners();
-  setTimeout(() => {
     lobby('show');
   }, 2000);
 }
