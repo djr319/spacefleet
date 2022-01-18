@@ -10,7 +10,8 @@ const {
   obituries,
   oldBullets,
   broadcasts,
-  explosions
+  explosions,
+  garbageCollectionList
 } = require('../models/storage')
 
 const {
@@ -162,6 +163,7 @@ function socketHandler(socketServer) {
         checkObituries();
         checkExplosions();
         sendBroadcasts();
+        takeOutTheTrash();
         setTimeout(serverBroadcasts, updatesPerSecond);
       }
 
@@ -226,5 +228,11 @@ function socketHandler(socketServer) {
         socketServer.emit("deadShip", deadship.socket);
       }
 
+  function takeOutTheTrash() {
+    while (garbageCollectionList.length > 0) {
+      let trash = garbageCollectionList.shift();
+      socketServer.emit("trash", trash.id);
+    };
+  }
 };
 module.exports = { socketHandler };

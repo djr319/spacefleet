@@ -1,5 +1,5 @@
 const { Vector } = require('./Vector');
-const { asteroids } = require('../models/storage');
+const { asteroids, garbageCollectionList } = require('../models/storage');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
 const noOfAsteroids = 10;
@@ -33,7 +33,8 @@ class Asteroid {
       let child4 = new Asteroid(this.x, this.y, new Vector(Math.random() * 2 * Math.PI, this.velocity.size * 1), this.size - 1);
       asteroids.push(child1, child2, child3, child4);
     }
-    asteroids.splice(asteroids.indexOf(this), 1);
+    let trash = asteroids.splice(asteroids.indexOf(this), 1);
+    garbageCollectionList.push(trash[0]);
   }
 }
 

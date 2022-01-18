@@ -7,6 +7,7 @@ const obituries = [];
 const oldBullets = [];
 const broadcasts = [];
 const explosions = [];
+const garbageCollectionList = [];
 
 module.exports = {
   asteroids,
@@ -17,5 +18,6 @@ module.exports = {
   obituries,
   oldBullets,
   broadcasts,
-  explosions
+  explosions,
+  garbageCollectionList
 }

@@ -114,7 +114,16 @@ socket.on('deadShip', (deadshipId) => {
       ships.splice(deadShip, 1)
     }
   }
+});
 
+socket.on('trash', (trashId) => {
+  let trash = asteroids.findIndex((asteroid) => {
+    return asteroid.id === trashId;
+  })
+  if (trash !== -1) {
+    asteroids.splice(trash, 1);
+    console.log("asteroid has been trashed");
+  }
 });
 
 socket.on('asteroid', (incoming) => {
