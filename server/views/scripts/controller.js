@@ -1,5 +1,5 @@
 // -----------    functions: event listeners    ------------------//
-
+let controlCount = 0;
 // User Input object
 const controller = {
   rotateL: {
@@ -92,6 +92,8 @@ const keyupControls = function (e) {
 }
 
 function setControlListeners() {
+  controlCount++;
+  console.log("Control count: ", controlCount);
   controller.thrust.pressed = false;
   controller.rotateL.pressed = false;
   controller.rotateR.pressed = false;
@@ -114,6 +116,8 @@ function setControlListeners() {
 }
 
 function removeControlListeners() {
+  controlCount--;
+  console.log("Control count: ", controlCount);
   controller.thrust.pressed = false;
   controller.rotateL.pressed = false;
   controller.rotateR.pressed = false;

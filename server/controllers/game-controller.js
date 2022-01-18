@@ -1,5 +1,6 @@
-let gameLoopInterval;
-let updatesPerSecond = 10; // 60
+const defaultUPS = 60; // must be > 5
+const idleUPS = 2; // must be < 5
+let updatesPerSecond = idleUPS;
 // (change to 0.1 if no ships)
 
 const { Vector } = require('../components/vector')
@@ -10,7 +11,9 @@ const {
   users,
   scores,
   obituries,
-  broadcasts
+  oldBullets,
+  broadcasts,
+  explosions
 } = require('../models/storage');
 
 const {
@@ -48,7 +51,6 @@ let scoreTable = {
 
 function game() {
   initServer();
-  console.log('update rate: ', updatesPerSecond);
   gameLoop();
 };
 
@@ -56,8 +58,8 @@ function initServer() {
   asteroids.splice(0,asteroids.length);
   spawnAsteroids();
   bullets.splice(0,bullets.length);
+  broadcasts.push(["boot","all"]);
   ships.splice(0, ships.length);
-  // broadcasts.push(["boot","all"]);
   console.log('Server initialized');
 }
 
@@ -74,11 +76,11 @@ function gameLoop() {
 }
 
 function checkEmptyShipList() {
-  if (ships.length === 0 && updatesPerSecond > 1) {
-    updatesPerSecond = 0.5;
+  if (ships.length === 0 && updatesPerSecond > 5) {
+    updatesPerSecond = idleUPS;
     console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
-  } else if (ships.length > 0 && updatesPerSecond < 1) {
-    updatesPerSecond = 10;
+  } else if (ships.length > 0 && updatesPerSecond < 5) {
+    updatesPerSecond = defaultUPS;
     console.log('GAME ON! Update rate: ', updatesPerSecond);
   }
 }
@@ -163,8 +165,36 @@ function distToNearestShip(thisShip) {
   return [nearestDist, nearestShip];
 }
 
+function checkAsteroidHit() {
+  // asteroid / bullet collision detection
+  bullets.forEach((bullet, bulletIndex) => {
+  asteroids.forEach((asteroid, asteroidIndex) => {
+
+    let distance = Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
+    if (distance < 0) {
+      console.log('direct hit!');
+
+      // myStatus.score = myStatus.score + scoreTable[asteroid.size];
+      explosions.push({
+        x: bullet.x,
+        y: bullet.y,
+        angle: asteroid.velocity.angle,
+        size: asteroid.velocity.size
+      });
+
+      if (asteroid.size === 1) {
+        asteroids.splice(asteroidIndex,1);
+      } else {
+        asteroid.hit();
+        if (asteroid.strength === 0) asteroids.splice(asteroidIndex, 1);
+      }
+      bullets.splice(bulletIndex, 1);
+    };
+  });
+});
+}
+
 function checkEnemyHit() {
-  // ship / bullet collision detection
   bullets.forEach((bullet, bulletIndex) => {
 
     ships.forEach((ship, shipIndex) => {
@@ -172,7 +202,7 @@ function checkEnemyHit() {
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
       if (distance < 0) {
         ship.shield--;
-        console.log("shild strngth:  ", ship.shield);
+        console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 5) {
           // ship has been killed
@@ -182,7 +212,7 @@ function checkEnemyHit() {
           // explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
           // ships.splice(shipIndex,1);
         } else {
-          users[bullet.owner].score += score.hurtEnemy;
+          // users[bullet.owner].score += score.hurtEnemy;
         }
         bullets.splice(bulletIndex, 1);
       }
@@ -191,6 +221,7 @@ function checkEnemyHit() {
 }
 
 function checkShipCollisions() {
+  if (ships.length < 2) return;
   let collisionList = [];
   ships.forEach((ship) => {
     if (distToNearestShip(ship)[0] < 0) {
@@ -210,9 +241,8 @@ function checkOutOfBounds() {
   });
 }
 
-
 function checkShots() {
-  // checkAsteroidHit();
+  checkAsteroidHit();
   checkEnemyHit();
 }
 
@@ -248,18 +278,18 @@ function updateAsteroids() {
 
 function updateBullets() {
 
-  bullets.forEach((bullet) => {
-    bullet.range = bullet.range - bullet.velocity.size/updatesPerSecond;
-    console.log(bullet.range);
+  bullets.forEach((bullet, bulletIndex) => {
+    bullet.remainingRange = bullet.remainingRange - bullet.velocity.size/updatesPerSecond;
+    console.log("bullet range: ", bullet.remainingRange);
     bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
     bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
-    if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.range < 0) {
-      bullets.splice(bullets.indexOf(bullet), 1);
+    if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.remainingRange < 0) {
+      oldBullets.push(bullet);
+      bullets.splice(bulletIndex, 1);
       console.log('bullet out of range');
     } else {
       console.log('bullet in play: ', bullet.x, bullet.y);
     }
-    // check bullet range
   });
 }
 
@@ -276,7 +306,9 @@ function randomY() {
 function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
-    console.log("a death has occured");
+    let today = new Date();
+    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    console.log("Death occured ", time);
     ships.splice(ships.indexOf(ship), 1);
   }
 }

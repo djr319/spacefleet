@@ -12,7 +12,7 @@ window.addEventListener('DOMContentLoaded', () => {
   ctx = canvas.getContext('2d', { alpha: false });
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
-  document.getElementById('name').value = sessionStorage.getItem('name') || "-";
+  document.getElementById('name').value = sessionStorage.getItem('name') || "";
   document.getElementById('join').addEventListener('click', () => {
   joinGame();
   });
@@ -208,14 +208,23 @@ function drawShip(ship) {
   // guard clause to check if ship is in the viewport
   if (ship.x < viewportX || ship.x > viewportX + viewportWidth || ship.y < viewportY || ship.y > viewportY + viewportHeight) return;
 
-  // Canvas must be positioned and rotated before rotated items are draw, the canvas is rotated, not the object
+  // Canvas must be positioned and rotated before rotated items are drawn... the canvas is rotated, not the object
   ctx.translate(ship.x - viewportX, ship.y - viewportY);
 
   if (ship !== myShip) {
     // label:
     ctx.font = "10px Space Mono";
     ctx.fillStyle = "red";
-    ctx.fillText(ship.user || "unknown", 20 , 20);
+    ctx.fillText(ship.user || "?", 20, 20);
+  } else {
+      // range circle
+      ctx.beginPath();
+      ctx.fillStyle = '#ccf5';
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 2;
+      ctx.arc(0, 0, 200, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.stroke();
   }
 
   ctx.rotate(ship.direction);
@@ -223,7 +232,7 @@ function drawShip(ship) {
   ctx.beginPath();
   ctx.strokeStyle = 'white';
   ctx.fillStyle = '#ccc';
-  ctx.lineWidth = '1';
+  ctx.lineWidth = 1;
   ctx.moveTo(0, -ship.height / 2);
   ctx.lineTo(ship.width / 2, ship.height / 2);
   ctx.lineTo(0, ship.height * 0.3);
@@ -382,18 +391,18 @@ function gameOver() {
     localStorage.setItem('pb', myScore);
     alert("New personal best!" + myScore);
   }
-  lobby('show');
+  showMouse();
+  removeControlListeners();
+  setTimeout(() => {
+    lobby('show');
+  }, 2000);
 }
 
 function lobby(displayState) {
   if (displayState === 'show') {
     let hud = document.getElementById('hud');
     document.body.removeChild(hud);
-    showMouse();
-    removeControlListeners();
-    setTimeout(() => {
-      document.getElementById('splash').style.display = "flex";
-    }, 2000);
+    document.getElementById('splash').style.display = "flex";
   } else {
     document.getElementById('splash').style.display = "none";
     hudInit();

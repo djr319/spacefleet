@@ -8,7 +8,9 @@ const {
   users,
   scores,
   obituries,
-  broadcasts
+  oldBullets,
+  broadcasts,
+  explosions
 } = require('../models/storage')
 
 const {
@@ -31,10 +33,10 @@ function socketHandler(socketServer) {
     });
 
     socket.on('join', (name) => {
-      console.log(name, 'joined');
-      let newShip = joinGame(name, socket.id);
+      console.log(name || "unknown", 'joined');
+      let newShip = joinGame(name || "unknown", socket.id);
 
-      socket.emit("toast", `Welcome, ${name}`);
+      socket.emit("toast", `Welcome, ${name || "???"}`);
 
       socket.emit("newGame", {
         x: newShip.x,
@@ -123,59 +125,9 @@ function socketHandler(socketServer) {
       socketServer.broadcast.emit("boot", "purge all ships");
     })
 
-    // ---------- send ---------- //
-
-    broadcastAsteroids();
-
-    function broadcastAsteroids() {
-      pushAsteroids();
-      checkObituries();
-      sendBroadcasts();
-      setTimeout(broadcastAsteroids, updatesPerSecond);
-    }
-
-    function pushAsteroids() {
-      asteroids.forEach((asteroid) => {
-        socketServer.emit('asteroid', {
-          x: asteroid.x,
-          y: asteroid.y,
-          size: asteroid.size,
-          id: asteroid.id
-        });
-      })
-    }
-
-    function checkObituries() {
-      while (obituries.length > 0) {
-        let deadShip = obituries[0];
-        console.log("obituries page ", deadShip.user);
-        deathAnnouncement(deadShip, 'loud');
-        socketServer.emit('newExplosion', {
-          x: deadShip.x,
-          y: deadShip.y,
-          angle: deadShip.velocity.angle,
-          size: deadShip.velocity.size,
-        });
-        obituries.shift();
-      };
-    }
-
-    function sendBroadcasts() {
-      while (broadcasts.length > 0) {
-      console.log('broadcast sent: ', broadcasts[0]);
-      socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
-      broadcasts.shift();
-      }
-    }
-
-    function deathAnnouncement(deadship, mode = 'silent') {
-      console.log("mode :", mode);
-      console.log(deadship.user, "has died");
-      // mode !== 'silent' &&
-      // create array of active sockets and iterate through to send toast to all except the deadShip
-      socketServer.to(deadship.socket).emit("die", "KIA");
-      socketServer.except(deadship.socket).emit("deadShip", deadship.socket);
-    }
+    socket.on('print', () => {
+      console.table(ships);
+    })
 
     // ---------- connection issues ---------- //
 
@@ -198,5 +150,80 @@ function socketHandler(socketServer) {
       console.log("reconnected");
     });
   });
+
+      // ---------- send ---------- //
+
+      serverBroadcasts();
+
+      function serverBroadcasts() {
+        pushAsteroids();
+        unregisterBullets();
+        checkObituries();
+        checkExplosions();
+        sendBroadcasts();
+        setTimeout(serverBroadcasts, updatesPerSecond);
+      }
+
+      function pushAsteroids() {
+        asteroids.forEach((asteroid) => {
+          socketServer.emit('asteroid', {
+            x: asteroid.x,
+            y: asteroid.y,
+            size: asteroid.size,
+            id: asteroid.id
+          });
+        })
+      }
+
+      function unregisterBullets() {
+        oldBullets.forEach((bullet, bulletIndex) => {
+          socketServer.emit('old-bullet', bullet.id);
+          oldBullets.splice(bulletIndex, 1);
+        });
+      }
+
+      function checkObituries() {
+        while (obituries.length > 0) {
+          let deadShip = obituries.shift();
+          console.log("obituries page ", deadShip.user);
+          deathAnnouncement(deadShip, 'loud');
+          explosions.push({
+            x: deadShip.x,
+            y: deadShip.y,
+            angle: deadShip.velocity.angle,
+            size: deadShip.velocity.size
+          });
+
+        };
+      }
+
+      function checkExplosions() {
+        while (explosions.length > 0) {
+          let bang = explosions.shift();
+          socketServer.emit('newExplosion', {
+            x: bang.x,
+            y: bang.y,
+            angle: bang.angle,
+            size: bang.size
+          });
+        };
+
+      }
+      function sendBroadcasts() {
+        while (broadcasts.length > 0) {
+        console.log('broadcast sent: ', broadcasts[0]);
+        socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
+        broadcasts.shift();
+        }
+      }
+
+      function deathAnnouncement(deadship, mode = 'silent') {
+        console.log("mode :", mode);
+        console.log(deadship);
+        console.log(deadship.user, "has died");
+        // mode !== 'silent' &&
+        socketServer.emit("deadShip", deadship.socket);
+      }
+
 };
 module.exports = { socketHandler };

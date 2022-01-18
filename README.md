@@ -14,9 +14,9 @@ This is a remake of one of the earliest games available on Atari computers, Aste
 # About
 
 - The front end uses canvas API
-- The client connects to the backend server with `socket.io`
+- The client connects to the backend server with `socket.io` (v4.3.2)
 - The backend creates the gaming environment and physics
-- Project uses vanilla JS rather than any library as it is a project I am making to further my knowledge and experience of game design 
+- Project uses vanilla JS rather than any library as it is a project I am making to further my knowledge and experience of game design
 
 ## Further Reading
 

@@ -5,8 +5,16 @@ socket.on("connect", () => {
   if (myShip.alive === true) die();
 });
 
-socket.on("disconnect", () => {
-  console.log("disconnected from server"); // undefined
+socket.on("connect_error", () => {
+  console.log('connection error!!!!');
+
+  socket.connect();
+});
+
+socket.on("disconnect", (reason) => {
+  let today = new Date();
+  let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  console.log("disconnected from server", time, reason); // undefined
   die();
 });
 
@@ -24,7 +32,8 @@ function sendUpdate(type, object) { // ship,
 function sendPurge() {
   console.log("purge request sent!");
   console.table(ships);
-  socket.emit("purge", "") // request game reset
+  // socket.emit("purge", "") // request game reset
+  socket.emit("print", "") // request game reset
 }
 
 // -------------       Listeners       -----------  //
@@ -91,17 +100,20 @@ socket.on("reset", () => {
 });
 
 socket.on('deadShip', (deadshipId) => {
-  console.log(deadshipId, " has been reported dead");
-  let deadShip = ships.findIndex(ship => {
-    return ship.socket === deadshipId;
-  })
-  console.log('deadship index: ', deadShip);
-
-  if (deadShip !== -1) {
-    ships.splice([deadShip], 1)
+  if (deadshipId === socket.id) {
+    console.log("KIA");
+    die();
   } else {
-
+    let deadShip = ships.find(ship => ship.socket === deadshipId);
+    if (deadShip !== undefined) {
+      Toastify({
+        text: `${deadShip.user} has died`,
+        duration: 3000
+      }).showToast();
+      ships.splice(deadShip, 1)
+    }
   }
+
 });
 
 socket.on('asteroid', (incoming) => {
@@ -155,4 +167,10 @@ socket.on('bullet', (data) => {
   newBullet.y = data.y;
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
+});
+
+socket.on('old-bullet', (id) => {
+  console.log('delete bullet with ID: ', id);
+
+  bullets.splice(bullets.indexOf(id), 1);
 });

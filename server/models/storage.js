@@ -4,7 +4,9 @@ const ships = [];
 const users = [];
 const scores = [];
 const obituries = [];
+const oldBullets = [];
 const broadcasts = [];
+const explosions = [];
 
 module.exports = {
   asteroids,
@@ -13,5 +15,7 @@ module.exports = {
   users,
   scores,
   obituries,
-  broadcasts
+  oldBullets,
+  broadcasts,
+  explosions
 }
