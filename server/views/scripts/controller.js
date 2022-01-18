@@ -22,11 +22,11 @@ const controller = {
 
 // event listeners
 
-const controls = function (e) {
+function controls (e) {
   switch (e.key) {
     case 'm':
     case 'M':
-      toggleMusic();
+      if (!e.repeat) toggleMusic();
       break;
 
     case 'W':
@@ -42,7 +42,7 @@ const controls = function (e) {
     case 'S':
     case 'ArrowDown':
     case 's': {
-      if (!e.repeat) { warp() };
+      if (!e.repeat) warp();
       break;
     }
 
@@ -64,14 +64,14 @@ const controls = function (e) {
       break;
 
     case 'Escape':
-      exitGame();
+      if (!e.repeat) exitGame();
       break;
 
     default: break;
   }
 }
 
-const keyupControls = function (e) {
+function keyupControls (e) {
 
   switch (e.key) {
     case 'W':
@@ -91,13 +91,26 @@ const keyupControls = function (e) {
   };
 }
 
-function setControlListeners() {
-  controlCount++;
-  console.log("Control count: ", controlCount);
+function mouseDown(e) {
+  e.preventDefault();
+  controller.shoot.pressed = true;
+}
+
+function mouseUp() {
+  controller.shoot.pressed = false;
+}
+
+function controlsNeutral () {
   controller.thrust.pressed = false;
   controller.rotateL.pressed = false;
   controller.rotateR.pressed = false;
   controller.shoot.pressed = false;
+}
+
+function setControlListeners () {
+  controlCount++;
+  console.log("Control count: ", controlCount);
+  controlsNeutral();
 
   // document.addEventListener("visibilitychange", function () {
   //   if (document.visibilityState === 'hidden') exitGame();
@@ -105,23 +118,14 @@ function setControlListeners() {
 
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
-  document.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-    controller.shoot.pressed = true;
-  });
-
-  document.addEventListener('mouseup', () => {
-    controller.shoot.pressed = false;
-  });
+  document.addEventListener('mousedown', mouseDown);
+  document.addEventListener('mouseup', mouseUp);
 }
 
 function removeControlListeners() {
   controlCount--;
   console.log("Control count: ", controlCount);
-  controller.thrust.pressed = false;
-  controller.rotateL.pressed = false;
-  controller.rotateR.pressed = false;
-  controller.shoot.pressed = false;
+  controlsNeutral();
 
   // document.removeEventListener("visibilitychange", function () {
   // if (document.visibilityState === 'hidden') exitGame();
@@ -129,14 +133,8 @@ function removeControlListeners() {
 
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
-  document.removeEventListener('mousedown', (e) => {
-    e.preventDefault();
-    controller.shoot.pressed = true;
-  });
-
-  document.removeEventListener('mouseup', () => {
-    controller.shoot.pressed = false;
-  });
+  document.removeEventListener('mousedown', mouseDown);
+  document.removeEventListener('mouseup', mouseUp);
 }
 
 function hideMouse() {
@@ -177,5 +175,3 @@ function toggleMusic() {
     playSound(backgroundMusic);
     }
   }
-
-
