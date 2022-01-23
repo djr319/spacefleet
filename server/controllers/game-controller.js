@@ -205,13 +205,13 @@ function checkEnemyHit() {
     ships.forEach((ship, shipIndex) => {
       if (ship.socket === bullet.user) return;
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
-      if (distance < 0) {
+      if (distance < ship.size) {
         ship.shield--;
         console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 5) {
           // ship has been killed
-          die(shipIndex);
+          die(ship);
           // add score to the one shooting
           // users[bullet.owner].score += scoreTable.killEnemy;
           // explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
