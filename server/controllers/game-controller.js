@@ -202,7 +202,7 @@ function checkAsteroidHit() {
 function checkEnemyHit() {
   bullets.forEach((bullet, bulletIndex) => {
 
-    ships.forEach((ship, shipIndex) => {
+    ships.forEach((ship) => {
       if (ship.socket === bullet.user) return;
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
       if (distance < ship.size) {
@@ -269,10 +269,10 @@ function updateAsteroids() {
     el.y = el.y + el.velocity.y / updatesPerSecond;
 
     // asteroids going off-field re-enter on the other side
-    if (el.x < -asteroidMaxSize * asteroidScale) el.x = fieldX + asteroidMaxSize * asteroidScale;
-    if (el.x > fieldX + asteroidMaxSize * asteroidScale) el.x = - asteroidMaxSize * asteroidScale;
-    if (el.y < -asteroidMaxSize * asteroidScale) el.y = fieldY + asteroidMaxSize * asteroidScale;
-    if (el.y > fieldY + asteroidMaxSize * asteroidScale) el.y = - asteroidMaxSize * asteroidScale;
+    if (el.x < -fieldBuffer) el.x = fieldX + fieldBuffer;
+    if (el.x > fieldX + fieldBuffer) el.x = - fieldBuffer;
+    if (el.y < -fieldBuffer) el.y = fieldY + fieldBuffer;
+    if (el.y > fieldY + fieldBuffer) el.y = - fieldBuffer;
   })
 }
 
