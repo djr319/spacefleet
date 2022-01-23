@@ -200,6 +200,7 @@ class Bullet extends Entity {
   constructor() {
     super();
     this.id = '';
+    this.rangeRemaining = bulletRange;
   }
 }
 

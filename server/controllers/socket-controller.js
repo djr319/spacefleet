@@ -159,7 +159,6 @@ function socketHandler(socketServer) {
 
       function serverBroadcasts() {
         pushAsteroids();
-        unregisterBullets();
         checkObituries();
         checkExplosions();
         sendBroadcasts();
@@ -176,13 +175,6 @@ function socketHandler(socketServer) {
             id: asteroid.id
           });
         })
-      }
-
-      function unregisterBullets() {
-        oldBullets.forEach((bullet, bulletIndex) => {
-          socketServer.emit('old-bullet', bullet.id);
-          oldBullets.splice(bulletIndex, 1);
-        });
       }
 
       function checkObituries() {

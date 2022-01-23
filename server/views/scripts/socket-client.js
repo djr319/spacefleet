@@ -7,7 +7,6 @@ socket.on("connect", () => {
 
 socket.on("connect_error", () => {
   console.log('connection error!!!!');
-
   socket.connect();
 });
 
@@ -177,10 +176,4 @@ socket.on('bullet', (data) => {
   newBullet.y = data.y;
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
-});
-
-socket.on('old-bullet', (id) => {
-  console.log('delete bullet with ID: ', id);
-
-  bullets.splice(bullets.indexOf(id), 1);
 });

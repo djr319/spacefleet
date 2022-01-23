@@ -122,9 +122,24 @@ function updateMyShip() {
 }
 
 function updateBullets() {
-  bullets.forEach((bullet) => {
+  bullets.forEach((bullet, bulletIndex) => {
     bullet.x = bullet.x + bullet.velocity.x / fps;
     bullet.y = bullet.y + bullet.velocity.y / fps;
+
+    // update range remaining
+    let distanceMoved = Math.sqrt((bullet.velocity.x / fps)**2 + (bullet.velocity.y / fps)**2)
+    bullet.rangeRemaining = bullet.rangeRemaining - distanceMoved;
+
+    // remove off-field and spent bullets
+    if (
+      bullet.x < 0 ||
+      bullet.x > fieldX ||
+      bullet.y < 0 ||
+      bullet.y > fieldY ||
+      bullet.rangeRemaining <= 0
+      ) {
+      bullets.splice(bulletIndex, 1);
+    }
   });
 }
 
@@ -173,16 +188,6 @@ function drawStars() {
 function drawBullets() {
 
   bullets.forEach((bullet, index) => {
-    // remove off-field and spent bullets
-    if (
-      bullet.x < 0 ||
-      bullet.x > fieldX ||
-      bullet.y < 0 ||
-      bullet.y > fieldY ||
-      Math.sqrt((bullet.x - bullet.originX)**2 + (bullet.y - bullet.originY)**2) > bullet.reach
-      ) {
-      bullets.splice(index, 1);
-    }
 
     ctx.beginPath();
     ctx.arc(bullet.x-viewportX, bullet.y-viewportY, 1, 0, 2 * Math.PI, false);

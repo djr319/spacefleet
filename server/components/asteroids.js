@@ -16,11 +16,6 @@ class Asteroid {
     this.id = nanoid();
   }
 
-  hit() {
-    this.strength--;
-    if (this.strength === 0) this.split();
-  }
-
   split() {
     if (this.size > 3) {
       let child1 = new Asteroid(this.x, this.y, new Vector(this.velocity.angle - 0.5, 40), this.size - 1);

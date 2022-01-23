@@ -11,7 +11,6 @@ const {
   users,
   scores,
   obituries,
-  oldBullets,
   broadcasts,
   explosions
 } = require('../models/storage');
@@ -190,7 +189,7 @@ function checkAsteroidHit() {
       if (asteroid.size === 1) {
         asteroids.splice(asteroidIndex,1);
       } else {
-        asteroid.hit();
+        asteroid.strength--;
         if (asteroid.strength === 0) asteroids.splice(asteroidIndex, 1);
       }
       bullets.splice(bulletIndex, 1);
@@ -284,11 +283,7 @@ function updateBullets() {
     bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
     bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
     if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.remainingRange < 0) {
-      oldBullets.push(bullet);
       bullets.splice(bulletIndex, 1);
-      console.log('bullet out of range');
-    } else {
-      console.log('bullet in play: ', bullet.x, bullet.y);
     }
   });
 }
