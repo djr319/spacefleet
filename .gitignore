@@ -3,3 +3,4 @@ node_modules/
 stash/
 spacefleet - MVP
 index.html
+*.code-workspace
