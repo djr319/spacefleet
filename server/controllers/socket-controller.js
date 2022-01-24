@@ -229,11 +229,14 @@ function socketHandler(socketServer) {
   function transmitScores() {
     let scoreBoard = [];
     ships.forEach((ship)=>{
-      scoreBoard.push([ship.id, ship.user, ship.score,ship.rank]);
+      scoreBoard.push({
+        id: ship.socket,
+        user: ship.user,
+        score: ship.score,
+        rank: ship.rank
+      });
     });
-      socketServer.emit("scoreBoard", {
-        scores: scoreBoard
-    });
+      socketServer.emit("scoreBoard", scoreBoard);
   }
 };
 module.exports = { socketHandler };

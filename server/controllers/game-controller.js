@@ -174,9 +174,7 @@ function checkAsteroidHit() {
   asteroids.forEach((asteroid) => {
 
     if (clearance(bullet, asteroid) < 0) {
-      console.log('direct hit!');
 
-      // myStatus.score = myStatus.score + scoreTable[asteroid.size];
       explosions.push({
         x: bullet.x,
         y: bullet.y,
@@ -185,11 +183,12 @@ function checkAsteroidHit() {
       });
 
       if (asteroid.size === 1) {
+        addToScore(bullet.user, asteroid.size);
         removeAsteroid(asteroid);
-
       } else {
         asteroid.strength--;
         if (asteroid.strength === 0) {
+          addToScore(bullet.user, asteroid.size);
           splitAsteroid(asteroid);
         }
       }
@@ -199,7 +198,17 @@ function checkAsteroidHit() {
 });
 }
 
-function splitAsteroid(asteroid) {
+function addToScore(userSocket, points) {
+  let shooter = ships.find((ship) => {
+    return ship.socket === userSocket;
+  });
+
+  if (shooter !== undefined) {
+    shooter.score = shooter.score + scoreTable[points];
+  }
+};
+
+function splitAsteroid (asteroid) {
 
   if (asteroid.size > 3) {
     let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle - 0.5, 40), asteroid.size - 1);
@@ -244,15 +253,12 @@ function checkEnemyHit() {
         ship.shield--;
         console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
-        if (ship.shield < 5) {
+        if (ship.shield < 1) {
           // ship has been killed
           die(ship);
-          // add score to the one shooting
-          // users[bullet.owner].score += scoreTable.killEnemy;
-          // explosions.push(new Explosion(bullet.x, bullet.y, ship.velocity));
-          // ships.splice(shipIndex,1);
+          addToScore(bullet.user, 'killEnemy');
         } else {
-          // users[bullet.owner].score += score.hurtEnemy;
+          addToScore(bullet.user, 'hurtEnemy');
         }
         bullets.splice(bulletIndex, 1);
       }

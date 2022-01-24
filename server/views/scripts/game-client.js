@@ -46,6 +46,7 @@ function gameLoop(timestamp) {
     lastRender = timestamp - 10;
   }
   fps = 1000 / (timestamp - lastRender);
+  scoreUpdate();
   checkControls();
   updatePositions();
   drawAll();

@@ -6,14 +6,14 @@ class Ship {
     this.y;
     this.direction = 0;
     this.velocity = new Vector(0, 0);
-    this.shield = 5;
+    this.shield = 10;
     this.socket;
     this.user;
     this.thruster = false;
     this.width = 20;
     this.height = 40;
-    this.score;
-    this.rank;
+    this.score = 0;
+    this.rank = 0;
   }
 
   get size() {

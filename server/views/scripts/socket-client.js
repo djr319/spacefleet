@@ -121,7 +121,6 @@ socket.on('trash', (trashId) => {
   })
   if (trash !== -1) {
     asteroids.splice(trash, 1);
-    console.log("asteroid has been trashed");
   }
 });
 
@@ -146,7 +145,6 @@ socket.on('asteroid', (incoming) => {
 socket.on('newExplosion', (data) => {
   let newExplosion = new Explosion(data.x, data.y, new Vector(data.angle, data.size));
   explosions.push(newExplosion);
-  console.log("new explosion received on socket-client");
 })
 
 // socket.on('score', (data) => {
@@ -178,6 +176,11 @@ socket.on('bullet', (data) => {
   bullets.push(newBullet);
 });
 
-socket.on('scoreBoard', (data) => {
-  console.log('scores recevied', data);
+socket.on('scoreBoard', (scores) => {
+  if (myShip.alive === false) return;
+
+  let me = scores.find((el) => {
+    return el.id === socket.id;
+  })
+  myScore = me.score;
 });
