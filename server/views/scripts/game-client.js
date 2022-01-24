@@ -222,14 +222,14 @@ function drawShip(ship) {
     ctx.fillStyle = "red";
     ctx.fillText(ship.user || "?", 20, 20);
   } else {
-      // range circle
-      ctx.beginPath();
-      ctx.fillStyle = '#ccf5';
-      ctx.strokeStyle = 'blue';
-      ctx.lineWidth = 2;
-      ctx.arc(0, 0, bulletRange, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.stroke();
+      // range circle to be used as visible shield when being shot
+      // ctx.beginPath();
+      // ctx.fillStyle = '#ccf5';
+      // ctx.strokeStyle = 'blue';
+      // ctx.lineWidth = 2;
+      // ctx.arc(0, 0, bulletRange, 0, 2 * Math.PI);
+      // ctx.fill();
+      // ctx.stroke();
   }
 
   ctx.rotate(ship.direction);
@@ -269,7 +269,7 @@ function drawAsteroids() {
 
   asteroids.forEach((asteroid) => {
 
-    // guard clause to check if ship is in the viewport
+    // guard clause to check if asteroid is in the viewport
     if (asteroid.x < viewportX - viewportBuffer || asteroid.x > viewportX + viewportWidth + viewportBuffer || asteroid.y < viewportY - viewportBuffer || asteroid.y > viewportY + viewportHeight + viewportBuffer) return;
 
     ctx.beginPath();
@@ -279,6 +279,12 @@ function drawAsteroids() {
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#555';
     ctx.stroke();
+
+        // label:
+        ctx.font = "18px Space Mono";
+        ctx.fillStyle = "blue";
+        ctx.fillText(asteroid.size, asteroid.x - viewportX, asteroid.y - viewportY);
+
   });
 }
 
