@@ -124,6 +124,7 @@ function setControlListeners () {
 
 function removeControlListeners() {
   controlCount--;
+  controlCount = Math.max(controlCount, 0);
   console.log("Control count: ", controlCount);
   controlsNeutral();
 

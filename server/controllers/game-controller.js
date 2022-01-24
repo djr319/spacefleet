@@ -174,8 +174,8 @@ function checkAsteroidHit() {
   bullets.forEach((bullet, bulletIndex) => {
   asteroids.forEach((asteroid, asteroidIndex) => {
 
-    let distance = Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
-    if (distance < 0) {
+
+    if (clearance(bullet, asteroid) < 0) {
       console.log('direct hit!');
 
       // myStatus.score = myStatus.score + scoreTable[asteroid.size];
@@ -197,6 +197,11 @@ function checkAsteroidHit() {
   });
 });
 }
+
+function clearance(bullet, asteroid) {
+  return Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
+}
+
 
 function checkEnemyHit() {
   bullets.forEach((bullet, bulletIndex) => {
