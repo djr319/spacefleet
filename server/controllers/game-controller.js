@@ -207,23 +207,26 @@ function splitAsteroid(asteroid) {
     let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle - 0.5, 40), asteroid.size - 1);
     let child2 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle + 0.5, 40), asteroid.size - 1);
     asteroids.push(child1, child2);
-    console.log("split in 2");
   } else if (asteroid.size > 1) {
-    console.log("split in 4");
-    let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(Math.random() * 2 * Math.PI, asteroid.velocity.size * 3), asteroid.size - 1);
-    let child2 = new Asteroid(asteroid.x, asteroid.y, new Vector(Math.random() * 2 * Math.PI, asteroid.velocity.size * 1.5), asteroid.size - 1);
-    let child3 = new Asteroid(asteroid.x, asteroid.y, new Vector(Math.random() * 2 * Math.PI, asteroid.velocity.size * 1.7), asteroid.size - 1);
-    let child4 = new Asteroid(asteroid.x, asteroid.y, new Vector(Math.random() * 2 * Math.PI, asteroid.velocity.size * 1), asteroid.size - 1);
+    let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 3), asteroid.size - 1);
+    let child2 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 1.5), asteroid.size - 1);
+    let child3 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 1.7), asteroid.size - 1);
+    let child4 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 1), asteroid.size - 1);
     asteroids.push(child1, child2, child3, child4);
   } else {
   }
   let i = asteroids.indexOf(asteroid);
   removeAsteroid(asteroid);
 }
-function removeAsteroid(asteroid) {
+
+function removeAsteroid (asteroid) {
   let i = asteroids.indexOf(asteroid);
   asteroids.splice(i, 1);
   garbageCollectionList.push(asteroid);
+}
+
+function randomAngle() {
+  return Math.random() * 2 * Math.PI;
 }
 
 function clearance(bullet, asteroid) {
@@ -236,6 +239,8 @@ function checkEnemyHit() {
 
     ships.forEach((ship) => {
       if (ship.socket === bullet.user) return;
+
+      // replace with checkDistance f()
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
       if (distance < ship.size) {
         ship.shield--;

@@ -163,6 +163,7 @@ function socketHandler(socketServer) {
         checkExplosions();
         sendBroadcasts();
         takeOutTheTrash();
+        transmitScores();
         setTimeout(serverBroadcasts, updatesPerSecond);
       }
 
@@ -225,6 +226,12 @@ function socketHandler(socketServer) {
       let trash = garbageCollectionList.shift();
       socketServer.emit("trash", trash.id);
     };
+  }
+
+  function transmitScores () {
+      socketServer.emit("scoreBoard", {
+        scores: users
+    });
   }
 };
 module.exports = { socketHandler };
