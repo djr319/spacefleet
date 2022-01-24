@@ -5,8 +5,6 @@ const {
   asteroids,
   bullets,
   ships,
-  users,
-  scores,
   obituries,
   oldBullets,
   broadcasts,
@@ -228,9 +226,13 @@ function socketHandler(socketServer) {
     };
   }
 
-  function transmitScores () {
+  function transmitScores() {
+    let scoreBoard = [];
+    ships.forEach((ship)=>{
+      scoreBoard.push([ship.id, ship.user, ship.score,ship.rank]);
+    });
       socketServer.emit("scoreBoard", {
-        scores: users
+        scores: scoreBoard
     });
   }
 };

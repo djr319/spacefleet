@@ -12,6 +12,8 @@ class Ship {
     this.thruster = false;
     this.width = 20;
     this.height = 40;
+    this.score;
+    this.rank;
   }
 
   get size() {

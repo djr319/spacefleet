@@ -8,8 +8,6 @@ const {
   asteroids,
   bullets,
   ships,
-  users,
-  scores,
   obituries,
   broadcasts,
   explosions,
@@ -338,6 +336,10 @@ function die(ship) {
     console.log("Death occured ", time);
     ships.splice(ships.indexOf(ship), 1);
   }
+}
+
+function rankPlayers() {
+
 }
 
 module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };

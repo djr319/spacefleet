@@ -177,3 +177,7 @@ socket.on('bullet', (data) => {
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
 });
+
+socket.on('scoreBoard', (data) => {
+  console.log('scores recevied', data);
+});
