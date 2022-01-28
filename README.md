@@ -4,20 +4,19 @@ This is a remake of one of the earliest games available on Atari computers, Aste
 
 # Install
 
-- Fork this project
-- Clone to you local machine
-- Install dependencies
-- Edit line 1 of `/server/views/scripts/socket-client.js` to reflect the server IP, or localhost as required (I must refactor this to a .env, I'm currently testing on the local network)
+- Fork this project if wished (button above right)
+- Clone to you local machine (from your command line, in the desired directory, run `git clone <url of your fork>`)
+- Install dependencies (`npm i` from the project root folder)
 
 # Run
 
-- The server can be started by running `Nodemon` from the `/server` folder
+- The server can be started by running `npm run server` from the root folder
 - Navigate in browser to http://localhost:5000
 
 # About
 
 - The front end uses canvas API
-- The client connects to the backend server with `socket.io` (v4.3.2)
+- The client connects to the backend server with `socket.io`
 - The backend creates the gaming environment and physics
 - Project uses vanilla JS rather than any library as it is a project I am making to further my knowledge and experience of game design
 
