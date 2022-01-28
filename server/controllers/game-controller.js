@@ -344,8 +344,4 @@ function die(ship) {
   }
 }
 
-function rankPlayers() {
-
-}
-
 module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };

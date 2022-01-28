@@ -4,7 +4,9 @@
   "description": "Backend express server for sockets.io",
   "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "nodemon ./server",
+    "postserver": "start http://localhost:5000"
   },
   "author": "David Ryan",
   "license": "ISC",
