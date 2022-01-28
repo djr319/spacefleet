@@ -4,7 +4,10 @@ This is a remake of one of the earliest games available on Atari computers, Aste
 
 # Install
 
-- Run `npm i` inside `/server`
+- Fork this project
+- Clone to you local machine
+- Install dependencies
+- Edit line 1 of `/server/views/scripts/socket-client.js` to reflect the server IP, or localhost as required (I must refactor this to a .env, I'm currently testing on the local network)
 
 # Run
 
