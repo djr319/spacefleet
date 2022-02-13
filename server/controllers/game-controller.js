@@ -53,10 +53,10 @@ function game() {
 };
 
 function initServer() {
-  asteroids.splice(0,asteroids.length);
+  asteroids.splice(0, asteroids.length);
   spawnAsteroids();
-  bullets.splice(0,bullets.length);
-  broadcasts.push(["boot","all"]);
+  bullets.splice(0, bullets.length);
+  broadcasts.push(["boot", "all"]);
   ships.splice(0, ships.length);
   console.log('Server initialized');
 }
@@ -65,6 +65,7 @@ function gameLoop() {
   checkEmptyShipList();
   updateAsteroids();
   checkShipAsteroidCollisions();
+  getGravity();
   checkShipCollisions();
   updateBullets();
   checkShots();
@@ -135,6 +136,50 @@ function checkShipAsteroidCollisions() {
   })
 }
 
+function getGravity() {
+  ships.forEach((ship) => {
+
+    let gravity = new Vector();
+
+    asteroids.forEach((asteroid) => {
+
+      let gravityComponent = new Vector();
+      gravityComponent.angle = Math.atan2(asteroid.y - ship.y, asteroid.x - ship.x);
+
+      let gravitySettings = {
+        min: 0,
+        max: 1,
+        multiple: 50,
+        proximityFactor: 0.6
+      }
+
+      let grav =
+      gravitySettings.multiple * asteroid.size / (
+        (ship.x - asteroid.x) ** 2
+        + (ship.y - asteroid.y) ** 2
+        - asteroid.size * asteroidScale
+        - ship.size / 2 - 0.5
+        * (ship.size - asteroid.size)
+        ) ** gravitySettings.proximityFactor;
+
+        gravityComponent.size = bracket(gravitySettings.min, grav, gravitySettings.max);
+      gravity.add(gravityComponent);
+    });
+
+    broadcasts.push(["gravity", {
+      ship: ship.socket,
+      gravity: {
+        angle: gravity.angle,
+        size: gravity.size
+      }
+    }]);
+  })
+}
+
+function bracket(min, x, max) {
+  return Math.max(Math.min(x, max), min)
+}
+
 function distToNearestAsteroid(ship) {
 
   let nearestDist = Infinity;
@@ -171,31 +216,31 @@ function checkShots() {
 function checkAsteroidHit() {
   // asteroid / bullet collision detection
   bullets.forEach((bullet, bulletIndex) => {
-  asteroids.forEach((asteroid) => {
+    asteroids.forEach((asteroid) => {
 
-    if (clearance(bullet, asteroid) < 0) {
+      if (clearance(bullet, asteroid) < 0) {
 
-      explosions.push({
-        x: bullet.x,
-        y: bullet.y,
-        angle: asteroid.velocity.angle,
-        size: asteroid.velocity.size
-      });
+        explosions.push({
+          x: bullet.x,
+          y: bullet.y,
+          angle: asteroid.velocity.angle,
+          size: asteroid.velocity.size
+        });
 
-      if (asteroid.size === 1) {
-        addToScore(bullet.user, asteroid.size);
-        removeAsteroid(asteroid);
-      } else {
-        asteroid.strength--;
-        if (asteroid.strength === 0) {
+        if (asteroid.size === 1) {
           addToScore(bullet.user, asteroid.size);
-          splitAsteroid(asteroid);
+          removeAsteroid(asteroid);
+        } else {
+          asteroid.strength--;
+          if (asteroid.strength === 0) {
+            addToScore(bullet.user, asteroid.size);
+            splitAsteroid(asteroid);
+          }
         }
-      }
-      bullets.splice(bulletIndex, 1);
-    };
+        bullets.splice(bulletIndex, 1);
+      };
+    });
   });
-});
 }
 
 function addToScore(userSocket, points) {
@@ -208,7 +253,7 @@ function addToScore(userSocket, points) {
   }
 };
 
-function splitAsteroid (asteroid) {
+function splitAsteroid(asteroid) {
 
   if (asteroid.size > 3) {
     let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle - 0.5, 40), asteroid.size - 1);
@@ -226,7 +271,7 @@ function splitAsteroid (asteroid) {
   removeAsteroid(asteroid);
 }
 
-function removeAsteroid (asteroid) {
+function removeAsteroid(asteroid) {
   let i = asteroids.indexOf(asteroid);
   asteroids.splice(i, 1);
   garbageCollectionList.push(asteroid);
@@ -273,9 +318,9 @@ function checkShipCollisions() {
     if (distToNearestShip(ship)[0] < 0) {
       collisionList.push(ship);
     }
-    });
-    collisionList.forEach((ship) => {
-      die(ship);
+  });
+  collisionList.forEach((ship) => {
+    die(ship);
   });
 }
 
@@ -283,7 +328,7 @@ function checkOutOfBounds() {
   ships.forEach((ship) => {
     if (ship.x < 0 || ship.x > fieldX || ship.y < 0 || ship.y > fieldY) {
       die(ship);
-  }
+    }
   });
 }
 
@@ -315,7 +360,7 @@ function updateAsteroids() {
 function updateBullets() {
 
   bullets.forEach((bullet, bulletIndex) => {
-    bullet.remainingRange = bullet.remainingRange - bullet.velocity.size/updatesPerSecond;
+    bullet.remainingRange = bullet.remainingRange - bullet.velocity.size / updatesPerSecond;
     bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
     bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
     if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.remainingRange < 0) {

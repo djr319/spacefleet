@@ -142,6 +142,12 @@ socket.on('asteroid', (incoming) => {
   }
 });
 
+socket.on('gravity', (data) => {
+  if (data.ship === socket.id) {
+    myShip.velocity.add(new Vector(data.gravity.angle, data.gravity.size));
+  }
+})
+
 socket.on('newExplosion', (data) => {
   let newExplosion = new Explosion(data.x, data.y, new Vector(data.angle, data.size));
   explosions.push(newExplosion);

@@ -1,5 +1,5 @@
 class Vector {
-  constructor(angle, size) {
+  constructor(angle = 0, size = 0) {
     this.angle = angle;
     this.size = size;
   }
