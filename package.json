@@ -5,8 +5,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon ./server",
-    "postserver": "start http://localhost:5000"
+    "server": "cd server && nodemon"
   },
   "author": "David Ryan",
   "license": "ISC",
