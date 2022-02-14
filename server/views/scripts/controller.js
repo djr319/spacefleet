@@ -1,5 +1,5 @@
 // -----------    functions: event listeners    ------------------//
-let controlCount = 0;
+
 // User Input object
 const controller = {
   rotateL: {
@@ -54,15 +54,6 @@ function controls (e) {
     case ' ': controller.shoot.pressed = true;
       break;
 
-    case 'p':
-    case 'P':
-      sendPurge();
-      break;
-
-    case 'q':
-      consoleDebug();
-      break;
-
     case 'Escape':
       if (!e.repeat) exitGame();
       break;
@@ -108,14 +99,8 @@ function controlsNeutral () {
 }
 
 function setControlListeners () {
-  controlCount++;
-  console.log("Control count: ", controlCount);
+
   controlsNeutral();
-
-  // document.addEventListener("visibilitychange", function () {
-  //   if (document.visibilityState === 'hidden') exitGame();
-  // });
-
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
   document.addEventListener('mousedown', mouseDown);
@@ -123,15 +108,8 @@ function setControlListeners () {
 }
 
 function removeControlListeners() {
-  controlCount--;
-  controlCount = Math.max(controlCount, 0);
-  console.log("Control count: ", controlCount);
+
   controlsNeutral();
-
-  // document.removeEventListener("visibilitychange", function () {
-  // if (document.visibilityState === 'hidden') exitGame();
-  // });
-
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', mouseDown);
@@ -144,10 +122,6 @@ function hideMouse() {
 
 function showMouse() {
   document.body.style.cursor = 'auto';
-}
-
-function consoleDebug() {
-  console.table(myShip);
 }
 
 // -----------    Music / Sound Effects    ------------------//
