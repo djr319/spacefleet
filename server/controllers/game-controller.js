@@ -65,7 +65,7 @@ function gameLoop() {
   checkEmptyShipList();
   updateAsteroids();
   checkShipAsteroidCollisions();
-  getGravity();
+  gravityAndOrbit();
   checkShipCollisions();
   updateBullets();
   checkShots();
@@ -136,19 +136,21 @@ function checkShipAsteroidCollisions() {
   })
 }
 
-function getGravity() {
+function gravityAndOrbit() {
   ships.forEach((ship) => {
 
     let gravity = new Vector();
 
     asteroids.forEach((asteroid) => {
 
+      // first check for orbit conditions
+
       let gravityComponent = new Vector();
-      gravityComponent.angle = Math.atan2(asteroid.y - ship.y, asteroid.x - ship.x);
+      gravityComponent.angle = bearing(asteroid, ship);
 
       let gravitySettings = {
         min: 0,
-        max: 1,
+        max: 0.8,
         multiple: 50,
         proximityFactor: 0.6
       }
@@ -162,7 +164,7 @@ function getGravity() {
         * (ship.size - asteroid.size)
         ) ** gravitySettings.proximityFactor;
 
-        gravityComponent.size = bracket(gravitySettings.min, grav, gravitySettings.max);
+      gravityComponent.size = bracket(gravitySettings.min, grav, gravitySettings.max);
       gravity.add(gravityComponent);
     });
 
@@ -176,16 +178,29 @@ function getGravity() {
   })
 }
 
-function bracket(min, x, max) {
-  return Math.max(Math.min(x, max), min)
-}
+function nearestAsteroid(ship) {
+  let nearestDist = Infinity;
+  let nearestAsteroid;
+
+  asteroids.forEach((asteroid) => {
+    let dist = distanceBetween(ship, asteroid) - asteroid.size * asteroidScale - ship.size / 2 - 0.5 * (ship.size - asteroid.size);
+    if (dist < nearestDist) {
+      nearestDist = dist;
+      nearestAsteroid = asteroid.id;
+    }
+  });
+  return {
+    id: nearestAsteroid,
+    dist: nearestDist
+  }
+};
 
 function distToNearestAsteroid(ship) {
 
   let nearestDist = Infinity;
 
   asteroids.forEach((asteroid) => {
-    let dist = Math.sqrt((ship.x - asteroid.x) ** 2 + (ship.y - asteroid.y) ** 2) - asteroid.size * asteroidScale - ship.size / 2 - 0.5 * (ship.size - asteroid.size);
+    let dist = distanceBetween(ship, asteroid) - asteroid.size * asteroidScale - ship.size / 2 - 0.5 * (ship.size - asteroid.size);
     if (dist < nearestDist) {
       nearestDist = dist;
     }
@@ -199,7 +214,7 @@ function distToNearestShip(thisShip) {
 
   ships.forEach((ship) => {
     if (ship === thisShip) return;
-    let dist = Math.sqrt((thisShip.x - ship.x) ** 2 + (thisShip.y - ship.y) ** 2) - ship.size;
+    let dist = distanceBetween(thisShip, ship);
     if (dist < nearestDist) {
       nearestDist = dist;
       nearestShip = ship;
@@ -275,10 +290,6 @@ function removeAsteroid(asteroid) {
   let i = asteroids.indexOf(asteroid);
   asteroids.splice(i, 1);
   garbageCollectionList.push(asteroid);
-}
-
-function randomAngle() {
-  return Math.random() * 2 * Math.PI;
 }
 
 function clearance(bullet, asteroid) {
@@ -367,6 +378,26 @@ function updateBullets() {
       bullets.splice(bulletIndex, 1);
     }
   });
+}
+
+// helper functions
+function bracket (min, x, max) {
+  return Math.max(Math.min(x, max), min)
+}
+
+function distanceBetween (obj1, obj2) {
+  return  Math.sqrt(
+    (obj1.x - obj2.x) ** 2
+    + (obj1.y - obj2.y) ** 2
+  );
+}
+
+function bearing (obj1, obj2) {
+  return Math.atan2(obj1.y-obj2.y, obj1.x-obj2.x);
+}
+
+function randomAngle() {
+  return Math.random() * 2 * Math.PI;
 }
 
 function randomX() {
