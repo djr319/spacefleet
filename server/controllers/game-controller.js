@@ -196,16 +196,7 @@ function nearestAsteroid(ship) {
 };
 
 function distToNearestAsteroid(ship) {
-
-  let nearestDist = Infinity;
-
-  asteroids.forEach((asteroid) => {
-    let dist = distanceBetween(ship, asteroid) - asteroid.size * asteroidScale - ship.size / 2 - 0.5 * (ship.size - asteroid.size);
-    if (dist < nearestDist) {
-      nearestDist = dist;
-    }
-  });
-  return nearestDist;
+  return nearestAsteroid(ship).dist;
 }
 
 function distToNearestShip(thisShip) {
