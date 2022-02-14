@@ -119,7 +119,7 @@ function freeSpace(ship, buffer) {
   console.log("checking freespace");
   if (buffer < Math.min(
     distToNearestAsteroid(ship),
-    distToNearestShip(ship)[0],
+    nearestShip(ship).dist,
   )) {
     return true;
   }
@@ -199,7 +199,7 @@ function distToNearestAsteroid(ship) {
   return nearestAsteroid(ship).dist;
 }
 
-function distToNearestShip(thisShip) {
+function nearestShip(thisShip) {
   let nearestDist = Infinity;
   let nearestShip = {};
 
@@ -211,7 +211,10 @@ function distToNearestShip(thisShip) {
       nearestShip = ship;
     }
   });
-  return [nearestDist, nearestShip];
+  return {
+    dist: nearestDist,
+    ship: nearestShip
+  };
 }
 
 function checkShots() {
@@ -317,7 +320,7 @@ function checkShipCollisions() {
   if (ships.length < 2) return;
   let collisionList = [];
   ships.forEach((ship) => {
-    if (distToNearestShip(ship)[0] < 0) {
+    if (nearestShip(ship).dist < 0) {
       collisionList.push(ship);
     }
   });
