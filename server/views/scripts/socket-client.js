@@ -13,7 +13,7 @@ socket.on("connect_error", () => {
 socket.on("disconnect", (reason) => {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  console.log("disconnected from server", time, reason); // undefined
+  console.log("disconnected from server", time, reason);
   die();
 });
 
@@ -26,13 +26,6 @@ function sendStatus(type, object) { // join, warp,
 
 function sendUpdate(type, object) { // ship,
     socket.volatile.emit(type, object) // only lastest, no buffering
-}
-   // for testing purposes
-function sendPurge() {
-  console.log("purge request sent!");
-  console.table(ships);
-  // socket.emit("purge", "") // request game reset
-  socket.emit("print", "") // request game reset
 }
 
 // -------------       Listeners       -----------  //
@@ -152,21 +145,6 @@ socket.on('newExplosion', (data) => {
   let newExplosion = new Explosion(data.x, data.y, new Vector(data.angle, data.size));
   explosions.push(newExplosion);
 })
-
-// socket.on('score', (data) => {
-//   let tempScores = [];
-//   for (let [key, value] of Object.entries(data)) {
-//     if (key = socket.id) {
-//       myScore = value;
-//     } else {
-//       scores.push({
-//         userName: key,
-//         Score: value
-//       });
-//     }
-//   }
-//   scores = tempScores;
-// });
 
 socket.on('warp', (data) => {
   myShip.x = data.x;
