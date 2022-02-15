@@ -1,5 +1,5 @@
 {
-  "name": "asteroids-backend",
+  "name": "starfleet",
   "version": "1.0.0",
   "description": "Backend express server for sockets.io",
   "private": true,
@@ -11,7 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.17.1",
     "nanoid": "^3.1.30",
     "nodemon": "^2.0.15",
     "socket.io": "^4.3.2",

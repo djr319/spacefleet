@@ -165,6 +165,6 @@ socket.on('scoreBoard', (scores) => {
 
   let me = scores.find((el) => {
     return el.id === socket.id;
-  })
+  });
   myScore = me.score;
 });
