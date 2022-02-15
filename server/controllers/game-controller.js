@@ -148,9 +148,9 @@ function gravity() {
 
       let gravitySettings = {
         min: 0,
-        max: 0.8,
-        multiple: 50,
-        proximityFactor: 0.6
+        max: 4,
+        multiple: 400,
+        proximityFactor: 0.85
       }
 
       let grav =
