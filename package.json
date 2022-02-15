@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "cd server && nodemon"
+    "server": "cd server && nodemon app.js"
   },
   "author": "David Ryan",
   "license": "ISC",

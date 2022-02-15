@@ -205,7 +205,6 @@ function socketHandler(socketServer) {
       }
       function sendBroadcasts() {
         while (broadcasts.length > 0) {
-        console.log('broadcast sent: ', broadcasts[0]);
         socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
         broadcasts.shift();
         }

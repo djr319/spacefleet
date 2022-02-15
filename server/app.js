@@ -1,6 +1,6 @@
 const http = require('http');
 const fs = require('fs');
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 const { game } = require('./controllers/game-controller');
 const { socketHandler } = require('./controllers/socket-controller');
@@ -39,7 +39,6 @@ function handler(req, res) {
           }[req.url.substr(dotoffset)];
         res.setHeader('Content-type', mimetype);
         res.end(data);
-        console.log(req.url, mimetype);
     } else {
         console.log ('file not found: ' + req.url);
         res.writeHead(404, "Not Found");
