@@ -34,7 +34,8 @@ function handler(req, res) {
             '.png': 'image/png',
             '.gif': 'image/gif',
             '.css': 'text/css',
-            '.js': 'text/javascript'
+            '.js': 'text/javascript',
+            '.mp3': 'audio/mpeg'
           }[req.url.substr(dotoffset)];
         res.setHeader('Content-type', mimetype);
         res.end(data);
