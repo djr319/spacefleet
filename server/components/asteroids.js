@@ -1,4 +1,4 @@
-const { Vector } = require('./Vector');
+const { Vector } = require('./vector');
 const { asteroids, garbageCollectionList } = require('../models/storage');
 const asteroidScale = 20;
 const asteroidMaxSize = 5;
