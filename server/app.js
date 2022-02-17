@@ -22,7 +22,7 @@ game();
 function handler(req, res) {
 
   if (req.url === "/") {
-    fs.readFile(path.join(__dirname, 'views/index.html'), function (err, data) {
+    fs.readFile(path.join(__dirname, 'views', 'index.html'), function (err, data) {
       if (!err) {
         res.setHeader('Content-type', 'text/html');
         res.end(data);
