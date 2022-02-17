@@ -1,12 +1,12 @@
 # Description
 
-This is a remake of one of the earliest games available on Atari computers, Asteroids. Refactored as a MMO game though the wonders of socket.io.
+Based on one of the earliest games available on Atari computers, Asteroids, the game has been reborn as a MMO game though the wonders of socket.io.
 
 # Install
 
 - Fork this project if wished (button above right)
-- Clone to you local machine (from your command line, in the desired directory, run `git clone <url of your fork>`)
-- Install dependencies (`npm i` from the project root folder)
+- Clone to you local machine: From your command line, in the desired directory, run `git clone <url of your fork>`
+- Install dependencies: `npm i` from the project root folder
 
 # Run
 
