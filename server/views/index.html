@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spacefleet</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet">
+  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js" integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs" crossorigin="anonymous"></script>
+
+  <script src="./scripts/vars.js"></script>
+  <script src="./scripts/controller.js"></script>
+  <script src="./scripts/game-client.js"></script>
+  <script src="./scripts/socket-client.js"></script>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <div id="splash">
+    <div class="dialog">
+      <h1>Spacefleet</h1>
+      <input id="name" type="text" placeholder="name"></text>
+    </br>
+      <button class="join-game" id="join">JOIN GAME</button>
+    </div>
+  </div>
+  <div id = "debug"></div>
+</body>
+</html>
