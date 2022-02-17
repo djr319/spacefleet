@@ -20,6 +20,8 @@ This is a remake of one of the earliest games available on Atari computers, Aste
 - The backend creates the gaming environment and physics
 - Project uses vanilla JS rather than any library as it is a project I am making to further my knowledge and experience of game design
 
+![Starfleet screenshot](./screenshots/screenshot.png "Screenshot")
+
 ## Further Reading
 
 If you are interested in forking and taking this further, the following libraries may be of interest:
