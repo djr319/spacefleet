@@ -1,5 +1,6 @@
 const http = require('http');
 const fs = require('fs');
+const path = require('path');
 const PORT = process.env.PORT || 5000;
 
 const { game } = require('./controllers/game-controller');
@@ -21,7 +22,7 @@ game();
 function handler(req, res) {
 
   if (req.url === "/") {
-    fs.readFile(__dirname + '/views/index.html', function (err, data) {
+    fs.readFile(path.join(__dirname, 'views/index.html'), function (err, data) {
       if (!err) {
         res.setHeader('Content-type', 'text/html');
         res.end(data);
@@ -33,7 +34,7 @@ function handler(req, res) {
     });
    } else {
 
-    fs.readFile(__dirname + '/views/' + req.url, function (err, data) {
+    fs.readFile(path.join(__dirname, 'views', req.url), function (err, data) {
       if (!err) {
         var dotoffset = req.url.lastIndexOf('.');
         var mimetype = dotoffset == -1
@@ -46,7 +47,8 @@ function handler(req, res) {
             '.gif': 'image/gif',
             '.css': 'text/css',
             '.js': 'text/javascript',
-            '.mp3': 'audio/mpeg'
+            '.mp3': 'audio/mpeg',
+            '.wav': 'audio/wav'
           }[req.url.substr(dotoffset)];
         res.setHeader('Content-type', mimetype);
         res.end(data);
