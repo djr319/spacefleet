@@ -1,5 +1,5 @@
-// const socket = io("http://localhost:5000");
-const socket = io("https://space-fleet.herokuapp.com/");
+const socket = io("http://localhost:5000");
+// const socket = io("https://space-fleet.herokuapp.com/");
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
