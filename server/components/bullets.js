@@ -1,5 +1,5 @@
 const { nanoid } = require('nanoid');
-const bulletRange = 400;
+const bulletRange = 500;
 
 class Bullet {
   constructor(x,y,user) {

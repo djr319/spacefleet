@@ -35,7 +35,10 @@ const ships = [];
 const bullets = [];
 const explosions = [];
 const asteroids = [];
+let userName;
 let scores = [];
+let myScore = 0;
+let myRank = 0;
 
 // ship control
 let lastShot = new Date();
@@ -111,6 +114,8 @@ class Ship {
     this.thruster = false;
     this.width = 20;
     this.height = 40;
+    this.rank = 0;
+    this.score = 0;
   }
 }
 
@@ -205,9 +210,4 @@ class Bullet extends Entity {
 }
 
 let myShip = new MyShip;
-let myScore = 0;
-function resetStatus() {
-  myScore = 0;
-}
-
 let camera = new Entity();

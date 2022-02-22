@@ -7,7 +7,7 @@ socket.on("connect", () => {
 });
 
 socket.on("connect_error", () => {
-  console.log('connection error!!!!');
+  console.log('connection error!');
   socket.connect();
 });
 
@@ -67,12 +67,27 @@ socket.on('ship', (pushedShip) => {
       pushedShip.socket,
       pushedShip.user
     ));
+    let scoreBoard = document.getElementById('score-board');
+    let newDiv = document.createElement('div');
+    newDiv.id = `s${pushedShip.socket}`;
+    newDiv.classList.add('score');
+    scoreBoard.appendChild(newDiv);
+
   } else {
     thisShip.x = pushedShip.x;
     thisShip.y = pushedShip.y;
     thisShip.direction = pushedShip.direction;
     thisShip.thruster = pushedShip.thruster;
+    thisShip.rank = pushedShip.rank;
+    thisShip.score = pushedShip.score;
   }
+
+  // score (.score & .rank)
+});
+
+socket.on("myScore", (data) => {
+  myScore = data.score;
+  myRank = data.rank;
 });
 
 socket.on("die", (data) => {
@@ -93,17 +108,20 @@ socket.on("reset", () => {
   bullets.length = 0;
 });
 
-socket.on('deadShip', (deadshipId) => {
-  if (deadshipId === socket.id) {
+socket.on('deadShip', (deadShipId) => {
+  if (deadShipId === socket.id) {
     console.log("KIA");
     die();
   } else {
-    let deadShip = ships.find(ship => ship.socket === deadshipId);
+    let deadShip = ships.find(ship => ship.socket === deadShipId);
     if (deadShip !== undefined) {
       Toastify({
         text: `${deadShip.user} has died`,
         duration: 3000
       }).showToast();
+      let deadShipScore = document.getElementById(`s${deadShipId}`);
+      console.log('remove div for deadship', deadShipId);
+      deadShipScore.remove();
       ships.splice(deadShip, 1)
     }
   }
@@ -159,13 +177,4 @@ socket.on('bullet', (data) => {
   newBullet.y = data.y;
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
-});
-
-socket.on('scoreBoard', (scores) => {
-  if (myShip.alive === false) return;
-
-  let me = scores.find((el) => {
-    return el.id === socket.id;
-  });
-  myScore = me.score;
 });

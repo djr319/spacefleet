@@ -6,12 +6,12 @@ html, body {
 body {
   overflow: hidden;
   font-family: 'Space Mono', monospace;
-
 }
 
 h1 {
   font-size: 1.5rem;
 }
+
 #splash {
 position: absolute;
 display: flex;
@@ -67,27 +67,36 @@ transition: all 2s;
   width: 9em;
 }
 
-#hud {
+#score-wrapper {
   position: absolute;
   top: 30px;
-  left: 30px;
+  right: 30px;
+  width: 20rem;
+  border: 1px solid red;
+}
+
+#score-board, #my-score-board {
+
   border: 3px solid grey;
   border-radius: 20px;
   color: white;
-  background: black;
+  background: rgba(30,30,30,0.3);
   z-index: 1000;
+
+}
+
+#score-board {
+  min-height: 10rem;
   padding: 1rem;
 }
 
-.heart {
-  opacity: 1;
-  -webkit-transition: opacity 1000ms linear;
-  transition: opacity 1000ms linear;
+#my-score-board {
+margin-top: 1rem;
+margin-left: 0.5rem;
+margin-right: 0.5rem;
+padding: 0 0.5rem;
 }
 
-#debug {
-  position: absolute;
-  left: 1em;
-  bottom: 1em;
-  color: white;
+.score {
+  border: 3px solid green;
 }
