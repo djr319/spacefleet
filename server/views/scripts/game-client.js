@@ -1,19 +1,16 @@
 
 // ----------------------    Start Game   ----------------------------//
 console.clear();
-  // score wrapper
-  let scoreWrapper = document.createElement('div');
-  scoreWrapper.id = 'score-wrapper';
-  document.body.appendChild(scoreWrapper);
-  // score board
-  scoreBoard = document.createElement('div');
-  scoreBoard.id = 'score-board';
-  scoreWrapper.appendChild(scoreBoard);
+// score wrapper
+let scoreWrapper = document.createElement('div');
+scoreWrapper.id = 'score-wrapper';
+document.body.appendChild(scoreWrapper);
+scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
 
-  // my score board
-  myScoreBoard = document.createElement('div');
-  myScoreBoard.id = 'my-score-board';
-  scoreWrapper.appendChild(myScoreBoard);
+let myScore = document.createElement('div');
+myScore.id = 'my-score';
+scoreWrapper.appendChild(myScore);
+
 
 // ---------------------    Initial Listener     --------------------- //
 
@@ -23,7 +20,7 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
   document.getElementById('name').value = sessionStorage.getItem('name') || "";
-  document.getElementById('join').addEventListener('click', joinGame );
+  document.getElementById('join').addEventListener('click', joinGame);
 });
 
 // ------------------    User name / Join game    ------------------ //
@@ -43,7 +40,6 @@ function joinGame() {
 function getShip() {
   let name = document.getElementById('name').value || '';
   sessionStorage.setItem('name', name);
-  userName = name;
   sendStatus('join', name);   // ---> Server
 }
 
@@ -390,9 +386,9 @@ function gameOver() {
   // high score to local storage
   setTimeout(() => {
     const pb = localStorage.getItem('pb');
-    if (myScore > pb) {
-      localStorage.setItem('pb', myScore);
-      alert("New personal best!" + myScore);
+    if (myShip.score > pb) {
+      localStorage.setItem('pb', myShip.score);
+      alert("New personal best!" + myShip.score);
     }
     lobby('show');
   }, 2000);
@@ -418,22 +414,41 @@ function lobby(displayState) {
 }
 
 function updateScores() {
-
-  let myScoreBoard = document.getElementById('my-score-board');
-  myScoreBoard.innerHTML = myRank + ": " + userName + " " + myScore;
-
-  ships.forEach((ship) => {
-    // if (ship.rank === 0 || ship.rank > 10) return;
-
-    let thisScoreDiv = document.getElementById(`s${ship.socket}`);
-
-    if (thisScoreDiv) {
-    // console.log("score div....", thisScoreDiv);
-    // thisScoreDiv.innerHTML = ship.rank + ": " + ship.user + " " + ship.score;
-    thisScoreDiv.innerHTML = ship.user + " " + ship.score;
-    // thisScoreDiv.style.top = `${ship.rank * 1.5}rem`;
+  let yOffset = 0;
+  for (let i = 1; i <= leaderboardSize; i++) {
+    if (myShip.rank === i) {
+      myScore.innerHTML = myShip.rank + ": " + myShip.user + " " + myShip.score;
+      myScore.style.top = `${yOffset * 1.5}rem`;
+      yOffset++;
     }
+    let list = ships.filter(ship => ship.rank === i);
+    for (let j = 0; j < list.length; j++) {
+      let ship = list[j];
+      let thisScoreDiv = document.getElementById(`s${ship.socket}`);
+      if (thisScoreDiv) {
+        let rankLabel = ship.rank + ": ";
+        if (myShip.rank === i || j !== 0) {
+          rankLabel = '&nbsp;= ';
+        }
+        thisScoreDiv.innerHTML = rankLabel + ship.user + " " + ship.score;
+        if (thisScoreDiv.style.display !== 'block') thisScoreDiv.style.display = 'block';
+        thisScoreDiv.style.top = `${yOffset * 1.5}rem`;
+        yOffset++;
+      }
+    };
+  }
+
+  let hideList = ships.filter(ship => ship.rank > leaderboardSize);
+  hideList.forEach((ship) => {
+    let div = document.getElementById(`s${ship.socket}`);
+    div.style.display = 'none';
   });
+
+  if (myShip.rank === 0) {
+    myScore.innerHTML = myShip.rank + ": " + myShip.user + " " + myShip.score;
+    myScore.style.top = `${yOffset * 1.5}rem`;
+  }
+
 }
 
 function resizeCanvas() {
@@ -445,9 +460,6 @@ function resizeCanvas() {
   viewportWidth = window.innerWidth;
   viewportHeight = window.innerHeight;
 }
-
-
-// -----------    functions: helper function     ------------------//
 
 function clamp(num, min, max) {
   // limits num to between min and max

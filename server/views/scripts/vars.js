@@ -14,6 +14,7 @@ const fieldBuffer = Math.max(50, biggestAsteroid);
 // init canvas when document loaded
 let canvas;
 let ctx;
+let leaderboardSize = 10;
 
 // position reporting
 let reportRate = 60;
@@ -35,10 +36,7 @@ const ships = [];
 const bullets = [];
 const explosions = [];
 const asteroids = [];
-let userName;
-let scores = [];
-let myScore = 0;
-let myRank = 0;
+// let userName;
 
 // ship control
 let lastShot = new Date();
@@ -133,6 +131,9 @@ class MyShip {
     this.rotationRate = 8;
     this.ammo = 15;
     this.alive = false;
+    this.rank = 0;
+    this.score = 0;
+    this.user;
   }
 
   get size() {

@@ -55,6 +55,7 @@ socket.on('newGame', (data) => {
   myShip.direction = data.direction;
   myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
+  myShip.user = sessionStorage.getItem('name');
 });
 
 socket.on('ship', (pushedShip) => {
@@ -70,28 +71,30 @@ socket.on('ship', (pushedShip) => {
       pushedShip.socket,
       pushedShip.user
     ));
-    let scoreBoard = document.getElementById('score-board');
-
-      let newDiv = document.createElement('div');
-      newDiv.id = `s${pushedShip.socket}`;
-      newDiv.classList.add('score');
-      scoreBoard.appendChild(newDiv);
-
+    let scoreBoard = document.getElementById('score-wrapper');
+    let newDiv = document.createElement('div');
+    newDiv.id = `s${pushedShip.socket}`;
+    newDiv.classList.add('score');
+    scoreBoard.appendChild(newDiv);
   } else {
     thisShip.x = pushedShip.x;
     thisShip.y = pushedShip.y;
     thisShip.direction = pushedShip.direction;
     thisShip.thruster = pushedShip.thruster;
     thisShip.rank = pushedShip.rank;
-    thisShip.score = pushedShip.score;
-  }
 
-  // score (.score & .rank)
+    // for testing:
+    let temp = thisShip.score;
+    thisShip.score = pushedShip.score;
+    if (thisShip.score != temp) console.log(thisShip.user + ": " + thisShip.score);
+  }
 });
 
 socket.on("myScore", (data) => {
-  myScore = data.score;
-  myRank = data.rank;
+  let temp = myShip.score;
+  myShip.score = data.score;
+  myShip.rank = data.rank;
+  if (myShip.score != temp) console.log("myScore" + myShip.score);
 });
 
 socket.on("die", (data) => {

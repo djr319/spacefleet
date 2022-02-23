@@ -374,7 +374,20 @@ function updateBullets() {
 }
 
 function rankByScore() {
-  // TODO refactor, perhaps just sort ships array itself with comparision function
+
+  ships.sort((a,b) => {
+    if (b.score > a.score) return 1;
+    return -1;
+  });
+
+  let rank = 1;
+  for (let i = 0; i < ships.length; i++) {
+    ships[i].rank = rank;
+    if (ships[i + 1] && ships[i + 1].score !== ships[i].score) rank++;
+  }
+
+
+
   // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
   // let rank = [];
   // ships.forEach((ship) => {
