@@ -73,6 +73,7 @@ transition: all 2s;
   right: 30px;
   width: 20rem;
   border: 1px solid red;
+  display: none;
 }
 
 #score-board, #my-score-board {

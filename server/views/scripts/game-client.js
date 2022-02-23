@@ -1,9 +1,23 @@
 
 // ----------------------    Start Game   ----------------------------//
+console.clear();
+  // score wrapper
+  let scoreWrapper = document.createElement('div');
+  scoreWrapper.id = 'score-wrapper';
+  document.body.appendChild(scoreWrapper);
+  // score board
+  scoreBoard = document.createElement('div');
+  scoreBoard.id = 'score-board';
+  scoreWrapper.appendChild(scoreBoard);
+
+  // my score board
+  myScoreBoard = document.createElement('div');
+  myScoreBoard.id = 'my-score-board';
+  scoreWrapper.appendChild(myScoreBoard);
+
 // ---------------------    Initial Listener     --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
-  console.clear();
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d', { alpha: false });
   window.addEventListener('resize', resizeCanvas);
@@ -388,25 +402,18 @@ function lobby(displayState) {
   if (displayState === 'show') {
     // show lobby, remove scores
     document.getElementById('splash').style.display = "flex";
-    let scoreWrapper = document.getElementById('score-wrapper');
-    document.body.removeChild(scoreWrapper);
+    document.getElementById('score-wrapper').style.display = "none";
+
+    // let scoreWrapper = document.getElementById('score-wrapper');
+    // document.body.removeChild(scoreWrapper);
   } else {
-    // hide loby, show scores
+    // hide lobby, show scores
     document.getElementById('splash').style.display = "none";
     // score wrapper
-    let scoreWrapper = document.createElement('div');
-    scoreWrapper.id = 'score-wrapper';
-    document.body.appendChild(scoreWrapper);
-
-    // score board
-    scoreBoard = document.createElement('div');
-    scoreBoard.id = 'score-board';
-    scoreWrapper.appendChild(scoreBoard);
-
-    // my score board
-    myScoreBoard = document.createElement('div');
-    myScoreBoard.id = 'my-score-board';
-    scoreWrapper.appendChild(myScoreBoard);
+    document.getElementById('score-wrapper').style.display = "block";
+    // let scoreWrapper = document.createElement('div');
+    // scoreWrapper.id = 'score-wrapper';
+    // document.body.appendChild(scoreWrapper);
   }
 }
 
@@ -420,14 +427,12 @@ function updateScores() {
 
     let thisScoreDiv = document.getElementById(`s${ship.socket}`);
 
-    if (!thisScoreDiv) {
-      // reserved for later
-    }
-
+    if (thisScoreDiv) {
     // console.log("score div....", thisScoreDiv);
     // thisScoreDiv.innerHTML = ship.rank + ": " + ship.user + " " + ship.score;
     thisScoreDiv.innerHTML = ship.user + " " + ship.score;
     // thisScoreDiv.style.top = `${ship.rank * 1.5}rem`;
+    }
   });
 }
 

@@ -33,10 +33,13 @@ function sendUpdate(type, object) { // ship,
 
 socket.on('toast', (data) => {
   console.log("toast: ", data);
-  Toastify({
-    text: data,
-    duration: 3000
-  }).showToast();
+  if (myShip.alive === true) {
+    Toastify({
+      text: data,
+      duration: 3000
+    }).showToast();
+  }
+
 });
 
 socket.on("init", (data) => {
@@ -60,7 +63,7 @@ socket.on('ship', (pushedShip) => {
   })
 
   if (thisShip === undefined) {
-    console.log("data received from new ship", pushedShip.socket, ships);
+    console.log("data received from new ship", pushedShip.socket);
     ships.push(new Ship(
       pushedShip.x,
       pushedShip.y,
@@ -68,10 +71,11 @@ socket.on('ship', (pushedShip) => {
       pushedShip.user
     ));
     let scoreBoard = document.getElementById('score-board');
-    let newDiv = document.createElement('div');
-    newDiv.id = `s${pushedShip.socket}`;
-    newDiv.classList.add('score');
-    scoreBoard.appendChild(newDiv);
+
+      let newDiv = document.createElement('div');
+      newDiv.id = `s${pushedShip.socket}`;
+      newDiv.classList.add('score');
+      scoreBoard.appendChild(newDiv);
 
   } else {
     thisShip.x = pushedShip.x;
