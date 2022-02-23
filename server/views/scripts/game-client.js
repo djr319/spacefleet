@@ -417,7 +417,7 @@ function updateScores() {
   let yOffset = 0;
   for (let i = 1; i <= leaderboardSize; i++) {
     if (myShip.rank === i) {
-      myScore.innerHTML = myShip.rank + ": " + myShip.user + " " + myShip.score;
+      myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
       myScore.style.top = `${yOffset * 1.5}rem`;
       yOffset++;
     }
@@ -430,8 +430,8 @@ function updateScores() {
         if (myShip.rank === i || j !== 0) {
           rankLabel = '&nbsp;= ';
         }
-        thisScoreDiv.innerHTML = rankLabel + ship.user + " " + ship.score;
-        if (thisScoreDiv.style.display !== 'block') thisScoreDiv.style.display = 'block';
+        thisScoreDiv.innerHTML = `<span>${rankLabel}${ship.user}</span><span>${ship.score}</span>`;
+        if (thisScoreDiv.style.display !== 'flex') thisScoreDiv.style.display = 'flex';
         thisScoreDiv.style.top = `${yOffset * 1.5}rem`;
         yOffset++;
       }
@@ -445,7 +445,7 @@ function updateScores() {
   });
 
   if (myShip.rank === 0) {
-    myScore.innerHTML = myShip.rank + ": " + myShip.user + " " + myShip.score;
+    myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
     myScore.style.top = `${yOffset * 1.5}rem`;
   }
 

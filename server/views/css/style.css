@@ -17,12 +17,12 @@ position: absolute;
 display: flex;
 align-items: center;
 justify-content: center;
-top:0;
+top: 0;
 left: 0;
 width: 100vw;
 height: 100vh;
 z-index: 100;
-background: rgba(0,0,200,0.8);
+background: rgba(47,76,73,0.8);
 color: white;
 transition: right 0.5s;
 }
@@ -85,14 +85,15 @@ transition: right 0.5s;
   position: absolute;
   top: -50rem;
   transition: all 1s;
+  width: 15rem;
+  display: flex;
+  justify-content: space-between;
 }
 
-
 .score {
-  border: 3px solid blue;
   display: none;
 }
 
 #my-score {
-  border: 3px solid green;
+  color:#78c8c0;
 }
