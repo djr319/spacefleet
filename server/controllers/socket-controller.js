@@ -71,8 +71,15 @@ function socketHandler(socketServer) {
           direction: thisShip.direction,
           thruster: thisShip.thruster,
           socket: thisShip.socket,
-          user: thisShip.user
+          user: thisShip.user,
+          score: thisShip.score,
+          rank: thisShip.rank
         });
+
+        socket.emit("myScore", {
+          score: thisShip.score,
+          rank: thisShip.rank
+        })
 
       } else {
         // ship unknown... if not already killed... kill
@@ -161,7 +168,6 @@ function socketHandler(socketServer) {
         checkExplosions();
         sendBroadcasts();
         takeOutTheTrash();
-        transmitScores();
         setTimeout(serverBroadcasts, updatesPerSecond);
       }
 
@@ -223,19 +229,6 @@ function socketHandler(socketServer) {
       let trash = garbageCollectionList.shift();
       socketServer.emit("trash", trash.id);
     };
-  }
-
-  function transmitScores() {
-    let scoreBoard = [];
-    ships.forEach((ship)=>{
-      scoreBoard.push({
-        id: ship.socket,
-        user: ship.user,
-        score: ship.score,
-        rank: ship.rank
-      });
-    });
-      socketServer.emit("scoreBoard", scoreBoard);
   }
 };
 module.exports = { socketHandler };

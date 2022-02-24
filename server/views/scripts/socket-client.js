@@ -1,5 +1,19 @@
-// const socket = io("http://localhost:5000");
-const socket = io("https://space-fleet.herokuapp.com/");
+const socket = io("http://localhost:5000");
+// const socket = io("https://space-fleet.herokuapp.com/");
+
+function toast(message) {
+  if (myShip.alive === true) {
+    Toastify({
+      text: message,
+      duration: 2500,
+      position: "left",
+      style: {
+        background: "linear-gradient(to bottom, #367a72, #eeeeee)",
+      }
+    }).showToast();
+  }
+
+}
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
@@ -7,7 +21,7 @@ socket.on("connect", () => {
 });
 
 socket.on("connect_error", () => {
-  console.log('connection error!!!!');
+  console.log('connection error!');
   socket.connect();
 });
 
@@ -21,7 +35,6 @@ socket.on("disconnect", (reason) => {
 // -------------       Send       -----------  //
 
 function sendStatus(type, object) { // join, warp,
-  console.log('status sent: ' + type);
   socket.emit(type, object); // buffered & assured
 }
 
@@ -32,11 +45,7 @@ function sendUpdate(type, object) { // ship,
 // -------------       Listeners       -----------  //
 
 socket.on('toast', (data) => {
-  console.log("toast: ", data);
-  Toastify({
-    text: data,
-    duration: 3000
-  }).showToast();
+  toast(data);
 });
 
 socket.on("init", (data) => {
@@ -52,6 +61,7 @@ socket.on('newGame', (data) => {
   myShip.direction = data.direction;
   myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
+  myShip.user = sessionStorage.getItem('name');
 });
 
 socket.on('ship', (pushedShip) => {
@@ -60,23 +70,32 @@ socket.on('ship', (pushedShip) => {
   })
 
   if (thisShip === undefined) {
-    console.log("data received from new ship", pushedShip.socket, ships);
     ships.push(new Ship(
       pushedShip.x,
       pushedShip.y,
       pushedShip.socket,
       pushedShip.user
     ));
+    let scoreBoard = document.getElementById('score-wrapper');
+    let newDiv = document.createElement('div');
+    newDiv.id = `s${pushedShip.socket}`;
+    newDiv.classList.add('score');
+    scoreBoard.appendChild(newDiv);
   } else {
     thisShip.x = pushedShip.x;
     thisShip.y = pushedShip.y;
     thisShip.direction = pushedShip.direction;
     thisShip.thruster = pushedShip.thruster;
+    thisShip.rank = pushedShip.rank;
   }
 });
 
+socket.on("myScore", (data) => {
+  myShip.score = data.score;
+  myShip.rank = data.rank;
+});
+
 socket.on("die", (data) => {
-  console.log("I'm dead! ", data);
   die();
 });
 
@@ -85,25 +104,16 @@ socket.on("boot", () => {
   boot();
 });
 
-socket.on("reset", () => {
-  console.log("all reset!!!");
-  asteroids.length = 0;
-  console.table(asteroids);
-  ships.length = 0;
-  bullets.length = 0;
-});
-
-socket.on('deadShip', (deadshipId) => {
-  if (deadshipId === socket.id) {
+socket.on('deadShip', (deadShipId) => {
+  if (deadShipId === socket.id) {
     console.log("KIA");
     die();
   } else {
-    let deadShip = ships.find(ship => ship.socket === deadshipId);
+    let deadShip = ships.find(ship => ship.socket === deadShipId);
     if (deadShip !== undefined) {
-      Toastify({
-        text: `${deadShip.user} has died`,
-        duration: 3000
-      }).showToast();
+      toast(`${deadShip.user} has died`);
+      let deadShipScore = document.getElementById(`s${deadShipId}`);
+      deadShipScore.remove();
       ships.splice(deadShip, 1)
     }
   }
@@ -150,7 +160,6 @@ socket.on('newExplosion', (data) => {
 socket.on('warp', (data) => {
   myShip.x = data.x;
   myShip.y = data.y;
-  console.log('warp data received');
 });
 
 socket.on('bullet', (data) => {
@@ -159,13 +168,4 @@ socket.on('bullet', (data) => {
   newBullet.y = data.y;
   newBullet.velocity = new Vector(data.v.angle, data.v.size)
   bullets.push(newBullet);
-});
-
-socket.on('scoreBoard', (scores) => {
-  if (myShip.alive === false) return;
-
-  let me = scores.find((el) => {
-    return el.id === socket.id;
-  });
-  myScore = me.score;
 });

@@ -14,6 +14,7 @@ const fieldBuffer = Math.max(50, biggestAsteroid);
 // init canvas when document loaded
 let canvas;
 let ctx;
+let leaderboardSize = 10;
 
 // position reporting
 let reportRate = 60;
@@ -35,7 +36,7 @@ const ships = [];
 const bullets = [];
 const explosions = [];
 const asteroids = [];
-let scores = [];
+// let userName;
 
 // ship control
 let lastShot = new Date();
@@ -111,6 +112,8 @@ class Ship {
     this.thruster = false;
     this.width = 20;
     this.height = 40;
+    this.rank = 0;
+    this.score = 0;
   }
 }
 
@@ -128,6 +131,9 @@ class MyShip {
     this.rotationRate = 8;
     this.ammo = 15;
     this.alive = false;
+    this.rank = 0;
+    this.score = 0;
+    this.user;
   }
 
   get size() {
@@ -205,9 +211,4 @@ class Bullet extends Entity {
 }
 
 let myShip = new MyShip;
-let myScore = 0;
-function resetStatus() {
-  myScore = 0;
-}
-
 let camera = new Entity();

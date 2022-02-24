@@ -11,7 +11,8 @@ const {
   obituries,
   broadcasts,
   explosions,
-  garbageCollectionList
+  garbageCollectionList,
+  scores
 } = require('../models/storage');
 
 const {
@@ -70,7 +71,7 @@ function gameLoop() {
   updateBullets();
   checkShots();
   checkOutOfBounds();
-  // updateScores();
+  rankByScore();
   setTimeout(gameLoop, 1000 / updatesPerSecond);
 }
 
@@ -288,7 +289,6 @@ function clearance(bullet, asteroid) {
   return Math.sqrt((bullet.x - asteroid.x) ** 2 + (bullet.y - asteroid.y) ** 2) - asteroid.size * asteroidScale;
 }
 
-
 function checkEnemyHit() {
   bullets.forEach((bullet, bulletIndex) => {
 
@@ -303,6 +303,7 @@ function checkEnemyHit() {
         // transmit to ship
         if (ship.shield < 1) {
           // ship has been killed
+          // TODO: explosion sound
           die(ship);
           addToScore(bullet.user, 'killEnemy');
         } else {
@@ -372,6 +373,51 @@ function updateBullets() {
   });
 }
 
+function rankByScore() {
+
+  ships.sort((a,b) => {
+    if (b.score > a.score) return 1;
+    return -1;
+  });
+
+  let rank = 1;
+  for (let i = 0; i < ships.length; i++) {
+    ships[i].rank = rank;
+    if (ships[i + 1] && ships[i + 1].score !== ships[i].score) rank++;
+  }
+
+
+
+  // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
+  // let rank = [];
+  // ships.forEach((ship) => {
+  //   rank.push(ship.score);
+  // });
+  // rank.sort();
+  // rank.reverse();
+
+  // let position = 1;
+  // for (let i = 0; i < rank.length; i++) {
+  //   rank[i].rank = position;
+  //   if (rank[i + 1].score < rank[i].score) position++;
+  // }
+
+
+  // ships.forEach((ship) => {
+  //   ship.rank = rank.indexOf(ship.score) + 1;
+  // });
+}
+
+function die(ship) {
+  if (obituries.indexOf(ship) === -1) {
+    obituries.push(ship);
+    let today = new Date();
+    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    console.log("Death occured ", time);
+    ships.splice(ships.indexOf(ship), 1);
+  }
+}
+
 // helper functions
 function bracket (min, x, max) {
   return Math.max(Math.min(x, max), min)
@@ -400,16 +446,6 @@ function randomX() {
 function randomY() {
   // returns a random y value on the field
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
-}
-
-function die(ship) {
-  if (obituries.indexOf(ship) === -1) {
-    obituries.push(ship);
-    let today = new Date();
-    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    console.log("Death occured ", time);
-    ships.splice(ships.indexOf(ship), 1);
-  }
 }
 
 module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };

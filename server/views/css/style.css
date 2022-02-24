@@ -6,25 +6,25 @@ html, body {
 body {
   overflow: hidden;
   font-family: 'Space Mono', monospace;
-
 }
 
 h1 {
   font-size: 1.5rem;
 }
+
 #splash {
 position: absolute;
 display: flex;
 align-items: center;
 justify-content: center;
-top:0;
+top: 0;
 left: 0;
 width: 100vw;
 height: 100vh;
 z-index: 100;
-background: rgba(0,0,200,0.8);
+background: rgba(47,76,73,0.8);
 color: white;
-transition: all 2s;
+transition: right 0.5s;
 }
 
 .dialog {
@@ -67,27 +67,33 @@ transition: all 2s;
   width: 9em;
 }
 
-#hud {
+#score-wrapper {
   position: absolute;
   top: 30px;
-  left: 30px;
+  right: 30px;
+  width: 15rem;
+  padding: 0.2rem 1rem;
+  display: none;
+  z-index: 1000;
   border: 3px solid grey;
   border-radius: 20px;
   color: white;
-  background: black;
-  z-index: 1000;
-  padding: 1rem;
+  background: rgba(30,30,30,0.3);
 }
 
-.heart {
-  opacity: 1;
-  -webkit-transition: opacity 1000ms linear;
-  transition: opacity 1000ms linear;
-}
-
-#debug {
+.score, #my-score {
   position: absolute;
-  left: 1em;
-  bottom: 1em;
-  color: white;
+  top: -50rem;
+  transition: all 1s;
+  width: 15rem;
+  display: flex;
+  justify-content: space-between;
+}
+
+.score {
+  display: none;
+}
+
+#my-score {
+  color:#78c8c0;
 }

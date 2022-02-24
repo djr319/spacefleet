@@ -1,21 +1,26 @@
 
 // ----------------------    Start Game   ----------------------------//
+console.clear();
+// score wrapper
+let scoreWrapper = document.createElement('div');
+scoreWrapper.id = 'score-wrapper';
+document.body.appendChild(scoreWrapper);
+scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
 
+let myScore = document.createElement('div');
+myScore.id = 'my-score';
+scoreWrapper.appendChild(myScore);
 
 
 // ---------------------    Initial Listener     --------------------- //
-// ---------------------    LOGIC STARTS HERE    --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
-  console.clear();
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d', { alpha: false });
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
   document.getElementById('name').value = sessionStorage.getItem('name') || "";
-  document.getElementById('join').addEventListener('click', () => {
-  joinGame();
-  });
+  document.getElementById('join').addEventListener('click', joinGame);
 });
 
 // ------------------    User name / Join game    ------------------ //
@@ -35,7 +40,6 @@ function joinGame() {
 function getShip() {
   let name = document.getElementById('name').value || '';
   sessionStorage.setItem('name', name);
-
   sendStatus('join', name);   // ---> Server
 }
 
@@ -46,11 +50,12 @@ function gameLoop(timestamp) {
     lastRender = timestamp - 10;
   }
   fps = 1000 / (timestamp - lastRender);
-  scoreUpdate();
-  checkControls();
+  if (myShip.alive === true) {
+    checkControls();
+    updateScores();
+  }
   updatePositions();
   drawAll();
-  debugLegend();
   lastRender = timestamp;
   window.requestAnimationFrame(gameLoop);
 }
@@ -64,13 +69,13 @@ function makeStarField() {
 
 function reportToServer() {
   if (myShip.alive === true) {
-  sendUpdate('ship', {
-    x: myShip.x,
-    y: myShip.y,
-    direction: myShip.direction,
-    thruster: myShip.thruster
-  });
-}
+    sendUpdate('ship', {
+      x: myShip.x,
+      y: myShip.y,
+      direction: myShip.direction,
+      thruster: myShip.thruster
+    });
+  }
 }
 
 function checkControls() {
@@ -94,7 +99,7 @@ function updatePositions() {
 // -----------    functions: update positions    ------------------//
 
 function warp() {
-    sendStatus('warp', '');
+  sendStatus('warp', '');
 }
 
 function updateMyShip() {
@@ -128,7 +133,7 @@ function updateBullets() {
     bullet.y = bullet.y + bullet.velocity.y / fps;
 
     // update range remaining
-    let distanceMoved = Math.sqrt((bullet.velocity.x / fps)**2 + (bullet.velocity.y / fps)**2)
+    let distanceMoved = Math.sqrt((bullet.velocity.x / fps) ** 2 + (bullet.velocity.y / fps) ** 2)
     bullet.rangeRemaining = bullet.rangeRemaining - distanceMoved;
 
     // remove off-field and spent bullets
@@ -138,7 +143,7 @@ function updateBullets() {
       bullet.y < 0 ||
       bullet.y > fieldY ||
       bullet.rangeRemaining <= 0
-      ) {
+    ) {
       bullets.splice(bulletIndex, 1);
     }
   });
@@ -191,10 +196,10 @@ function drawBullets() {
   bullets.forEach((bullet, index) => {
 
     ctx.beginPath();
-    ctx.arc(bullet.x-viewportX, bullet.y-viewportY, 1, 0, 2 * Math.PI, false);
+    ctx.arc(bullet.x - viewportX, bullet.y - viewportY, 1, 0, 2 * Math.PI, false);
     ctx.fillStyle = '#FFF';
     ctx.fill();
-    });
+  });
 }
 
 function drawShips() {
@@ -223,14 +228,14 @@ function drawShip(ship) {
     ctx.fillStyle = "red";
     ctx.fillText(ship.user || "?", 20, 20);
   } else {
-      // range circle to be used as visible shield when being shot
-      // ctx.beginPath();
-      // ctx.fillStyle = '#ccf5';
-      // ctx.strokeStyle = 'blue';
-      // ctx.lineWidth = 2;
-      // ctx.arc(0, 0, bulletRange, 0, 2 * Math.PI);
-      // ctx.fill();
-      // ctx.stroke();
+    // range circle to be used as visible shield when being shot
+    // ctx.beginPath();
+    // ctx.fillStyle = '#ccf5';
+    // ctx.strokeStyle = 'blue';
+    // ctx.lineWidth = 2;
+    // ctx.arc(0, 0, bulletRange, 0, 2 * Math.PI);
+    // ctx.fill();
+    // ctx.stroke();
   }
 
   ctx.rotate(ship.direction);
@@ -340,30 +345,8 @@ function updateViewport() {
 
 // -----------    functions: game control     ------------------//
 
-function hudInit() {
-
-  let hud = document.createElement('div');
-  hud.id = 'hud';
-  document.body.appendChild(hud);
-
-  let p = document.createElement('p');
-  p.id = 'hud-score';
-  p.innerText = `Score: ${myScore}`;
-  hud.appendChild(p);
-}
-
-function scoreUpdate() {
-  let score = document.getElementById('hud-score');
-  score.innerText = `Score: ${myScore}`;
-}
-
 function die() {
   myShip.alive = false;
-  // if (bigHole === 0) {
-  //   bigHole = new Explosion(myShip.x, myShip.y, new Vector(0, 0));
-  // }
-  // bigHole.end = 50;
-  // explosions.push(bigHole);
   playSound(fireball);
   clearInterval(reportInterval);
   gameOver();
@@ -380,10 +363,10 @@ function boot() {
 }
 
 function purge() {
-  asteroids.splice(0,asteroids.length);
-  bullets.splice(0,bullets.length);
-  explosions.splice(0,explosions.length);
-  ships.splice(0,ships.length);
+  asteroids.splice(0, asteroids.length);
+  bullets.splice(0, bullets.length);
+  explosions.splice(0, explosions.length);
+  ships.splice(0, ships.length);
 }
 
 function exitGame() {
@@ -402,32 +385,70 @@ function gameOver() {
   showMouse();
   // high score to local storage
   setTimeout(() => {
-  const pb = localStorage.getItem('pb');
-  if (myScore > pb) {
-    localStorage.setItem('pb', myScore);
-    alert("New personal best!" + myScore);
-  }
+    const pb = localStorage.getItem('pb');
+    if (myShip.score > pb) {
+      localStorage.setItem('pb', myShip.score);
+      alert("New personal best!" + myShip.score);
+    }
     lobby('show');
   }, 2000);
 }
 
 function lobby(displayState) {
   if (displayState === 'show') {
-    let hud = document.getElementById('hud');
-    document.body.removeChild(hud);
+    // show lobby, remove scores
     document.getElementById('splash').style.display = "flex";
+    document.getElementById('score-wrapper').style.display = "none";
+
+    // let scoreWrapper = document.getElementById('score-wrapper');
+    // document.body.removeChild(scoreWrapper);
   } else {
+    // hide lobby, show scores
     document.getElementById('splash').style.display = "none";
-    hudInit();
+    // score wrapper
+    document.getElementById('score-wrapper').style.display = "block";
+    // let scoreWrapper = document.createElement('div');
+    // scoreWrapper.id = 'score-wrapper';
+    // document.body.appendChild(scoreWrapper);
   }
 }
 
-function debugLegend() {
-  let bugbox = document.getElementById('debug');
-  bugbox.innerHTML = `x: ${myShip.x}
-  <br>y: ${myShip.y}
-  <br>alive: ${myShip.alive}
-  <br>No. of asteroids: ${asteroids.length}`
+function updateScores() {
+  let yOffset = 0;
+  for (let i = 1; i <= leaderboardSize; i++) {
+    if (myShip.rank === i) {
+      myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
+      myScore.style.top = `${yOffset * 1.5}rem`;
+      yOffset++;
+    }
+    let list = ships.filter(ship => ship.rank === i);
+    for (let j = 0; j < list.length; j++) {
+      let ship = list[j];
+      let thisScoreDiv = document.getElementById(`s${ship.socket}`);
+      if (thisScoreDiv) {
+        let rankLabel = ship.rank + ": ";
+        if (myShip.rank === i || j !== 0) {
+          rankLabel = '&nbsp;= ';
+        }
+        thisScoreDiv.innerHTML = `<span>${rankLabel}${ship.user}</span><span>${ship.score}</span>`;
+        if (thisScoreDiv.style.display !== 'flex') thisScoreDiv.style.display = 'flex';
+        thisScoreDiv.style.top = `${yOffset * 1.5}rem`;
+        yOffset++;
+      }
+    };
+  }
+
+  let hideList = ships.filter(ship => ship.rank > leaderboardSize);
+  hideList.forEach((ship) => {
+    let div = document.getElementById(`s${ship.socket}`);
+    div.style.display = 'none';
+  });
+
+  if (myShip.rank === 0) {
+    myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
+    myScore.style.top = `${yOffset * 1.5}rem`;
+  }
+
 }
 
 function resizeCanvas() {
@@ -439,9 +460,6 @@ function resizeCanvas() {
   viewportWidth = window.innerWidth;
   viewportHeight = window.innerHeight;
 }
-
-
-// -----------    functions: helper function     ------------------//
 
 function clamp(num, min, max) {
   // limits num to between min and max
