@@ -211,4 +211,5 @@ class Bullet extends Entity {
 }
 
 let myShip = new MyShip;
+const shieldSize = 50;
 let camera = new Entity();
