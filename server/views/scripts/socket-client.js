@@ -1,5 +1,5 @@
-const socket = io("http://localhost:5000");
-// const socket = io("https://space-fleet.herokuapp.com/");
+// const socket = io("http://localhost:5000");
+const socket = io("https://space-fleet.herokuapp.com/");
 
 function toast(message) {
   if (myShip.alive === true) {
@@ -87,12 +87,18 @@ socket.on('ship', (pushedShip) => {
     thisShip.direction = pushedShip.direction;
     thisShip.thruster = pushedShip.thruster;
     thisShip.rank = pushedShip.rank;
+    thisShip.score = pushedShip.score;
   }
 });
 
 socket.on("myScore", (data) => {
   myShip.score = data.score;
   myShip.rank = data.rank;
+});
+
+socket.on("denied", (reason) => {
+  console.log('Not allowed in game', reason);
+  die();
 });
 
 socket.on("die", (data) => {

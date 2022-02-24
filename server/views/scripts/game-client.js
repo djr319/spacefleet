@@ -346,20 +346,20 @@ function updateViewport() {
 // -----------    functions: game control     ------------------//
 
 function die() {
-  myShip.alive = false;
   playSound(fireball);
-  clearInterval(reportInterval);
   gameOver();
 }
 
 function boot() {
   // called if server is reset
-  if (myShip.alive === true) {
-    myShip.alive = false;
-    clearInterval(reportInterval);
-    gameOver();
-  }
+  gameOver();
   purge();
+}
+
+function exitGame() {
+  // called if browser tab loses focus
+  // called if ESC is pressed
+  gameOver();
 }
 
 function purge() {
@@ -369,24 +369,14 @@ function purge() {
   ships.splice(0, ships.length);
 }
 
-function exitGame() {
-  // called if browser tab loses focus
-  // called if ESC is pressed
-  if (myShip.alive === true) {
-    myShip.alive = false;
-    clearInterval(reportInterval);
-    gameOver();
-  }
-}
-
 function gameOver() {
-  // doesn't matter if listeners are already removed
+  if (myShip.alive === true) myShip.alive = false;
+  clearInterval(reportInterval);
   removeControlListeners();
   showMouse();
   // high score to local storage
   setTimeout(() => {
-    const pb = localStorage.getItem('pb');
-    if (myShip.score > pb) {
+    if (myShip.score > localStorage.getItem('pb')) {
       localStorage.setItem('pb', myShip.score);
       alert("New personal best!" + myShip.score);
     }
@@ -398,18 +388,14 @@ function lobby(displayState) {
   if (displayState === 'show') {
     // show lobby, remove scores
     document.getElementById('splash').style.display = "flex";
-    document.getElementById('score-wrapper').style.display = "none";
+    let scoreWrapper = document.getElementById('score-wrapper')
+    scoreWrapper.style.display = "none";
+    scoreWrapper.innerHTML = '';
 
-    // let scoreWrapper = document.getElementById('score-wrapper');
-    // document.body.removeChild(scoreWrapper);
   } else {
     // hide lobby, show scores
     document.getElementById('splash').style.display = "none";
-    // score wrapper
     document.getElementById('score-wrapper').style.display = "block";
-    // let scoreWrapper = document.createElement('div');
-    // scoreWrapper.id = 'score-wrapper';
-    // document.body.appendChild(scoreWrapper);
   }
 }
 
@@ -448,7 +434,6 @@ function updateScores() {
     myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
     myScore.style.top = `${yOffset * 1.5}rem`;
   }
-
 }
 
 function resizeCanvas() {

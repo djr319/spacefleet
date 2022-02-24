@@ -17,7 +17,9 @@ const {
   warp,
   updatesPerSecond,
   fieldX,
-  fieldY
+  fieldY,
+  maxPlayers,
+  currentPlayers
 } = require('./game-controller');
 
 function socketHandler(socketServer) {
@@ -26,19 +28,26 @@ function socketHandler(socketServer) {
   socketServer.on('connection', (socket) => {
     console.log('User connected: ' + socket.id);
 
-    socket.emit("init", {
+    socket.emit('init', {
       fX: fieldX,
       fY: fieldY,
       bulletRange
     });
 
     socket.on('join', (name) => {
-      console.log(name || "unknown", 'joined');
-      let newShip = joinGame(name || "unknown", socket.id);
+      if (currentPlayers > maxPlayers) {
+        console.log('Game full');
+        socket.emit('denied', 'full');
+        return;
+      };
+      console.log('Player number:', currentPlayers);
 
-      socket.emit("toast", `Welcome, ${name || "???"}`);
+      console.log(name || 'unknown', 'joined');
+      let newShip = joinGame(name || 'unknown', socket.id);
 
-      socket.emit("newGame", {
+      socket.emit('toast', `Welcome, ${name || '???'}`);
+
+      socket.emit('newGame', {
         x: newShip.x,
         y: newShip.y,
         direction: newShip.direction,
@@ -47,7 +56,7 @@ function socketHandler(socketServer) {
       });
 
       // message all other users that user joined game
-      socket.broadcast.emit("toast", `${name} joined the game`);
+      socket.broadcast.emit('toast', `${name} joined the game`);
     });
 
     // ---------- listeners ---------- //
@@ -65,7 +74,7 @@ function socketHandler(socketServer) {
         thisShip.thruster = ship.thruster;
 
         // transmit to other players
-        socket.broadcast.emit("ship", {
+        socket.broadcast.emit('ship', {
           x: thisShip.x,
           y: thisShip.y,
           direction: thisShip.direction,
@@ -76,7 +85,7 @@ function socketHandler(socketServer) {
           rank: thisShip.rank
         });
 
-        socket.emit("myScore", {
+        socket.emit('myScore', {
           score: thisShip.score,
           rank: thisShip.rank
         })
@@ -84,7 +93,7 @@ function socketHandler(socketServer) {
       } else {
         // ship unknown... if not already killed... kill
         if (obituries.indexOf(socket.id) !== -1) {
-          socket.emit("die", "not listed on server");
+          socket.emit('die', 'not listed on server');
         }
       }
     });
@@ -93,11 +102,7 @@ function socketHandler(socketServer) {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
-      console.log("warp requested by", thisShip.socket);
-      if (thisShip === undefined) {
-        console.log('who said warp? ', socket.id);
-        socket.emit("toast", "Can't warp! - ship not registered on server");
-      } else {
+      if (thisShip != undefined) {
         warp(thisShip);
         socket.emit('warp',
           {
@@ -105,7 +110,6 @@ function socketHandler(socketServer) {
             y: thisShip.y
           }
         );
-        console.log('warp details sent to ' + socket.id);
       }
     });
 
@@ -129,7 +133,7 @@ function socketHandler(socketServer) {
     socket.on('purge', () => {
       console.table(ships);
       // boots everone else
-      socketServer.broadcast.emit("boot", "purge all ships");
+      socketServer.broadcast.emit('boot', 'purge all ships');
     })
 
     socket.on('print', () => {
@@ -140,11 +144,11 @@ function socketHandler(socketServer) {
 
     socket.on('disconnect', function () {
 
-      console.log(socket.id + " disconnected");
+      console.log(socket.id + ' disconnected');
       // would be nice to try to rejoin on same socket
       let deadShips = ships.filter((el) => { return el.socket === socket.id });
       if (deadShips.length > 0) {
-        socket.emit("toast", `${deadShips} lost connection`);
+        socket.emit('toast', `${deadShips} lost connection`);
         deadShips.forEach((ship) => {
           deathAnnouncement(ship);
           ships.splice(ships.indexOf(ship), 1);
@@ -153,8 +157,8 @@ function socketHandler(socketServer) {
       }
     });
 
-    socket.on("reconnect", () => {
-      console.log("reconnected");
+    socket.on('reconnect', () => {
+      console.log('reconnected');
     });
   });
 
@@ -185,7 +189,7 @@ function socketHandler(socketServer) {
       function checkObituries() {
         while (obituries.length > 0) {
           let deadShip = obituries.shift();
-          console.log("obituries page ", deadShip.user);
+          console.log('obituries page ', deadShip.user);
           deathAnnouncement(deadShip, 'loud');
           explosions.push({
             x: deadShip.x,
@@ -217,17 +221,17 @@ function socketHandler(socketServer) {
       }
 
       function deathAnnouncement(deadship, mode = 'silent') {
-        console.log("mode :", mode);
+        console.log('mode :', mode);
         console.log(deadship);
-        console.log(deadship.user, "has died");
+        console.log(deadship.user, 'has died');
         // mode !== 'silent' &&
-        socketServer.emit("deadShip", deadship.socket);
+        socketServer.emit('deadShip', deadship.socket);
       }
 
   function takeOutTheTrash() {
     while (garbageCollectionList.length > 0) {
       let trash = garbageCollectionList.shift();
-      socketServer.emit("trash", trash.id);
+      socketServer.emit('trash', trash.id);
     };
   }
 };
