@@ -12,25 +12,23 @@ const {
   broadcasts,
   explosions,
   garbageCollectionList,
-  scores
 } = require('../models/storage');
 
 const {
   Asteroid,
   asteroidScale,
-  asteroidMaxSize,
   noOfAsteroids,
   biggestAsteroid
 } = require('../components/asteroids');
 
 const Ship = require('../components/ships');
-// const Explosion = require('../components/explosions');
-// const { Bullet } = require ( '../components/bullets');
 
 // ---------------   Variables  --------------- //
 
 const fieldX = 5000;
 const fieldY = 5000;
+let maxPlayers = Math.floor(fieldX * fieldY / 1000000);
+let currentPlayers = 0;
 
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
@@ -448,4 +446,4 @@ function randomY() {
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
 
-module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY };
+module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY, maxPlayers, currentPlayers };
