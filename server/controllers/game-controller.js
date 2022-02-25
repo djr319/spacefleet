@@ -310,8 +310,6 @@ function checkEnemyHit() {
         console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 1) {
-          // ship has been killed
-          // TODO: explosion sound
           die(ship);
           addToScore(bullet.user, 'killEnemy');
         } else {
@@ -328,7 +326,7 @@ function checkShipCollisions() {
   if (ships.length < 2) return;
   let collisionList = [];
   ships.forEach((ship) => {
-    if (nearestShip(ship).dist < 0) {
+    if (nearestShip(ship).dist < 2 * ship.size) {
       collisionList.push(ship);
     }
   });
