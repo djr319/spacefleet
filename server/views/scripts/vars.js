@@ -1,49 +1,5 @@
 'use strict'
 
-// -----------    Variables    ------------------//
-let viewportWidth = window.innerWidth; // from browser
-let viewportHeight = window.innerHeight;
-let viewportX = 0; // top left of viewport
-let viewportY = 0;
-const viewportBuffer = 100;
-const asteroidScale = 20;
-const asteroidMaxSize = 5;
-const biggestAsteroid = asteroidMaxSize * asteroidScale;
-const fieldBuffer = Math.max(50, biggestAsteroid);
-
-// init canvas when document loaded
-let canvas;
-let ctx;
-let leaderboardSize = 10;
-
-// position reporting
-let reportRate = 60;
-let reportInterval;
-
-// animation & background
-let lastRender;
-let fps = 0;
-let fieldX;
-let fieldY;
-
-// other
-let bulletRange;
-
-// -----------    Storage    ------------------//
-const starfield = [];
-const noOfStars = 1000;
-const ships = [];
-const bullets = [];
-const explosions = [];
-const asteroids = [];
-// let userName;
-
-// ship control
-let lastShot = new Date();
-
-// Local session storage
-const sessionStorage = window.sessionStorage;
-
 // -----------------------    Objects    ------------------//
 class Vector {
   constructor(angle, size) {
@@ -210,6 +166,84 @@ class Bullet extends Entity {
   }
 }
 
-let myShip = new MyShip;
-const shieldSize = 50;
+// -----------    Elements    ------------------//
+
+// canvas
+let canvas = document.createElement('canvas');
+canvas.id = 'canvas';
+document.body.appendChild(canvas);
+let ctx = canvas.getContext('2d', { alpha: false });
+
+// splash page
+let splash = document.createElement('div');
+splash.id = 'splash';
+document.body.appendChild(splash);
+splash.innerHTML = `
+<div class="dialog">
+  <h1>Spacefleet</h1>
+  <input id="name" type="text" placeholder="name"></text>
+  </br>
+  <button class="join-game" id="join">JOIN GAME</button>
+</div>
+`;
+
+// score board
+let scoreWrapper = document.createElement('div');
+scoreWrapper.id = 'score-wrapper';
+document.body.appendChild(scoreWrapper);
+scoreWrapper.innerHTML = `
+<div id="my-score"></div>
+`;
+
+let myScore = document.getElementById('my-score');
+let leaderboardSize = 10;
+
+// ---------------------    Initial Listener     --------------------- //
+
+window.addEventListener('DOMContentLoaded', () => {
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  document.getElementById('name').value = sessionStorage.getItem('name') || "";
+  document.getElementById('join').addEventListener('click', joinGame);
+});
+
+// -----------    Storage    ------------------//
+const starfield = [];
+const noOfStars = 1000;
+const ships = [];
+const bullets = [];
+const explosions = [];
+const asteroids = [];
+
+// -----------    Viewport    ------------------//
+let viewportWidth = window.innerWidth; // from browser
+let viewportHeight = window.innerHeight;
+let viewportX = 0; // top left of viewport
+let viewportY = 0;
+const viewportBuffer = 100;
 let camera = new Entity();
+
+// -----------    Asteroid    ------------------//
+const asteroidScale = 20;
+const asteroidMaxSize = 5;
+const biggestAsteroid = asteroidMaxSize * asteroidScale;
+const fieldBuffer = Math.max(50, biggestAsteroid);
+
+// position reporting
+let reportRate = 60;
+let reportInterval;
+
+// animation & background
+let lastRender;
+let fps = 0;
+let fieldX;
+let fieldY;
+
+// ship control
+let myShip = new MyShip;
+let lastShot = new Date();
+let bulletRange;
+const shieldSize = 50;
+
+console.clear();

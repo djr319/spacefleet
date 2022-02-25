@@ -1,28 +1,4 @@
 
-// ----------------------    Start Game   ----------------------------//
-console.clear();
-// score wrapper
-let scoreWrapper = document.createElement('div');
-scoreWrapper.id = 'score-wrapper';
-document.body.appendChild(scoreWrapper);
-scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
-
-let myScore = document.createElement('div');
-myScore.id = 'my-score';
-scoreWrapper.appendChild(myScore);
-
-
-// ---------------------    Initial Listener     --------------------- //
-
-window.addEventListener('DOMContentLoaded', () => {
-  canvas = document.getElementById('canvas');
-  ctx = canvas.getContext('2d', { alpha: false });
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-  document.getElementById('name').value = sessionStorage.getItem('name') || "";
-  document.getElementById('join').addEventListener('click', joinGame);
-});
-
 // ------------------    User name / Join game    ------------------ //
 
 function joinGame() {
@@ -30,7 +6,6 @@ function joinGame() {
   getShip();
   setControlListeners();
   // canvas.requestFullscreen();
-  // hideMouse();
   resizeCanvas();
   makeStarField();
   reportInterval = setInterval(reportToServer, 1000 / reportRate);
@@ -373,7 +348,6 @@ function gameOver() {
   if (myShip.alive === true) myShip.alive = false;
   clearInterval(reportInterval);
   removeControlListeners();
-  showMouse();
   // high score to local storage
   setTimeout(() => {
     if (myShip.score > localStorage.getItem('pb')) {
@@ -387,23 +361,25 @@ function gameOver() {
 function lobby(displayState) {
   if (displayState === 'show') {
     // show lobby, remove scores
-    document.getElementById('splash').style.display = "flex";
-    let scoreWrapper = document.getElementById('score-wrapper')
+    splash.style.display = "flex";
     scoreWrapper.style.display = "none";
-    scoreWrapper.innerHTML = '';
-
+    // scoreWrapper.innerHTML = '';
+    // showMouse();
   } else {
     // hide lobby, show scores
-    document.getElementById('splash').style.display = "none";
-    document.getElementById('score-wrapper').style.display = "block";
+    splash.style.display = "none";
+    scoreWrapper.style.display = "block";
+    scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
+        // hideMouse();
   }
 }
 
 function updateScores() {
   let yOffset = 0;
+  myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
+
   for (let i = 1; i <= leaderboardSize; i++) {
     if (myShip.rank === i) {
-      myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
       myScore.style.top = `${yOffset * 1.5}rem`;
       yOffset++;
     }
