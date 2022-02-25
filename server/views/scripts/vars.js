@@ -201,7 +201,7 @@ let leaderboardSize = 10;
 // ---------------------    Initial Listener     --------------------- //
 
 window.addEventListener('DOMContentLoaded', () => {
-
+  console.clear();
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
   document.getElementById('name').value = sessionStorage.getItem('name') || "";
@@ -245,5 +245,3 @@ let myShip = new MyShip;
 let lastShot = new Date();
 let bulletRange;
 const shieldSize = 50;
-
-console.clear();

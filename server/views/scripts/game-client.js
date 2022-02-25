@@ -2,20 +2,17 @@
 // ------------------    User name / Join game    ------------------ //
 
 function joinGame() {
+  let name = document.getElementById('name').value;
+  if (name == "") return;
   lobby('hide');
-  getShip();
+  sessionStorage.setItem('name', name);
+  sendStatus('join', name);   // ---> Server
   setControlListeners();
   // canvas.requestFullscreen();
   resizeCanvas();
   makeStarField();
   reportInterval = setInterval(reportToServer, 1000 / reportRate);
   window.requestAnimationFrame(gameLoop);
-}
-
-function getShip() {
-  let name = document.getElementById('name').value || '';
-  sessionStorage.setItem('name', name);
-  sendStatus('join', name);   // ---> Server
 }
 
 // ----------------------    GAME LOOP    ---------------------------- //
