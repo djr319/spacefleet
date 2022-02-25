@@ -1,7 +1,6 @@
 const defaultUPS = 60;
 const idleUPS = 10;
 let updatesPerSecond = idleUPS;
-// (change to 0.1 if no ships)
 
 const { Vector } = require('../components/vector')
 const {
@@ -27,14 +26,14 @@ const Ship = require('../components/ships');
 
 const fieldX = 5000;
 const fieldY = 5000;
-let maxPlayers = Math.floor(fieldX * fieldY / 1000000);
-let currentPlayers = 0;
-
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
 
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
+
+let maxPlayers = 2 // Math.floor(fieldX * fieldY / 1000000);
+let currentPlayers = 0;
 
 let scoreTable = {
   5: 50,
@@ -61,7 +60,6 @@ function initServer() {
 }
 
 function gameLoop() {
-  checkEmptyShipList();
   updateAsteroids();
   checkShipAsteroidCollisions();
   gravity();
@@ -73,17 +71,12 @@ function gameLoop() {
   setTimeout(gameLoop, 1000 / updatesPerSecond);
 }
 
-function checkEmptyShipList() {
-  if (ships.length === 0 && updatesPerSecond !== idleUPS) {
-    updatesPerSecond = idleUPS;
-    console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
-  } else if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
+function joinGame(username, socketId) { // from socket
+  // spin up server refresh rate
+  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
     updatesPerSecond = defaultUPS;
     console.log('GAME ON! Update rate: ', updatesPerSecond);
   }
-}
-
-function joinGame(username, socketId) { // from socket
   // spawn ship
   let newShip = new Ship();
   newShip.x = randomX();
@@ -401,6 +394,11 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     ships.splice(ships.indexOf(ship), 1);
+  }
+
+  if (ships.length === 0) {
+    updatesPerSecond = idleUPS;
+    console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
   }
 }
 

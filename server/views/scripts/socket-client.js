@@ -28,7 +28,7 @@ socket.on("disconnect", (reason) => {
   let today = new Date();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
   console.log("disconnected from server", time, reason);
-  die();
+  gameOver();
 });
 
 // -------------       Send       -----------  //
@@ -61,6 +61,12 @@ socket.on('newGame', (data) => {
   myShip.velocity = new Vector(data.angle, data.size);
   myShip.alive = true;
   myShip.user = sessionStorage.getItem('name');
+  startGame();
+});
+
+socket.on("denied", (reason) => {
+  console.log('Not allowed in game', reason);
+  alert('Game full. Please try again later');
 });
 
 socket.on('ship', (pushedShip) => {
@@ -95,13 +101,9 @@ socket.on("myScore", (data) => {
   myShip.rank = data.rank;
 });
 
-socket.on("denied", (reason) => {
-  console.log('Not allowed in game', reason);
-  die();
-});
-
 socket.on("die", (data) => {
-  die();
+  // not listed on server
+  gameOver();
 });
 
 socket.on("boot", () => {
@@ -109,7 +111,7 @@ socket.on("boot", () => {
   boot();
 });
 
-socket.on('deadShip', (deadShipId) => {
+socket.on('killed', (deadShipId) => {
   if (deadShipId === socket.id) {
     console.log("KIA");
     die();

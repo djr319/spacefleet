@@ -2,22 +2,20 @@
 // ------------------    User name / Join game    ------------------ //
 
 function joinGame() {
+  let name = document.getElementById('name').value;
+  if (name == "") return;
   lobby('hide');
-  getShip();
+  sessionStorage.setItem('name', name);
+  sendStatus('join', name);   // ---> Server
+}
+
+function startGame() {
   setControlListeners();
-  // canvas.requestFullscreen();
   resizeCanvas();
   makeStarField();
   reportInterval = setInterval(reportToServer, 1000 / reportRate);
   window.requestAnimationFrame(gameLoop);
 }
-
-function getShip() {
-  let name = document.getElementById('name').value || '';
-  sessionStorage.setItem('name', name);
-  sendStatus('join', name);   // ---> Server
-}
-
 // ----------------------    GAME LOOP    ---------------------------- //
 
 function gameLoop(timestamp) {
@@ -32,7 +30,7 @@ function gameLoop(timestamp) {
   updatePositions();
   drawAll();
   lastRender = timestamp;
-  window.requestAnimationFrame(gameLoop);
+  if (splash.style.display !== "flex") window.requestAnimationFrame(gameLoop);
 }
 
 function makeStarField() {
@@ -334,7 +332,7 @@ function boot() {
 function exitGame() {
   // called if browser tab loses focus
   // called if ESC is pressed
-  reportLeaving();
+  sendStatus('exit', '');
   gameOver();
 }
 
@@ -345,22 +343,21 @@ function purge() {
   ships.splice(0, ships.length);
 }
 
-function reportLeaving() {
-  sendStatus('exit','');
-};
-
 function gameOver() {
-  if (myShip.alive === true) myShip.alive = false;
-  clearInterval(reportInterval);
-  removeControlListeners();
-  // high score to local storage
-  setTimeout(() => {
-    if (myShip.score > localStorage.getItem('pb')) {
-      localStorage.setItem('pb', myShip.score);
-      alert("New personal best!" + myShip.score);
+  if (myShip.alive === true) {
+    myShip.alive = false;
+    clearInterval(reportInterval);
+    removeControlListeners();
+    // high score to local storage
+    setTimeout(() => {
+      if (myShip.score > localStorage.getItem('pb')) {
+        localStorage.setItem('pb', myShip.score);
+        alert("New personal best!" + myShip.score);
+      }
+      lobby('show');
+    }, 2000);
     }
-    lobby('show');
-  }, 2000);
+
 }
 
 function lobby(displayState) {
@@ -368,14 +365,13 @@ function lobby(displayState) {
     // show lobby, remove scores
     splash.style.display = "flex";
     scoreWrapper.style.display = "none";
-    // scoreWrapper.innerHTML = '';
     // showMouse();
   } else {
     // hide lobby, show scores
     splash.style.display = "none";
     scoreWrapper.style.display = "block";
     scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
-        // hideMouse();
+    // hideMouse();
   }
 }
 
