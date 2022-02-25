@@ -15,6 +15,7 @@ const {
 const {
   joinGame,
   warp,
+  die,
   updatesPerSecond,
   fieldX,
   fieldY,
@@ -129,15 +130,10 @@ function socketHandler(socketServer) {
       })
     });
 
-    // for testing purposes
-    socket.on('purge', () => {
-      console.table(ships);
-      // boots everone else
-      socketServer.broadcast.emit('boot', 'purge all ships');
-    })
+    socket.on('exit', () => {
+      console.log(socket.id + ': client-side terminated game <esc> or tab lost focus');
+      // remove ship
 
-    socket.on('print', () => {
-      console.table(ships);
     })
 
     // ---------- connection issues ---------- //
@@ -148,12 +144,10 @@ function socketHandler(socketServer) {
       // would be nice to try to rejoin on same socket
       let deadShips = ships.filter((el) => { return el.socket === socket.id });
       if (deadShips.length > 0) {
-        socket.emit('toast', `${deadShips} lost connection`);
         deadShips.forEach((ship) => {
           deathAnnouncement(ship);
           ships.splice(ships.indexOf(ship), 1);
         });
-        console.table(ships);
       }
     });
 
@@ -189,8 +183,11 @@ function socketHandler(socketServer) {
       function checkObituries() {
         while (obituries.length > 0) {
           let deadShip = obituries.shift();
-          console.log('obituries page ', deadShip.user);
-          deathAnnouncement(deadShip, 'loud');
+          // report removal to client
+          deathAnnouncement(deadShip);
+          // report removal to users
+          broadcasts.push(['toast', deadShip.user + ' has died']);
+          // report explosion
           explosions.push({
             x: deadShip.x,
             y: deadShip.y,
@@ -211,8 +208,8 @@ function socketHandler(socketServer) {
             size: bang.size
           });
         };
-
       }
+
       function sendBroadcasts() {
         while (broadcasts.length > 0) {
         socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
@@ -220,18 +217,14 @@ function socketHandler(socketServer) {
         }
       }
 
-      function deathAnnouncement(deadship, mode = 'silent') {
-        console.log('mode :', mode);
-        console.log(deadship);
-        console.log(deadship.user, 'has died');
-        // mode !== 'silent' &&
+      function deathAnnouncement(deadship) {
         socketServer.emit('deadShip', deadship.socket);
       }
 
-  function takeOutTheTrash() {
-    while (garbageCollectionList.length > 0) {
-      let trash = garbageCollectionList.shift();
-      socketServer.emit('trash', trash.id);
+    function takeOutTheTrash() {
+      while (garbageCollectionList.length > 0) {
+        let trash = garbageCollectionList.shift();
+        socketServer.emit('trash', trash.id);
     };
   }
 };

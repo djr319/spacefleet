@@ -94,7 +94,7 @@ function joinGame(username, socketId) { // from socket
 
   // check for proximity of asteroids & ships
   if (freeSpace(newShip) === false) {
-    warp(newShip, SPAWN_BUFFER);
+    spawn(newShip);
     console.log('position ', newShip.x, newShip.y);
 
   };
@@ -106,16 +106,25 @@ function joinGame(username, socketId) { // from socket
   return newShip;
 }
 
-function warp(ship, buffer = WARP_BUFFER) {
+function warp(ship) {
+  ship.score = ship.score - 1000;
+  if (ship.score < 0) die(ship);
   do {
     ship.x = randomX();
     ship.y = randomY();
-  } while (!freeSpace(ship, buffer))
+  } while (!freeSpace(ship, WARP_BUFFER))
   console.log('warped ', ship.socket);
 }
 
+function spawn(ship) {
+  do {
+    ship.x = randomX();
+    ship.y = randomY();
+  } while (!freeSpace(ship, SPAWN_BUFFER))
+  console.log('spawned ', ship.socket);
+}
+
 function freeSpace(ship, buffer) {
-  console.log("checking freespace");
   if (buffer < Math.min(
     distToNearestAsteroid(ship),
     nearestShip(ship).dist,
@@ -288,6 +297,7 @@ function clearance(bullet, asteroid) {
 }
 
 function checkEnemyHit() {
+
   bullets.forEach((bullet, bulletIndex) => {
 
     ships.forEach((ship) => {
@@ -300,8 +310,6 @@ function checkEnemyHit() {
         console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 1) {
-          // ship has been killed
-          // TODO: explosion sound
           die(ship);
           addToScore(bullet.user, 'killEnemy');
         } else {
@@ -314,10 +322,11 @@ function checkEnemyHit() {
 }
 
 function checkShipCollisions() {
+
   if (ships.length < 2) return;
   let collisionList = [];
   ships.forEach((ship) => {
-    if (nearestShip(ship).dist < 0) {
+    if (nearestShip(ship).dist < 2 * ship.size) {
       collisionList.push(ship);
     }
   });
@@ -327,6 +336,7 @@ function checkShipCollisions() {
 }
 
 function checkOutOfBounds() {
+
   ships.forEach((ship) => {
     if (ship.x < 0 || ship.x > fieldX || ship.y < 0 || ship.y > fieldY) {
       die(ship);
@@ -335,6 +345,7 @@ function checkOutOfBounds() {
 }
 
 function spawnAsteroids(offscreen = false) {
+
   while (asteroids.length < noOfAsteroids) {
     let newAsteroid = new Asteroid(randomX(), randomY());
     if (offscreen === true) {
@@ -345,6 +356,7 @@ function spawnAsteroids(offscreen = false) {
 }
 
 function updateAsteroids() {
+
   spawnAsteroids(true);
   asteroids.forEach((el) => {
     // move
@@ -383,35 +395,11 @@ function rankByScore() {
     ships[i].rank = rank;
     if (ships[i + 1] && ships[i + 1].score !== ships[i].score) rank++;
   }
-
-
-
-  // https://stackoverflow.com/questions/1129216/sort-array-of-objects-by-string-property-value
-  // let rank = [];
-  // ships.forEach((ship) => {
-  //   rank.push(ship.score);
-  // });
-  // rank.sort();
-  // rank.reverse();
-
-  // let position = 1;
-  // for (let i = 0; i < rank.length; i++) {
-  //   rank[i].rank = position;
-  //   if (rank[i + 1].score < rank[i].score) position++;
-  // }
-
-
-  // ships.forEach((ship) => {
-  //   ship.rank = rank.indexOf(ship.score) + 1;
-  // });
 }
 
 function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
-    let today = new Date();
-    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    console.log("Death occured ", time);
     ships.splice(ships.indexOf(ship), 1);
   }
 }
@@ -446,4 +434,4 @@ function randomY() {
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
 
-module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY, maxPlayers, currentPlayers };
+module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY, maxPlayers, currentPlayers, die };

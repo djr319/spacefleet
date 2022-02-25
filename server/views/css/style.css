@@ -83,7 +83,6 @@ transition: right 0.5s;
 
 .score, #my-score {
   position: absolute;
-  top: 50rem;
   transition: all 1s;
   width: 15rem;
   display: flex;
@@ -92,8 +91,10 @@ transition: right 0.5s;
 
 .score {
   display: none;
+  top: 50rem;
 }
 
 #my-score {
   color:#78c8c0;
+  top: 0rem;
 }
