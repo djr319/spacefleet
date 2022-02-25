@@ -62,6 +62,16 @@ function socketHandler(socketServer) {
 
     // ---------- listeners ---------- //
 
+    socket.on('exit', () => {
+      let deadShips = ships.filter((el) => { return el.socket === socket.id });
+      if (deadShips.length > 0) {
+        deadShips.forEach((ship) => {
+          ships.splice(ships.indexOf(ship), 1);
+          deathAnnouncement(ship);
+        });
+      }
+    });
+
     socket.on('ship', (ship) => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
@@ -130,18 +140,9 @@ function socketHandler(socketServer) {
       })
     });
 
-    socket.on('exit', () => {
-      console.log(socket.id + ': client-side terminated game <esc> or tab lost focus');
-      // remove ship
-
-    })
-
     // ---------- connection issues ---------- //
 
     socket.on('disconnect', function () {
-
-      console.log(socket.id + ' disconnected');
-      // would be nice to try to rejoin on same socket
       let deadShips = ships.filter((el) => { return el.socket === socket.id });
       if (deadShips.length > 0) {
         deadShips.forEach((ship) => {
@@ -149,6 +150,9 @@ function socketHandler(socketServer) {
           ships.splice(ships.indexOf(ship), 1);
         });
       }
+      console.log(socket.id + ' disconnected');
+      // would be nice to try to rejoin on same socket
+
     });
 
     socket.on('reconnect', () => {
@@ -218,7 +222,7 @@ function socketHandler(socketServer) {
       }
 
       function deathAnnouncement(deadship) {
-        socketServer.emit('deadShip', deadship.socket);
+        socketServer.emit('killed', deadship.socket);
       }
 
     function takeOutTheTrash() {

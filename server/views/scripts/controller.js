@@ -109,20 +109,20 @@ function setControlListeners () {
 
 function removeControlListeners() {
 
-  controlsNeutral();
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', mouseDown);
   document.removeEventListener('mouseup', mouseUp);
+  controlsNeutral();
 }
 
-function hideMouse() {
-  document.body.style.cursor = 'none';
-}
+// function hideMouse() {
+//   document.body.style.cursor = 'none';
+// }
 
-function showMouse() {
-  document.body.style.cursor = 'auto';
-}
+// function showMouse() {
+//   document.body.style.cursor = 'auto';
+// }
 
 // -----------    Music / Sound Effects    ------------------//
 
@@ -130,7 +130,7 @@ let tunes = [];
 let backgroundMusic = './assets/sounds/51239__rutgermuller__8-bit-electrohouse.wav';
 let fireball = './assets/sounds/fireball.mp3';
 
-function playSound(url, repeat) {
+function playSound(url, repeat = false) {
   const audio = new Audio(url);
   audio.play();
   if (repeat) audio.loop = true;
@@ -147,6 +147,6 @@ function toggleMusic() {
   } else {
 
     music = true;
-    playSound(backgroundMusic);
+    playSound(backgroundMusic, true);
     }
   }
