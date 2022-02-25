@@ -12,12 +12,11 @@ function toast(message) {
       }
     }).showToast();
   }
-
 }
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
-  if (myShip.alive === true) die();
+  // if (myShip.alive === true) die();
 });
 
 socket.on("connect_error", () => {
@@ -117,7 +116,6 @@ socket.on('deadShip', (deadShipId) => {
   } else {
     let deadShip = ships.find(ship => ship.socket === deadShipId);
     if (deadShip !== undefined) {
-      toast(`${deadShip.user} has died`);
       let deadShipScore = document.getElementById(`s${deadShipId}`);
       deadShipScore.remove();
       ships.splice(deadShip, 1)

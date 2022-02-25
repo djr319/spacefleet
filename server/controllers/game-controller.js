@@ -409,9 +409,6 @@ function rankByScore() {
 function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
-    let today = new Date();
-    let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-    console.log("Death occured ", time);
     ships.splice(ships.indexOf(ship), 1);
   }
 }
@@ -446,4 +443,4 @@ function randomY() {
   return fieldBuffer + Math.floor(Math.random() * (fieldY - 2 * fieldBuffer));
 }
 
-module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY, maxPlayers, currentPlayers };
+module.exports = { game, joinGame, warp, updatesPerSecond, fieldX, fieldY, maxPlayers, currentPlayers, die };

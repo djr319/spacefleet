@@ -334,6 +334,7 @@ function boot() {
 function exitGame() {
   // called if browser tab loses focus
   // called if ESC is pressed
+  reportLeaving();
   gameOver();
 }
 
@@ -343,6 +344,10 @@ function purge() {
   explosions.splice(0, explosions.length);
   ships.splice(0, ships.length);
 }
+
+function reportLeaving() {
+  sendStatus('exit','');
+};
 
 function gameOver() {
   if (myShip.alive === true) myShip.alive = false;
