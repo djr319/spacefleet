@@ -171,6 +171,7 @@ class Bullet extends Entity {
 // canvas
 let canvas = document.createElement('canvas');
 canvas.id = 'canvas';
+canvas.setAttribute("oncontextmenu", "return false")
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
 
