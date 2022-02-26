@@ -1,5 +1,5 @@
-// const socket = io("http://localhost:5000");
-const socket = io("https://space-fleet.herokuapp.com/");
+const socket = io("http://localhost:5000");
+// const socket = io("https://space-fleet.herokuapp.com/");
 
 function toast(message) {
   if (myShip.alive === true) {
@@ -107,13 +107,12 @@ socket.on("die", (data) => {
 });
 
 socket.on("boot", () => {
-  console.log("booted from server");
+  console.log("server rebooted");
   boot();
 });
 
 socket.on('killed', (deadShipId) => {
   if (deadShipId === socket.id) {
-    console.log("KIA");
     die();
   } else {
     let deadShip = ships.find(ship => ship.socket === deadShipId);

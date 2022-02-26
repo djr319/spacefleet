@@ -258,11 +258,6 @@ function drawAsteroids() {
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#555';
     ctx.stroke();
-
-    // label:
-    ctx.font = "18px Space Mono";
-    ctx.fillStyle = "blue";
-    ctx.fillText(asteroid.size, asteroid.x - viewportX, asteroid.y - viewportY);
   });
 }
 

@@ -1,5 +1,5 @@
 const defaultUPS = 60;
-const idleUPS = 10;
+const idleUPS = 24;
 let updatesPerSecond = idleUPS;
 
 const { Vector } = require('../components/vector')
@@ -32,7 +32,7 @@ if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer to
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
 
-let maxPlayers = 2 // Math.floor(fieldX * fieldY / 1000000);
+let maxPlayers = Math.floor(fieldX * fieldY / 1000000);
 let currentPlayers = 0;
 
 let scoreTable = {
@@ -73,10 +73,8 @@ function gameLoop() {
 
 function joinGame(username, socketId) { // from socket
   // spin up server refresh rate
-  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
-    updatesPerSecond = defaultUPS;
-    console.log('GAME ON! Update rate: ', updatesPerSecond);
-  }
+  console.log('join game dude');
+
   // spawn ship
   let newShip = new Ship();
   newShip.x = randomX();
@@ -89,13 +87,16 @@ function joinGame(username, socketId) { // from socket
   if (freeSpace(newShip) === false) {
     spawn(newShip);
     console.log('position ', newShip.x, newShip.y);
-
   };
   let vectorAngle = newShip.direction - 1 / 2 * Math.PI;
   vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
   newShip.velocity = new Vector(vectorAngle, 20);
   ships.push(newShip);
   console.table(ships);
+  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
+    updatesPerSecond = defaultUPS;
+    console.log('GAME ON! Update rate: ', updatesPerSecond);
+  }
   return newShip;
 }
 

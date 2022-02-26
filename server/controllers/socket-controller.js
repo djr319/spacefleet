@@ -36,13 +36,11 @@ function socketHandler(socketServer) {
     });
 
     socket.on('join', (name) => {
-      if (currentPlayers > maxPlayers) {
+      if (currentPlayers >= maxPlayers) {
         console.log('Game full');
         socket.emit('denied', 'full');
         return;
       };
-      console.log('Player number:', currentPlayers);
-
       console.log(name || 'unknown', 'joined');
       let newShip = joinGame(name || 'unknown', socket.id);
 
