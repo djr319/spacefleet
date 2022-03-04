@@ -99,6 +99,7 @@ class MyShip {
   shoot = () => {
     // rate control
     const now = new Date();
+    if (tips.shotFired === false) tips.shotFired = true;
     if (now - lastShot < 20) {
       return;
     }
@@ -121,6 +122,8 @@ class MyShip {
 
   thrust = () => {
     this.thruster = true;
+    if (tips.w === false) tips.w = true;
+    if (tips.wasd === false) tips.wasd = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
     let vectorAngle = this.direction - 1 / 2 * Math.PI;
     vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
@@ -139,11 +142,15 @@ class MyShip {
   }
 
   rotateL = () => {
+    if (tips.ad === false) tips.ad = true;
+    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction += 2 * Math.PI;
   }
 
   rotateR = () => {
+    if (tips.ad === false) tips.ad = true;
+    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction + this.rotationRate / fps;
     if (this.direction > 2 * Math.PI) this.direction = 0;
   }
@@ -189,14 +196,20 @@ splash.innerHTML = `
 `;
 
 // score board
-let scoreWrapper = document.createElement('div');
-scoreWrapper.id = 'score-wrapper';
-document.body.appendChild(scoreWrapper);
-scoreWrapper.innerHTML = `
-<div id="my-score"></div>
+let overlay = document.createElement('div');
+overlay.id = 'overlay';
+document.body.appendChild(overlay);
+overlay.innerHTML = `
+<div id="score-wrapper">
+  <div id="my-score"></div>
+</div>
+<div id="instruction">
+</div>
 `;
 
+let scoreWrapper = document.getElementById('score-wrapper');
 let myScore = document.getElementById('my-score');
+let instruction = document.getElementById('instruction');
 let leaderboardSize = 10;
 
 // ---------------------    Initial Listener     --------------------- //
@@ -208,6 +221,16 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('name').value = sessionStorage.getItem('name') || "";
   document.getElementById('join').addEventListener('click', joinGame);
 });
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.strokeStyle = 'black';
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+}
 
 // -----------    Storage    ------------------//
 const starfield = [];
@@ -246,3 +269,23 @@ let myShip = new MyShip;
 let lastShot = new Date();
 let bulletRange;
 const shieldSize = 50;
+
+// -----------    tips    ------------------//
+
+const tips = {
+  gameStartTime: new Date(),
+  wasd: false,
+  w: false,
+  ad: false,
+  s: false,
+  m: false,
+  shotFired: false
+}
+
+const tipMessage = {
+  w: 'Press <span>W</span> for thrust',
+  ad: 'Press <span>A</span> / <span>D</span> to steer',
+  s: 'Press <span>S</span> to warp.<br>(Penalty 1000 points)',
+  fire: 'Press <span>[SPACE]</span> to fire',
+  m: 'Toggle music <span>M</span>'
+};

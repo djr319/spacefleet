@@ -29,7 +29,9 @@ let updatesPerSecond = idleUPS;
 const fieldX = 5000;
 const fieldY = 5000;
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
-if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
+if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
+  console.warn("fieldBuffer too large")
+}
 
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
@@ -50,7 +52,7 @@ let scoreTable = {
 function game() {
   initServer();
   gameLoop();
-};
+}
 
 function initServer() {
   asteroids.splice(0, asteroids.length);
@@ -94,7 +96,7 @@ function joinGame(username, socketId) { // called from socket
 }
 
 function warp(ship) {
-  ship.score = ship.score - 1000;
+  ship.score = ship.score - 1000; // a negative score is checked in
   getSafePosition(ship);
 }
 
@@ -184,7 +186,7 @@ function nearestAsteroid(ship) {
     id: nearestAst,
     dist: nearestDist
   }
-};
+}
 
 function distToNearestShip(ship) {
   return nearestShip(ship).dist;
@@ -240,7 +242,7 @@ function checkAsteroidHit() {
           }
         }
         bullets.splice(bulletIndex, 1);
-      };
+      }
     });
   });
 }
@@ -303,7 +305,7 @@ function addToScore(userSocket, points) {
   if (shooter !== undefined) {
     shooter.score = shooter.score + scoreTable[points];
   }
-};
+}
 
 function checkShipCollisions() {
   if (ships.length < 2) return;

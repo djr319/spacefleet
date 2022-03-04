@@ -79,7 +79,7 @@ function keyupControls (e) {
 
     case ' ': controller.shoot.pressed = false; break;
     default: break;
-  };
+  }
 }
 
 function mouseDown(e) {
