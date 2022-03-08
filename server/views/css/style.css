@@ -84,7 +84,7 @@ transition: right 0.5s;
 }
 
 #score-wrapper {
-  padding: 0.2rem 1rem;
+  padding: 0 1rem;
   color: white;
 }
 

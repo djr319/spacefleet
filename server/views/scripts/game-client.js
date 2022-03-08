@@ -411,25 +411,24 @@ function lobby(displayState) {
     // show lobby, remove scores
     splash.style.display = "flex";
     overlay.style.display = "none";
-    // canvas.style.display = "none";
     // showMouse();
   } else {
     // hide lobby, show scores
     splash.style.display = "none";
     overlay.style.display = "block";
-    // canvas.style.display = "block";
-    scoreWrapper.style.minHeight = `${leaderboardSize * 1.5}rem`;
     // hideMouse();
   }
 }
 
 function updateScores() {
-  let yOffset = 0;
+  let yOffset = 0.2;
+  let spacer = document.getElementById('spacer');
   myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
 
   for (let i = 1; i <= leaderboardSize; i++) {
 
     if (myShip.rank === i) {
+      if (spacer) spacer.style.display = 'none';
       myScore.style.top = `${yOffset * 1.5}rem`;
       yOffset++;
     }
@@ -443,9 +442,9 @@ function updateScores() {
         let rankLabel = ship.rank + ": ";
 
         if (myShip.rank === i || j !== 0) {
-          rankLabel = '&nbsp;= ';
+          rankLabel = '&nbsp;=';
         }
-        thisScoreDiv.innerHTML = `<span>${rankLabel}${ship.user}</span><span>${ship.score}</span>`;
+        thisScoreDiv.innerHTML = `<span>${rankLabel} ${ship.user}</span><span>${ship.score}</span>`;
 
         if (thisScoreDiv.style.display !== 'flex') thisScoreDiv.style.display = 'flex';
         thisScoreDiv.style.top = `${yOffset * 1.5}rem`;
@@ -457,11 +456,23 @@ function updateScores() {
   let hideList = ships.filter(ship => ship.rank > leaderboardSize);
   hideList.forEach((ship) => {
     let div = document.getElementById(`s${ship.socket}`);
-    div.style.display = 'none';
+    if (div) div.style.display = 'none';
   });
 
-  if (myShip.rank === 0) {
-    myScore.innerHTML = `<span>${myShip.rank}: ${myShip.user}</span><span>${myShip.score}</span>`;
+  if (myShip.rank === 0 || myShip.rank > leaderboardSize) {
+    if (!spacer) {
+      spacer = document.createElement('div');
+      spacer.id = 'spacer';
+      spacer.classList.add('score');
+      spacer.innerHTML = '---';
+      spacer.style.textAlign = 'center';
+      scoreWrapper.append(spacer);
+    }
+    spacer.style.top = `${yOffset * 1.5}rem`;
+    spacer.style.display = 'block';
+    yOffset++;
     myScore.style.top = `${yOffset * 1.5}rem`;
+    yOffset++;
   }
+  scoreWrapper.style.minHeight = `${yOffset * 1.5}rem`;
 }

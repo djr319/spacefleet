@@ -120,6 +120,7 @@ socket.on('killed', (deadShipId) => {
       let deadShipScore = document.getElementById(`s${deadShipId}`);
       deadShipScore.remove();
       ships.splice(deadShip, 1)
+      // quiet boom sound!
     }
   }
 });

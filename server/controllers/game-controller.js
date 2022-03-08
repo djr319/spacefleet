@@ -283,7 +283,6 @@ function checkEnemyHit() {
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
       if (distance < ship.size) {
         ship.shield--;
-        console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 1) {
           die(ship);
