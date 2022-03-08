@@ -111,6 +111,7 @@ function socketHandler(socketServer) {
       });
       if (thisShip != undefined) {
         warp(thisShip);
+        thisShip.score = thisShip.score - 1000;
         socket.emit('warp',
           {
             x: thisShip.x,

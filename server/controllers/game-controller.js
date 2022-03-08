@@ -367,6 +367,7 @@ function rankByScore() {
   for (let i = 0; i < ships.length; i++) {
     ships[i].rank = rank;
     if (ships[i + 1] && ships[i + 1].score !== ships[i].score) rank++;
+    if (ships[i].score < 0) die(ships[i]);
   }
 }
 
