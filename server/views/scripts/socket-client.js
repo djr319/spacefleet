@@ -16,7 +16,6 @@ function toast(message) {
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
-  // if (myShip.alive === true) die();
 });
 
 socket.on("connect_error", () => {
@@ -52,6 +51,7 @@ socket.on("init", (data) => {
   fieldY = data.fY;
   bulletRange = data.bulletRange;
   purge();
+  centerCamera();
 });
 
 socket.on('newGame', (data) => {

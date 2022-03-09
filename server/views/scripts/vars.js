@@ -1,5 +1,28 @@
 'use strict'
 
+// -----------    Storage    ------------------//
+const starfield = [];
+const noOfStars = 1000;
+const ships = [];
+const bullets = [];
+const explosions = [];
+const asteroids = [];
+
+// animation & background
+let lastRender;
+let fps = 0;
+let fieldX;
+let fieldY;
+
+let leaderboardSize = 10;
+
+// -----------    Viewport    ------------------//
+let viewportWidth = window.innerWidth; // from browser
+let viewportHeight = window.innerHeight;
+let viewportX = 0; // top left of viewport
+let viewportY = 0;
+const viewportBuffer = 100;
+
 // -----------------------    Objects    ------------------//
 class Vector {
   constructor(angle, size) {
@@ -156,6 +179,7 @@ class MyShip {
   }
 }
 
+
 class Asteroid {
   constructor(x, y, s, id) {
     this.x = x;
@@ -173,7 +197,43 @@ class Bullet extends Entity {
   }
 }
 
-// -----------    Elements    ------------------//
+// -----------    Asteroid    ------------------//
+const asteroidScale = 20;
+const asteroidMaxSize = 5;
+const biggestAsteroid = asteroidMaxSize * asteroidScale;
+const fieldBuffer = Math.max(50, biggestAsteroid);
+
+// position reporting
+let reportRate = 60;
+let reportInterval;
+
+// ship control
+let myShip = new MyShip;
+let lastShot = new Date();
+let bulletRange;
+const shieldSize = 50;
+
+let camera = new Entity();
+
+// -----------    tips    ------------------//
+
+const tips = {
+  gameStartTime: new Date(),
+  wasd: false,
+  w: false,
+  ad: false,
+  s: false,
+  m: false,
+  shotFired: false
+}
+
+const tipMessage = {
+  w: 'Press <span>W</span> for thrust',
+  ad: 'Press <span>A</span> / <span>D</span> to steer',
+  s: 'Press <span>S</span> to warp.<br>(Penalty 1000 points)',
+  fire: 'Press <span>[SPACE]</span> to fire',
+  m: 'Toggle music <span>M</span>'
+};
 
 // canvas
 let canvas = document.createElement('canvas');
@@ -181,6 +241,15 @@ canvas.id = 'canvas';
 canvas.setAttribute("oncontextmenu", "return false")
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
+makeStarField();
+
+function makeStarField() {
+  starfield.length = 0;
+
+  for (let x = 0; x < noOfStars; x++) {
+    starfield.push(new Star());
+  }
+}
 
 // splash page
 let splash = document.createElement('div');
@@ -210,82 +279,3 @@ overlay.innerHTML = `
 let scoreWrapper = document.getElementById('score-wrapper');
 let myScore = document.getElementById('my-score');
 let instruction = document.getElementById('instruction');
-let leaderboardSize = 10;
-
-// ---------------------    Initial Listener     --------------------- //
-
-window.addEventListener('DOMContentLoaded', () => {
-  console.clear();
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-  document.getElementById('name').value = sessionStorage.getItem('name') || "";
-  document.getElementById('join').addEventListener('click', joinGame);
-});
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.strokeStyle = 'black';
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  viewportWidth = window.innerWidth;
-  viewportHeight = window.innerHeight;
-}
-
-// -----------    Storage    ------------------//
-const starfield = [];
-const noOfStars = 1000;
-const ships = [];
-const bullets = [];
-const explosions = [];
-const asteroids = [];
-
-// -----------    Viewport    ------------------//
-let viewportWidth = window.innerWidth; // from browser
-let viewportHeight = window.innerHeight;
-let viewportX = 0; // top left of viewport
-let viewportY = 0;
-const viewportBuffer = 100;
-let camera = new Entity();
-
-// -----------    Asteroid    ------------------//
-const asteroidScale = 20;
-const asteroidMaxSize = 5;
-const biggestAsteroid = asteroidMaxSize * asteroidScale;
-const fieldBuffer = Math.max(50, biggestAsteroid);
-
-// position reporting
-let reportRate = 60;
-let reportInterval;
-
-// animation & background
-let lastRender;
-let fps = 0;
-let fieldX;
-let fieldY;
-
-// ship control
-let myShip = new MyShip;
-let lastShot = new Date();
-let bulletRange;
-const shieldSize = 50;
-
-// -----------    tips    ------------------//
-
-const tips = {
-  gameStartTime: new Date(),
-  wasd: false,
-  w: false,
-  ad: false,
-  s: false,
-  m: false,
-  shotFired: false
-}
-
-const tipMessage = {
-  w: 'Press <span>W</span> for thrust',
-  ad: 'Press <span>A</span> / <span>D</span> to steer',
-  s: 'Press <span>S</span> to warp.<br>(Penalty 1000 points)',
-  fire: 'Press <span>[SPACE]</span> to fire',
-  m: 'Toggle music <span>M</span>'
-};

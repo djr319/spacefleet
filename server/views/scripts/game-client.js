@@ -1,7 +1,32 @@
 
-// ------------------    User name / Join game    ------------------ //
+// ---------------------    Initial Listener     --------------------- //
 
-function joinGame() {
+window.addEventListener('DOMContentLoaded', () => {
+  console.clear();
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  document.getElementById('name').value = sessionStorage.getItem('name') || "";
+  document.getElementById('join').addEventListener('click', joinGame);
+  window.requestAnimationFrame(gameLoop);
+});
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  ctx.strokeStyle = 'black';
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  viewportWidth = window.innerWidth;
+  viewportHeight = window.innerHeight;
+}
+
+function centerCamera() {
+  camera.x = fieldX / 2;
+  camera.y = fieldY / 2;
+}
+
+// ------------------    User name / Join game    ------------------ //
+function joinGame () {
   let name = document.getElementById('name').value;
   if (name == "") return;
   lobby('hide');
@@ -9,13 +34,43 @@ function joinGame() {
   sendStatus('join', name);   // ---> Server
 }
 
-function startGame() {
+function startGame () {
   setControlListeners();
-  resizeCanvas();
-  makeStarField();
+  // resizeCanvas();
   reportInterval = setInterval(reportToServer, 1000 / reportRate);
-  window.requestAnimationFrame(gameLoop);
 }
+
+function gameOver() {
+  if (myShip.alive === true) {
+    myShip.alive = false;
+    clearInterval(reportInterval);
+    removeControlListeners();
+    // high score to local storage
+    setTimeout(() => {
+      if (myShip.score > localStorage.getItem('pb')) {
+        localStorage.setItem('pb', myShip.score);
+        alert("New personal best!" + myShip.score);
+      }
+      lobby('show');
+    }, 2000);
+    }
+}
+
+function lobby(displayState) {
+  if (displayState === 'show') {
+    // show lobby, remove scores
+    splash.style.display = "flex";
+    overlay.style.display = "none";
+    // showMouse();
+  } else {
+    // hide lobby, show scores
+    splash.style.display = "none";
+    overlay.style.display = "block";
+    // hideMouse();
+  }
+}
+
+
 // ----------------------    GAME LOOP    ---------------------------- //
 
 function gameLoop(timestamp) {
@@ -31,7 +86,6 @@ function gameLoop(timestamp) {
   updatePositions();
   drawAll();
   lastRender = timestamp;
-  // if (splash.style.display !== "flex")
   window.requestAnimationFrame(gameLoop);
 }
 
@@ -78,14 +132,6 @@ function hideTip() {
     }, 4000);
 }
 
-function makeStarField() {
-  starfield.length = 0;
-
-  for (let x = 0; x < noOfStars; x++) {
-    starfield.push(new Star());
-  }
-}
-
 function reportToServer() {
 
   if (myShip.alive === true) {
@@ -100,7 +146,6 @@ function reportToServer() {
 
 function checkControls() {
   Object.values(controller).forEach(property => {
-
     if (property.pressed === true) property.func();
   });
 
@@ -389,36 +434,6 @@ function purge() {
   bullets.splice(0, bullets.length);
   explosions.splice(0, explosions.length);
   ships.splice(0, ships.length);
-}
-
-function gameOver() {
-  if (myShip.alive === true) {
-    myShip.alive = false;
-    clearInterval(reportInterval);
-    removeControlListeners();
-    // high score to local storage
-    setTimeout(() => {
-      if (myShip.score > localStorage.getItem('pb')) {
-        localStorage.setItem('pb', myShip.score);
-        alert("New personal best!" + myShip.score);
-      }
-      lobby('show');
-    }, 2000);
-    }
-}
-
-function lobby(displayState) {
-  if (displayState === 'show') {
-    // show lobby, remove scores
-    splash.style.display = "flex";
-    overlay.style.display = "none";
-    // showMouse();
-  } else {
-    // hide lobby, show scores
-    splash.style.display = "none";
-    overlay.style.display = "block";
-    // hideMouse();
-  }
 }
 
 function updateScores() {

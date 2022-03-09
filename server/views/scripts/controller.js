@@ -99,7 +99,7 @@ function controlsNeutral () {
 }
 
 function setControlListeners () {
-
+  console.log('control listeners added');
   controlsNeutral();
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
@@ -108,7 +108,7 @@ function setControlListeners () {
 }
 
 function removeControlListeners() {
-
+  console.log('control listeners removed');
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', mouseDown);
