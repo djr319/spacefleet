@@ -1,6 +1,4 @@
-const defaultUPS = 60;
-const idleUPS = 10;
-let updatesPerSecond = idleUPS;
+// ---------------   imports  --------------- //
 
 const { Vector } = require('../components/vector')
 const {
@@ -24,15 +22,21 @@ const Ship = require('../components/ships');
 
 // ---------------   Variables  --------------- //
 
+const defaultUPS = 60;
+const idleUPS = 24;
+let updatesPerSecond = idleUPS;
+
 const fieldX = 5000;
 const fieldY = 5000;
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
-if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) { console.warn("fieldBuffer too large") };
+if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
+  console.warn("fieldBuffer too large")
+}
 
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
 
-let maxPlayers = 2 // Math.floor(fieldX * fieldY / 1000000);
+let maxPlayers = Math.floor(fieldX * fieldY / 1000000);
 let currentPlayers = 0;
 
 let scoreTable = {
@@ -48,7 +52,7 @@ let scoreTable = {
 function game() {
   initServer();
   gameLoop();
-};
+}
 
 function initServer() {
   asteroids.splice(0, asteroids.length);
@@ -61,77 +65,64 @@ function initServer() {
 
 function gameLoop() {
   updateAsteroids();
-  checkShipAsteroidCollisions();
-  gravity();
-  checkShipCollisions();
   updateBullets();
+  gravity();
+  checkShipAsteroidCollisions();
+  checkShipCollisions();
   checkShots();
   checkOutOfBounds();
   rankByScore();
   setTimeout(gameLoop, 1000 / updatesPerSecond);
 }
 
-function joinGame(username, socketId) { // from socket
-  // spin up server refresh rate
-  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
-    updatesPerSecond = defaultUPS;
-    console.log('GAME ON! Update rate: ', updatesPerSecond);
-  }
+function joinGame(username, socketId) { // called from socket
   // spawn ship
   let newShip = new Ship();
-  newShip.x = randomX();
-  newShip.y = randomY();
-  newShip.direction = Math.random() * 2 * Math.PI;
   newShip.user = username;
   newShip.socket = socketId;
+  getSafePosition(newShip, SPAWN_BUFFER);
+  newShip.direction = randomAngle();
 
-  // check for proximity of asteroids & ships
-  if (freeSpace(newShip) === false) {
-    spawn(newShip);
-    console.log('position ', newShip.x, newShip.y);
-
-  };
   let vectorAngle = newShip.direction - 1 / 2 * Math.PI;
   vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
   newShip.velocity = new Vector(vectorAngle, 20);
   ships.push(newShip);
-  console.table(ships);
+  console.log('New ship added: Number of ships', ships.length);
+  // spin up server refresh rate
+  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
+    updatesPerSecond = defaultUPS;
+  }
   return newShip;
 }
 
 function warp(ship) {
-  ship.score = ship.score - 1000;
-  if (ship.score < 0) die(ship);
-  do {
-    ship.x = randomX();
-    ship.y = randomY();
-  } while (!freeSpace(ship, WARP_BUFFER))
-  console.log('warped ', ship.socket);
+  ship.score = ship.score - 1000; // a negative score is checked in
+  getSafePosition(ship);
 }
 
-function spawn(ship) {
-  do {
-    ship.x = randomX();
-    ship.y = randomY();
-  } while (!freeSpace(ship, SPAWN_BUFFER))
-  console.log('spawned ', ship.socket);
-}
+function getSafePosition(ship, buffer = WARP_BUFFER) {
+  ship.x = randomX();
+  ship.y = randomY();
 
-function freeSpace(ship, buffer) {
-  if (buffer < Math.min(
+  if (buffer > Math.min(
     distToNearestAsteroid(ship),
-    nearestShip(ship).dist,
+    distToNearestShip(ship),
   )) {
-    return true;
+    getSafePosition(ship, buffer)
   }
-  return false;
+}
+
+function checkOutOfBounds() {
+  ships.forEach((ship) => {
+    if (ship.x < 0 || ship.x > fieldX || ship.y < 0 || ship.y > fieldY) {
+      die(ship);
+    }
+  });
 }
 
 function checkShipAsteroidCollisions() {
-
   ships.forEach((ship) => {
     if (distToNearestAsteroid(ship) < 0) {
-      console.log('hit asteroid!');
       die(ship);
     }
   })
@@ -139,11 +130,9 @@ function checkShipAsteroidCollisions() {
 
 function gravity() {
   ships.forEach((ship) => {
-
     let gravity = new Vector();
 
     asteroids.forEach((asteroid) => {
-
       let gravityComponent = new Vector();
       gravityComponent.angle = bearing(asteroid, ship);
 
@@ -177,6 +166,10 @@ function gravity() {
   });
 }
 
+function distToNearestAsteroid(ship) {
+  return nearestAsteroid(ship).dist;
+}
+
 function nearestAsteroid(ship) {
   let nearestDist = Infinity;
   let nearestAst;
@@ -188,14 +181,15 @@ function nearestAsteroid(ship) {
       nearestAst = asteroid.id;
     }
   });
+
   return {
     id: nearestAst,
     dist: nearestDist
   }
-};
+}
 
-function distToNearestAsteroid(ship) {
-  return nearestAsteroid(ship).dist;
+function distToNearestShip(ship) {
+  return nearestShip(ship).dist;
 }
 
 function nearestShip(thisShip) {
@@ -205,11 +199,13 @@ function nearestShip(thisShip) {
   ships.forEach((ship) => {
     if (ship === thisShip) return;
     let dist = distanceBetween(thisShip, ship);
+
     if (dist < nearestDist) {
       nearestDist = dist;
       nearestShip = ship;
     }
   });
+
   return {
     dist: nearestDist,
     ship: nearestShip
@@ -227,7 +223,6 @@ function checkAsteroidHit() {
     asteroids.forEach((asteroid) => {
 
       if (clearance(bullet, asteroid) < 0) {
-
         explosions.push({
           x: bullet.x,
           y: bullet.y,
@@ -240,29 +235,19 @@ function checkAsteroidHit() {
           removeAsteroid(asteroid);
         } else {
           asteroid.strength--;
+
           if (asteroid.strength === 0) {
             addToScore(bullet.user, asteroid.size);
             splitAsteroid(asteroid);
           }
         }
         bullets.splice(bulletIndex, 1);
-      };
+      }
     });
   });
 }
 
-function addToScore(userSocket, points) {
-  let shooter = ships.find((ship) => {
-    return ship.socket === userSocket;
-  });
-
-  if (shooter !== undefined) {
-    shooter.score = shooter.score + scoreTable[points];
-  }
-};
-
 function splitAsteroid(asteroid) {
-
   if (asteroid.size > 3) {
     let child1 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle - 0.5, 40), asteroid.size - 1);
     let child2 = new Asteroid(asteroid.x, asteroid.y, new Vector(asteroid.velocity.angle + 0.5, 40), asteroid.size - 1);
@@ -273,9 +258,8 @@ function splitAsteroid(asteroid) {
     let child3 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 1.7), asteroid.size - 1);
     let child4 = new Asteroid(asteroid.x, asteroid.y, new Vector(randomAngle(), asteroid.velocity.size * 1), asteroid.size - 1);
     asteroids.push(child1, child2, child3, child4);
-  } else {
   }
-  let i = asteroids.indexOf(asteroid);
+
   removeAsteroid(asteroid);
 }
 
@@ -290,7 +274,6 @@ function clearance(bullet, asteroid) {
 }
 
 function checkEnemyHit() {
-
   bullets.forEach((bullet, bulletIndex) => {
 
     ships.forEach((ship) => {
@@ -300,7 +283,6 @@ function checkEnemyHit() {
       let distance = Math.sqrt((bullet.x - ship.x) ** 2 + (bullet.y - ship.y) ** 2) - ship.size;
       if (distance < ship.size) {
         ship.shield--;
-        console.log("Shot! Shield strength:  ", ship.shield);
         // transmit to ship
         if (ship.shield < 1) {
           die(ship);
@@ -314,12 +296,21 @@ function checkEnemyHit() {
   });
 }
 
-function checkShipCollisions() {
+function addToScore(userSocket, points) {
+  let shooter = ships.find((ship) => {
+    return ship.socket === userSocket;
+  });
 
+  if (shooter !== undefined) {
+    shooter.score = shooter.score + scoreTable[points];
+  }
+}
+
+function checkShipCollisions() {
   if (ships.length < 2) return;
   let collisionList = [];
   ships.forEach((ship) => {
-    if (nearestShip(ship).dist < 2 * ship.size) {
+    if (distToNearestShip(ship) < 2 * ship.size) {
       collisionList.push(ship);
     }
   });
@@ -328,17 +319,7 @@ function checkShipCollisions() {
   });
 }
 
-function checkOutOfBounds() {
-
-  ships.forEach((ship) => {
-    if (ship.x < 0 || ship.x > fieldX || ship.y < 0 || ship.y > fieldY) {
-      die(ship);
-    }
-  });
-}
-
 function spawnAsteroids(offscreen = false) {
-
   while (asteroids.length < noOfAsteroids) {
     let newAsteroid = new Asteroid(randomX(), randomY());
     if (offscreen === true) {
@@ -349,7 +330,6 @@ function spawnAsteroids(offscreen = false) {
 }
 
 function updateAsteroids() {
-
   spawnAsteroids(true);
   asteroids.forEach((el) => {
     // move
@@ -365,11 +345,11 @@ function updateAsteroids() {
 }
 
 function updateBullets() {
-
   bullets.forEach((bullet, bulletIndex) => {
     bullet.remainingRange = bullet.remainingRange - bullet.velocity.size / updatesPerSecond;
     bullet.x = bullet.x + bullet.velocity.x / updatesPerSecond;
     bullet.y = bullet.y + bullet.velocity.y / updatesPerSecond;
+
     if (bullet.x < 0 || bullet.x > fieldX || bullet.y < 0 || bullet.y > fieldY || bullet.remainingRange < 0) {
       bullets.splice(bulletIndex, 1);
     }
@@ -377,16 +357,17 @@ function updateBullets() {
 }
 
 function rankByScore() {
-
-  ships.sort((a,b) => {
+  ships.sort((a, b) => {
     if (b.score > a.score) return 1;
     return -1;
   });
 
   let rank = 1;
+
   for (let i = 0; i < ships.length; i++) {
     ships[i].rank = rank;
     if (ships[i + 1] && ships[i + 1].score !== ships[i].score) rank++;
+    if (ships[i].score < 0) die(ships[i]);
   }
 }
 
@@ -394,28 +375,28 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     ships.splice(ships.indexOf(ship), 1);
+    console.log('Ship removed. Number of ships', ships.length);
   }
 
   if (ships.length === 0) {
     updatesPerSecond = idleUPS;
-    console.log('SHIP LIST IS EMPTY. Update rate: ', updatesPerSecond);
   }
 }
 
 // helper functions
-function bracket (min, x, max) {
+function bracket(min, x, max) {
   return Math.max(Math.min(x, max), min)
 }
 
-function distanceBetween (obj1, obj2) {
-  return  Math.sqrt(
+function distanceBetween(obj1, obj2) {
+  return Math.sqrt(
     (obj1.x - obj2.x) ** 2
     + (obj1.y - obj2.y) ** 2
   );
 }
 
-function bearing (obj1, obj2) {
-  return Math.atan2(obj1.y-obj2.y, obj1.x-obj2.x);
+function bearing(obj1, obj2) {
+  return Math.atan2(obj1.y - obj2.y, obj1.x - obj2.x);
 }
 
 function randomAngle() {

@@ -16,7 +16,6 @@ function toast(message) {
 
 socket.on("connect", () => {
   console.log("Connected to server, id: ", socket.id)
-  // if (myShip.alive === true) die();
 });
 
 socket.on("connect_error", () => {
@@ -51,7 +50,7 @@ socket.on("init", (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
   bulletRange = data.bulletRange;
-  purge();
+  init();
 });
 
 socket.on('newGame', (data) => {
@@ -107,20 +106,21 @@ socket.on("die", (data) => {
 });
 
 socket.on("boot", () => {
-  console.log("booted from server");
+  console.log("server rebooted");
   boot();
 });
 
 socket.on('killed', (deadShipId) => {
   if (deadShipId === socket.id) {
-    console.log("KIA");
     die();
   } else {
-    let deadShip = ships.find(ship => ship.socket === deadShipId);
-    if (deadShip !== undefined) {
+    let deadShipIndex = ships.findIndex(ship => ship.socket === deadShipId);
+    if (deadShipIndex !== -1) {
       let deadShipScore = document.getElementById(`s${deadShipId}`);
+      // often not being found:...
       deadShipScore.remove();
-      ships.splice(deadShip, 1)
+      ships.splice(deadShipIndex, 1);
+      // quiet boom sound!
     }
   }
 });

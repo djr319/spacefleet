@@ -6,7 +6,6 @@ const {
   bullets,
   ships,
   obituries,
-  oldBullets,
   broadcasts,
   explosions,
   garbageCollectionList
@@ -15,7 +14,6 @@ const {
 const {
   joinGame,
   warp,
-  die,
   updatesPerSecond,
   fieldX,
   fieldY,
@@ -36,13 +34,11 @@ function socketHandler(socketServer) {
     });
 
     socket.on('join', (name) => {
-      if (currentPlayers > maxPlayers) {
+      if (currentPlayers >= maxPlayers) {
         console.log('Game full');
         socket.emit('denied', 'full');
         return;
-      };
-      console.log('Player number:', currentPlayers);
-
+      }
       console.log(name || 'unknown', 'joined');
       let newShip = joinGame(name || 'unknown', socket.id);
 
@@ -115,6 +111,7 @@ function socketHandler(socketServer) {
       });
       if (thisShip != undefined) {
         warp(thisShip);
+        thisShip.score = thisShip.score - 1000;
         socket.emit('warp',
           {
             x: thisShip.x,
@@ -199,7 +196,7 @@ function socketHandler(socketServer) {
             size: deadShip.velocity.size
           });
 
-        };
+        }
       }
 
       function checkExplosions() {
@@ -211,7 +208,7 @@ function socketHandler(socketServer) {
             angle: bang.angle,
             size: bang.size
           });
-        };
+        }
       }
 
       function sendBroadcasts() {
@@ -229,7 +226,7 @@ function socketHandler(socketServer) {
       while (garbageCollectionList.length > 0) {
         let trash = garbageCollectionList.shift();
         socketServer.emit('trash', trash.id);
-    };
+    }
   }
-};
+}
 module.exports = { socketHandler };

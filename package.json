@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Space based MMO game",
   "engines": {
-    "node" : "16.x"
+    "node": "16.x"
   },
   "scripts": {
     "start": "node server/app.js",
@@ -16,5 +16,8 @@
     "cors": "^2.8.5",
     "nanoid": "^3.1.30",
     "socket.io": "^4.3.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.10.0"
   }
 }

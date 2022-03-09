@@ -1,5 +1,26 @@
 'use strict'
 
+// -----------    Storage    ------------------//
+const ships = [];
+const bullets = [];
+const explosions = [];
+const asteroids = [];
+
+// animation & background
+let lastRender;
+let fps = 0;
+let fieldX;
+let fieldY;
+
+let leaderboardSize = 10;
+
+// -----------    Viewport    ------------------//
+let viewportWidth = window.innerWidth; // from browser
+let viewportHeight = window.innerHeight;
+let viewportX = 0; // top left of viewport
+let viewportY = 0;
+const viewportBuffer = 100;
+
 // -----------------------    Objects    ------------------//
 class Vector {
   constructor(angle, size) {
@@ -99,6 +120,7 @@ class MyShip {
   shoot = () => {
     // rate control
     const now = new Date();
+    if (tips.shotFired === false) tips.shotFired = true;
     if (now - lastShot < 20) {
       return;
     }
@@ -121,6 +143,8 @@ class MyShip {
 
   thrust = () => {
     this.thruster = true;
+    if (tips.w === false) tips.w = true;
+    if (tips.wasd === false) tips.wasd = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
     let vectorAngle = this.direction - 1 / 2 * Math.PI;
     vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
@@ -139,15 +163,20 @@ class MyShip {
   }
 
   rotateL = () => {
+    if (tips.ad === false) tips.ad = true;
+    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction += 2 * Math.PI;
   }
 
   rotateR = () => {
+    if (tips.ad === false) tips.ad = true;
+    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction + this.rotationRate / fps;
     if (this.direction > 2 * Math.PI) this.direction = 0;
   }
 }
+
 
 class Asteroid {
   constructor(x, y, s, id) {
@@ -166,13 +195,62 @@ class Bullet extends Entity {
   }
 }
 
-// -----------    Elements    ------------------//
+// -----------    Asteroid    ------------------//
+const asteroidScale = 20;
+const asteroidMaxSize = 5;
+const biggestAsteroid = asteroidMaxSize * asteroidScale;
+const fieldBuffer = Math.max(50, biggestAsteroid);
+
+// position reporting
+let reportRate = 60;
+let reportInterval;
+
+// ship control
+let myShip = new MyShip;
+let lastShot = new Date();
+let bulletRange;
+const shieldSize = 50;
+
+let camera = new Entity();
+
+// -----------    tips    ------------------//
+
+const tips = {
+  gameStartTime: new Date(),
+  wasd: false,
+  w: false,
+  ad: false,
+  s: false,
+  m: false,
+  shotFired: false
+}
+
+const tipMessage = {
+  w: 'Press <span>W</span> for thrust',
+  ad: 'Press <span>A</span> / <span>D</span> to steer',
+  s: 'Press <span>S</span> to warp.<br>(Penalty 1000 points)',
+  fire: 'Press <span>[SPACE]</span> to fire',
+  m: 'Toggle music <span>M</span>'
+};
 
 // canvas
 let canvas = document.createElement('canvas');
 canvas.id = 'canvas';
+canvas.setAttribute("oncontextmenu", "return false")
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
+
+// Stars
+const starfield = [];
+const noOfStars = 1000;
+
+function makeStarField() {
+  starfield.length = 0;
+
+  for (let x = 0; x < noOfStars; x++) {
+    starfield.push(new Star());
+  }
+}
 
 // splash page
 let splash = document.createElement('div');
@@ -188,60 +266,17 @@ splash.innerHTML = `
 `;
 
 // score board
-let scoreWrapper = document.createElement('div');
-scoreWrapper.id = 'score-wrapper';
-document.body.appendChild(scoreWrapper);
-scoreWrapper.innerHTML = `
-<div id="my-score"></div>
+let overlay = document.createElement('div');
+overlay.id = 'overlay';
+document.body.appendChild(overlay);
+overlay.innerHTML = `
+<div id="score-wrapper">
+  <div id="my-score"></div>
+</div>
+<div id="instruction">
+</div>
 `;
 
+let scoreWrapper = document.getElementById('score-wrapper');
 let myScore = document.getElementById('my-score');
-let leaderboardSize = 10;
-
-// ---------------------    Initial Listener     --------------------- //
-
-window.addEventListener('DOMContentLoaded', () => {
-  console.clear();
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-  document.getElementById('name').value = sessionStorage.getItem('name') || "";
-  document.getElementById('join').addEventListener('click', joinGame);
-});
-
-// -----------    Storage    ------------------//
-const starfield = [];
-const noOfStars = 1000;
-const ships = [];
-const bullets = [];
-const explosions = [];
-const asteroids = [];
-
-// -----------    Viewport    ------------------//
-let viewportWidth = window.innerWidth; // from browser
-let viewportHeight = window.innerHeight;
-let viewportX = 0; // top left of viewport
-let viewportY = 0;
-const viewportBuffer = 100;
-let camera = new Entity();
-
-// -----------    Asteroid    ------------------//
-const asteroidScale = 20;
-const asteroidMaxSize = 5;
-const biggestAsteroid = asteroidMaxSize * asteroidScale;
-const fieldBuffer = Math.max(50, biggestAsteroid);
-
-// position reporting
-let reportRate = 60;
-let reportInterval;
-
-// animation & background
-let lastRender;
-let fps = 0;
-let fieldX;
-let fieldY;
-
-// ship control
-let myShip = new MyShip;
-let lastShot = new Date();
-let bulletRange;
-const shieldSize = 50;
+let instruction = document.getElementById('instruction');

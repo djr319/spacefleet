@@ -1,6 +1,7 @@
 html, body {
   margin: 0;
   padding: 0;
+  /* background: black; */
 }
 
 body {
@@ -67,18 +68,24 @@ transition: right 0.5s;
   width: 9em;
 }
 
-#score-wrapper {
+#overlay {
   position: absolute;
   top: 30px;
   right: 30px;
-  width: 15rem;
-  padding: 0.2rem 1rem;
   display: none;
   z-index: 1000;
+}
+
+#score-wrapper, #instruction {
+  width: 15rem;
   border: 3px solid grey;
   border-radius: 20px;
-  color: white;
   background: rgba(30,30,30,0.3);
+}
+
+#score-wrapper {
+  padding: 0 1rem;
+  color: white;
 }
 
 .score, #my-score {
@@ -97,4 +104,20 @@ transition: right 0.5s;
 #my-score {
   color:#78c8c0;
   top: 0rem;
+}
+
+#instruction {
+  opacity: 0;
+  margin-top: 1rem;
+  text-align: center;
+  transition: all 2s linear;
+  padding: 0.5rem 1rem;
+  color:grey;
+}
+
+#instruction span {
+  background:grey;
+  border-radius: 10px;
+  color: white;
+  padding: 0 0.4rem;
 }
