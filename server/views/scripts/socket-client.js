@@ -50,8 +50,7 @@ socket.on("init", (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
   bulletRange = data.bulletRange;
-  purge();
-  centerCamera();
+  init();
 });
 
 socket.on('newGame', (data) => {

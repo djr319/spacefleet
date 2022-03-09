@@ -20,6 +20,12 @@ function resizeCanvas() {
   viewportHeight = window.innerHeight;
 }
 
+function init() {
+  purge();
+  centerCamera();
+  makeStarField();
+};
+
 function centerCamera() {
   camera.x = fieldX / 2;
   camera.y = fieldY / 2;

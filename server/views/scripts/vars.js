@@ -1,8 +1,6 @@
 'use strict'
 
 // -----------    Storage    ------------------//
-const starfield = [];
-const noOfStars = 1000;
 const ships = [];
 const bullets = [];
 const explosions = [];
@@ -241,7 +239,10 @@ canvas.id = 'canvas';
 canvas.setAttribute("oncontextmenu", "return false")
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
-makeStarField();
+
+// Stars
+const starfield = [];
+const noOfStars = 1000;
 
 function makeStarField() {
   starfield.length = 0;
