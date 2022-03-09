@@ -115,8 +115,9 @@ socket.on('killed', (deadShipId) => {
   if (deadShipId === socket.id) {
     die();
   } else {
+    console.log('dude was killed: ', deadShipId);
     let deadShip = ships.find(ship => ship.socket === deadShipId);
-    if (deadShip !== undefined) {
+    if (deadShip != undefined) {
       let deadShipScore = document.getElementById(`s${deadShipId}`);
       deadShipScore.remove();
       ships.splice(deadShip, 1)

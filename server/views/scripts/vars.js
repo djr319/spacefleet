@@ -210,7 +210,7 @@ overlay.innerHTML = `
 let scoreWrapper = document.getElementById('score-wrapper');
 let myScore = document.getElementById('my-score');
 let instruction = document.getElementById('instruction');
-let leaderboardSize = 2;
+let leaderboardSize = 10;
 
 // ---------------------    Initial Listener     --------------------- //
 

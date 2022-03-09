@@ -31,7 +31,8 @@ function gameLoop(timestamp) {
   updatePositions();
   drawAll();
   lastRender = timestamp;
-  if (splash.style.display !== "flex") window.requestAnimationFrame(gameLoop);
+  // if (splash.style.display !== "flex")
+  window.requestAnimationFrame(gameLoop);
 }
 
 function checkTips() {
