@@ -457,7 +457,7 @@ function updateScores() {
   let hideList = ships.filter(ship => ship.rank > leaderboardSize);
   hideList.forEach((ship) => {
     let div = document.getElementById(`s${ship.socket}`);
-    if (div) div.style.display = 'none';
+    div.style.display = 'none';
   });
 
   if (myShip.rank === 0 || myShip.rank > leaderboardSize) {

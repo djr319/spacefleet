@@ -87,7 +87,7 @@ function joinGame(username, socketId) { // called from socket
   vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
   newShip.velocity = new Vector(vectorAngle, 20);
   ships.push(newShip);
-
+  console.log('New ship added: Number of ships', ships.length);
   // spin up server refresh rate
   if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
     updatesPerSecond = defaultUPS;
@@ -375,6 +375,7 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     ships.splice(ships.indexOf(ship), 1);
+    console.log('Ship removed. Number of ships', ships.length);
   }
 
   if (ships.length === 0) {
