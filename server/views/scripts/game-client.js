@@ -24,7 +24,7 @@ function init() {
   purge();
   centerCamera();
   makeStarField();
-};
+}
 
 function centerCamera() {
   camera.x = fieldX / 2;
