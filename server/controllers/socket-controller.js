@@ -157,75 +157,95 @@ function socketHandler(socketServer) {
     });
   });
 
-      // ---------- send ---------- //
+  // ---------- send ---------- //
 
-      serverBroadcasts();
+  serverBroadcasts();
 
-      function serverBroadcasts() {
-        pushAsteroids();
-        checkObituries();
-        checkExplosions();
-        sendBroadcasts();
-        takeOutTheTrash();
-        setTimeout(serverBroadcasts, updatesPerSecond);
-      }
+  function serverBroadcasts() {
+    pushBots();
+    pushAsteroids();
+    checkObituries();
+    checkExplosions();
+    sendBroadcasts();
+    takeOutTheTrash();
+    setTimeout(serverBroadcasts, updatesPerSecond);
+  }
 
-      function pushAsteroids() {
-        asteroids.forEach((asteroid) => {
-          socketServer.emit('asteroid', {
-            x: asteroid.x,
-            y: asteroid.y,
-            size: asteroid.size,
-            id: asteroid.id
-          });
-        })
-      }
+  function pushBots() {
 
-      function checkObituries() {
-        while (obituries.length > 0) {
-          let deadShip = obituries.shift();
-          // report removal to client
-          deathAnnouncement(deadShip);
-          // report removal to users
-          broadcasts.push(['toast', deadShip.user + ' has died']);
-          // report explosion
-          explosions.push({
-            x: deadShip.x,
-            y: deadShip.y,
-            angle: deadShip.velocity.angle,
-            size: deadShip.velocity.size
-          });
+    let bots = ships.filter(ship => ship.bot === true);
+    bots.forEach((bot) => {
 
-        }
-      }
+      socketServer.emit('ship', {
+        blah: "blah",
+        x: bot.x,
+        y: bot.y,
+        direction: bot.direction,
+        thruster: bot.thruster,
+        socket: bot.socket,
+        user: bot.user,
+        score: bot.score,
+        rank: bot.rank
+      });
+    });
+  }
 
-      function checkExplosions() {
-        while (explosions.length > 0) {
-          let bang = explosions.shift();
-          socketServer.emit('newExplosion', {
-            x: bang.x,
-            y: bang.y,
-            angle: bang.angle,
-            size: bang.size
-          });
-        }
-      }
+  function pushAsteroids() {
+    asteroids.forEach((asteroid) => {
+      socketServer.emit('asteroid', {
+        x: asteroid.x,
+        y: asteroid.y,
+        size: asteroid.size,
+        id: asteroid.id
+      });
+    });
+  }
 
-      function sendBroadcasts() {
-        while (broadcasts.length > 0) {
-        socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
-        broadcasts.shift();
-        }
-      }
+  function checkObituries() {
+    while (obituries.length > 0) {
+      let deadShip = obituries.shift();
+      // report removal to client
+      deathAnnouncement(deadShip);
+      // report removal to users
+      broadcasts.push(['toast', deadShip.user + ' has died']);
+      // report explosion
+      explosions.push({
+        x: deadShip.x,
+        y: deadShip.y,
+        angle: deadShip.velocity.angle,
+        size: deadShip.velocity.size
+      });
 
-      function deathAnnouncement(deadship) {
-        socketServer.emit('killed', deadship.socket);
-      }
+    }
+  }
 
-    function takeOutTheTrash() {
-      while (garbageCollectionList.length > 0) {
-        let trash = garbageCollectionList.shift();
-        socketServer.emit('trash', trash.id);
+  function checkExplosions() {
+    while (explosions.length > 0) {
+      let bang = explosions.shift();
+      socketServer.emit('newExplosion', {
+        x: bang.x,
+        y: bang.y,
+        angle: bang.angle,
+        size: bang.size
+      });
+    }
+  }
+
+  function sendBroadcasts() {
+    while (broadcasts.length > 0) {
+      socketServer.emit(broadcasts[0][0], broadcasts[0][1]);
+      broadcasts.shift();
+    }
+  }
+
+  function deathAnnouncement(deadship) {
+    socketServer.emit('killed', deadship.socket);
+  }
+
+  function takeOutTheTrash() {
+    while (garbageCollectionList.length > 0) {
+      let trash = garbageCollectionList.shift();
+      socketServer.emit('trash', trash.id);
     }
   }
 }

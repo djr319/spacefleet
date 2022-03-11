@@ -1,5 +1,6 @@
 // ---------------   imports  --------------- //
 
+const { nanoid } = require('nanoid');
 const { Vector } = require('../components/vector')
 const {
   asteroids,
@@ -22,23 +23,19 @@ const Ship = require('../components/ships');
 
 // ---------------   Variables  --------------- //
 
-const defaultUPS = 60;
-const idleUPS = 24;
-let updatesPerSecond = idleUPS;
-
 const fieldX = 5000;
 const fieldY = 5000;
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
   console.warn("fieldBuffer too large")
 }
-
+let updatesPerSecond = 24;
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
 
-let maxPlayers = Math.floor(fieldX * fieldY / 1000000);
 let currentPlayers = 0;
-
+let maxPlayers = 25;
+let minPlayers = 7;
 let scoreTable = {
   5: 50,
   4: 100,
@@ -61,12 +58,32 @@ function initServer() {
   broadcasts.push(["boot", "all"]);
   ships.splice(0, ships.length);
   console.log('Server initialized');
+  manageBots();
+  debugReport();
+}
+
+function debugReport() {
+  setInterval(() => {
+    // console.table(ships);
+  }, 10000);
+}
+
+function serverSpeed() {
+  let users = noOfPlayers();
+  if (users === 0 && updatesPerSecond !== 24) {
+    updatesPerSecond = 24;
+    console.log('server update rate: ', updatesPerSecond);
+  }
+  if (users > 0 && updatesPerSecond !== 60) {
+    updatesPerSecond = 60;
+    console.log('server update rate: ', updatesPerSecond);
+  }
 }
 
 function gameLoop() {
   updateAsteroids();
   updateBullets();
-  gravity();
+  updateShips();
   checkShipAsteroidCollisions();
   checkShipCollisions();
   checkShots();
@@ -76,22 +93,21 @@ function gameLoop() {
 }
 
 function joinGame(username, socketId) { // called from socket
-  // spawn ship
-  let newShip = new Ship();
+  let newShip = initShip();
   newShip.user = username;
   newShip.socket = socketId;
+  serverSpeed();
+  return newShip;
+}
+
+function initShip() {
+  let newShip = new Ship();
   getSafePosition(newShip, SPAWN_BUFFER);
   newShip.direction = randomAngle();
-
   let vectorAngle = newShip.direction - 1 / 2 * Math.PI;
   vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
   newShip.velocity = new Vector(vectorAngle, 20);
   ships.push(newShip);
-  console.log('New ship added: Number of ships', ships.length);
-  // spin up server refresh rate
-  if (ships.length > 0 && updatesPerSecond !== defaultUPS) {
-    updatesPerSecond = defaultUPS;
-  }
   return newShip;
 }
 
@@ -120,6 +136,119 @@ function checkOutOfBounds() {
   });
 }
 
+function updateShips() {
+  controlBots();
+  moveBots();
+  applyGravity();
+}
+
+// ---------------   Bots  --------------- //
+
+function noOfPlayers() {
+  let realUsers = ships.filter(ship => { ship.bot === false });
+  return realUsers.length;
+}
+
+function manageBots() {
+
+  let peeps = noOfPlayers();
+  switch (true) {
+    case peeps >= maxPlayers - 2:
+      killBot();
+      break;
+    case ships.length < minPlayers:
+      spawnBots(minPlayers - ships.length);
+  }
+  setTimeout(() => {
+    manageBots();
+  }, 5000 + Math.random() * 25000);
+}
+
+function spawnBots(quantity) {
+  for (let i = 0; i < quantity; i++) {
+    let newBot = initShip();
+    newBot.bot = true;
+    getBotName(newBot);
+    newBot.score = 100 * Math.floor(Math.random() * 100);
+  }
+}
+
+function killBot() {
+  let poorBot = ships.indexOf((bot) => { bot.bot === true });
+  if (poorBot !== -1) {
+    poorBot.velocity.angle = 0;
+    poorBot.velocity.size = 0;
+    die(poorBot);
+  }
+}
+
+function getBotName(bot) {
+  bot.user = 'bot_' + Math.floor(Math.random() * 99);
+  bot.socket = nanoid();
+}
+
+function moveBots() {
+  // TODO: add bot.desired heading, compare and gradually turn onto heading
+  let bots = ships.filter(ship => ship.bot === true);
+
+  bots.forEach(bot => {
+    // turn
+
+    // burn
+    if (bot.thruster === false) {
+      bot.velocity.size *= 0.998;
+    }
+
+    // move
+    bot.x = bot.x + bot.velocity.x / updatesPerSecond;
+    bot.y = bot.y + bot.velocity.y / updatesPerSecond;
+
+    // wall collision: vector to push away from walls
+    switch (true) {
+      case bot.x < bot.size / 2:
+        bot.velocity = new Vector(0, 20);
+        break;
+
+      case bot.x > fieldX - bot.size / 2:
+        bot.velocity = new Vector(Math.PI, 20);
+        break;
+
+      case bot.y < bot.size / 2:
+        bot.velocity = new Vector(Math.PI * 0.5, 20);
+        break;
+
+      case bot.y > fieldY - bot.size / 2:
+        bot.velocity = new Vector(Math.PI * 1.5, 20);
+        break;
+    }
+  });
+}
+
+function controlBots() {
+  let bots = ships.filter(ship => ship.bot === true);
+  bots = bots.filter(ship => ship.active === false);
+  bots.forEach(bot => {
+    bot.active = true;
+    let burnDuration = Math.random() * 2000;
+    let burnDelay = Math.random() * 5000;
+    let coastTime = Math.random() * 5000;
+    setTimeout(() => {
+      bot.direction = randomAngle();
+      let vectorAngle = bot.direction - 1 / 2 * Math.PI;
+      vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
+
+      setTimeout(() => {
+        bot.thruster = true;
+        bot.velocity.add(new Vector(vectorAngle, 400));
+        setTimeout(() => {
+          bot.thruster = false;
+          bot.active = false;
+        }, coastTime);
+      }, burnDuration);
+    }, burnDelay);
+  });
+}
+
 function checkShipAsteroidCollisions() {
   ships.forEach((ship) => {
     if (distToNearestAsteroid(ship) < 0) {
@@ -128,7 +257,7 @@ function checkShipAsteroidCollisions() {
   })
 }
 
-function gravity() {
+function applyGravity() {
   ships.forEach((ship) => {
     let gravity = new Vector();
 
@@ -375,12 +504,8 @@ function die(ship) {
   if (obituries.indexOf(ship) === -1) {
     obituries.push(ship);
     ships.splice(ships.indexOf(ship), 1);
-    console.log('Ship removed. Number of ships', ships.length);
   }
-
-  if (ships.length === 0) {
-    updatesPerSecond = idleUPS;
-  }
+  serverSpeed();
 }
 
 // helper functions

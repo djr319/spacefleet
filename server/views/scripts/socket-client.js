@@ -46,7 +46,7 @@ socket.on('toast', (data) => {
   toast(data);
 });
 
-socket.on("init", (data) => {
+socket.on('init', (data) => {
   fieldX = data.fX;
   fieldY = data.fY;
   bulletRange = data.bulletRange;
@@ -63,7 +63,7 @@ socket.on('newGame', (data) => {
   startGame();
 });
 
-socket.on("denied", (reason) => {
+socket.on('denied', (reason) => {
   console.log('Not allowed in game', reason);
   alert('Game full. Please try again later');
 });
@@ -95,17 +95,17 @@ socket.on('ship', (pushedShip) => {
   }
 });
 
-socket.on("myScore", (data) => {
+socket.on('myScore', (data) => {
   myShip.score = data.score;
   myShip.rank = data.rank;
 });
 
-socket.on("die", (data) => {
+socket.on('die', (data) => {
   // not listed on server
   gameOver();
 });
 
-socket.on("boot", () => {
+socket.on('boot', () => {
   console.log("server rebooted");
   boot();
 });

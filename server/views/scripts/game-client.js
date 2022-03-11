@@ -21,7 +21,6 @@ function resizeCanvas() {
 }
 
 function init() {
-  purge();
   centerCamera();
   makeStarField();
 }
@@ -42,7 +41,7 @@ function joinGame () {
 
 function startGame () {
   setControlListeners();
-  // resizeCanvas();
+  purge();
   reportInterval = setInterval(reportToServer, 1000 / reportRate);
 }
 
@@ -67,15 +66,12 @@ function lobby(displayState) {
     // show lobby, remove scores
     splash.style.display = "flex";
     overlay.style.display = "none";
-    // showMouse();
   } else {
     // hide lobby, show scores
     splash.style.display = "none";
     overlay.style.display = "block";
-    // hideMouse();
   }
 }
-
 
 // ----------------------    GAME LOOP    ---------------------------- //
 
@@ -425,7 +421,6 @@ function die() {
 function boot() {
   // called if server is reset
   gameOver();
-  purge();
 }
 
 function exitGame() {
@@ -440,6 +435,17 @@ function purge() {
   bullets.splice(0, bullets.length);
   explosions.splice(0, explosions.length);
   ships.splice(0, ships.length);
+  let purgeList = [];
+
+  for (const el of scoreWrapper.children) {
+
+    if (el.id !== 'my-score') {
+      purgeList.push(el);
+    }
+  }
+  purgeList.forEach((el) => {
+    el.remove();
+  });
 }
 
 function updateScores() {

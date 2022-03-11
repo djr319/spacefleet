@@ -14,12 +14,13 @@ class Ship {
     this.height = 40;
     this.score = 0;
     this.rank = 0;
+    this.bot = false;
+    this.active = false;
   }
 
   get size() {
     return Math.max(this.width, this.height);
   }
-
 }
 
 module.exports = Ship;
