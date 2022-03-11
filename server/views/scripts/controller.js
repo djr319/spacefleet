@@ -99,7 +99,6 @@ function controlsNeutral () {
 }
 
 function setControlListeners () {
-  console.log('control listeners added');
   controlsNeutral();
   document.addEventListener("keydown", controls);
   document.addEventListener("keyup", keyupControls);
@@ -108,21 +107,12 @@ function setControlListeners () {
 }
 
 function removeControlListeners() {
-  console.log('control listeners removed');
   document.removeEventListener("keydown", controls);
   document.removeEventListener("keyup", keyupControls);
   document.removeEventListener('mousedown', mouseDown);
   document.removeEventListener('mouseup', mouseUp);
   controlsNeutral();
 }
-
-// function hideMouse() {
-//   document.body.style.cursor = 'none';
-// }
-
-// function showMouse() {
-//   document.body.style.cursor = 'auto';
-// }
 
 // -----------    Music / Sound Effects    ------------------//
 

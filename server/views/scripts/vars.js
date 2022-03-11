@@ -143,6 +143,7 @@ class MyShip {
 
   thrust = () => {
     this.thruster = true;
+    // silence tips
     if (tips.w === false) tips.w = true;
     if (tips.wasd === false) tips.wasd = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
