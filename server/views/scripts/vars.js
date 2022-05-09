@@ -262,6 +262,13 @@ splash.innerHTML = `
   </br>
   <button class="join-game" id="join">JOIN GAME</button>
 </div>
+<div class="dialog" id="brief">
+  <ul>
+    <li>🚀 Control your spaceship: WASD</li>
+    <li>🔫 Shoot asteroids: [space]</li>
+    <li>😎 Score points</li>
+</div>
+
 `;
 
 // score board
