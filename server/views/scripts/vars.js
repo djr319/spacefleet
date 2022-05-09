@@ -145,7 +145,6 @@ class MyShip {
     this.thruster = true;
     // silence tips
     if (tips.w === false) tips.w = true;
-    if (tips.wasd === false) tips.wasd = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
     let vectorAngle = this.direction - 1 / 2 * Math.PI;
     vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
@@ -164,17 +163,15 @@ class MyShip {
   }
 
   rotateL = () => {
-    if (tips.ad === false) tips.ad = true;
-    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction += 2 * Math.PI;
+    if (tips.ad === false) tips.ad = true;
   }
 
   rotateR = () => {
-    if (tips.ad === false) tips.ad = true;
-    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction + this.rotationRate / fps;
     if (this.direction > 2 * Math.PI) this.direction = 0;
+    if (tips.ad === false) tips.ad = true;
   }
 }
 
@@ -218,12 +215,11 @@ let camera = new Entity();
 
 const tips = {
   gameStartTime: new Date(),
-  wasd: false,
   w: false,
   ad: false,
   s: false,
   m: false,
-  shotFired: false
+  pro: false
 }
 
 const tipMessage = {
@@ -237,7 +233,7 @@ const tipMessage = {
 // canvas
 let canvas = document.createElement('canvas');
 canvas.id = 'canvas';
-canvas.setAttribute("oncontextmenu", "return false")
+canvas.setAttribute('oncontextmenu', 'return false')
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
 
@@ -264,6 +260,13 @@ splash.innerHTML = `
   </br>
   <button class="join-game" id="join">JOIN GAME</button>
 </div>
+<div class="dialog" id="brief">
+  <ul>
+    <li>🚀 Control your spaceship: WASD</li>
+    <li>💥 Shoot asteroids: [space]</li>
+    <li>😎 Score points</li>
+</div>
+
 `;
 
 // score board

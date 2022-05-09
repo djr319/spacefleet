@@ -16,6 +16,7 @@ h1 {
 #splash {
 position: absolute;
 display: flex;
+flex-direction: column;
 align-items: center;
 justify-content: center;
 top: 0;
@@ -34,6 +35,16 @@ transition: right 0.5s;
   background: rgba(50,50,50,1);
   padding: 1rem;
   text-align: center;
+  margin-bottom: 1rem;
+}
+
+#brief {
+  text-align: left;
+}
+
+#brief ul {
+  list-style-type: none;
+  padding: 0;
 }
 
 @keyframes fadein {

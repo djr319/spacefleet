@@ -21,14 +21,14 @@ game();
 
 function handler(req, res) {
 
-  if (req.url === "/") {
+  if (req.url === '/') {
     fs.readFile(path.join(__dirname, 'views', 'index.html'), function (err, data) {
       if (!err) {
         res.setHeader('Content-type', 'text/html');
         res.end(data);
       } else {
         console.log('error finding root index.html');
-        res.writeHead(404, "Not Found");
+        res.writeHead(404, 'Not Found');
         res.end();
       }
     });
@@ -54,7 +54,7 @@ function handler(req, res) {
         res.end(data);
       } else {
         console.log('file not found: ' + req.url);
-        res.writeHead(404, "Not Found");
+        res.writeHead(404, 'Not Found');
         res.end();
       }
     });

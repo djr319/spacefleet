@@ -1,32 +1,32 @@
-// const socket = io("http://localhost:5000");
-const socket = io("https://space-fleet.herokuapp.com/");
+// const socket = io('http://localhost:5000');
+const socket = io('https://space-fleet.herokuapp.com/');
 
 function toast(message) {
   if (myShip.alive === true) {
     Toastify({
       text: message,
       duration: 2500,
-      position: "left",
+      position: 'center',
       style: {
-        background: "linear-gradient(to bottom, #367a72, #eeeeee)",
+        background: 'linear-gradient(to bottom, #367a72, #eeeeee)',
       }
     }).showToast();
   }
 }
 
-socket.on("connect", () => {
-  console.log("Connected to server, id: ", socket.id)
+socket.on('connect', () => {
+  console.log('Connected to server, id: ', socket.id)
 });
 
-socket.on("connect_error", () => {
+socket.on('connect_error', () => {
   console.log('connection error!');
   socket.connect();
 });
 
-socket.on("disconnect", (reason) => {
+socket.on('disconnect', (reason) => {
   let today = new Date();
-  let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-  console.log("disconnected from server", time, reason);
+  let time = today.getHours() + ':' + today.getMinutes() + ':' + today.getSeconds();
+  console.log('disconnected from server', time, reason);
   gameOver();
 });
 
@@ -106,7 +106,7 @@ socket.on('die', (data) => {
 });
 
 socket.on('boot', () => {
-  console.log("server rebooted");
+  console.log('server rebooted');
   boot();
 });
 
