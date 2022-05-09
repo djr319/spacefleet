@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
   console.clear();
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
-  document.getElementById('name').value = sessionStorage.getItem('name') || "";
+  document.getElementById('name').value = sessionStorage.getItem('name') || '';
   document.getElementById('join').addEventListener('click', joinGame);
   window.requestAnimationFrame(gameLoop);
 });
@@ -33,7 +33,7 @@ function centerCamera() {
 // ------------------    User name / Join game    ------------------ //
 function joinGame () {
   let name = document.getElementById('name').value;
-  if (name == "") return;
+  if (name == '') return;
   lobby('hide');
   sessionStorage.setItem('name', name);
   sendStatus('join', name);   // ---> Server
@@ -54,7 +54,7 @@ function gameOver() {
     setTimeout(() => {
       if (myShip.score > localStorage.getItem('pb')) {
         localStorage.setItem('pb', myShip.score);
-        alert("New personal best!" + myShip.score);
+        alert('New personal best!' + myShip.score);
       }
       lobby('show');
     }, 2000);
@@ -64,12 +64,12 @@ function gameOver() {
 function lobby(displayState) {
   if (displayState === 'show') {
     // show lobby, remove scores
-    splash.style.display = "flex";
-    overlay.style.display = "none";
+    splash.style.display = 'flex';
+    overlay.style.display = 'none';
   } else {
     // hide lobby, show scores
-    splash.style.display = "none";
-    overlay.style.display = "block";
+    splash.style.display = 'none';
+    overlay.style.display = 'block';
   }
 }
 
@@ -294,9 +294,9 @@ function drawShip(ship) {
 
   if (ship !== myShip) {
     // label:
-    ctx.font = "10px Space Mono";
-    ctx.fillStyle = "red";
-    ctx.fillText(ship.user || "?", 20, 20);
+    ctx.font = '10px Space Mono';
+    ctx.fillStyle = 'red';
+    ctx.fillText(ship.user || '?', 20, 20);
   } else {
     // range circle to be used as visible shield when being shot
     // ctx.beginPath();
@@ -325,8 +325,8 @@ function drawShip(ship) {
   // Draw thrust flame
   if (ship.thruster) {
     ctx.beginPath();
-    ctx.strokeStyle = "#FFA500";
-    ctx.fillStyle = "#FF0";
+    ctx.strokeStyle = '#FFA500';
+    ctx.fillStyle = '#FF0';
     ctx.moveTo(0, 23);
     ctx.lineTo(ship.width / 4, 25);
     ctx.lineTo(0, 30);
@@ -467,7 +467,7 @@ function updateScores() {
       let thisScoreDiv = document.getElementById(`s${ship.socket}`);
 
       if (thisScoreDiv) {
-        let rankLabel = ship.rank + ": ";
+        let rankLabel = ship.rank + ': ';
 
         if (myShip.rank === i || j !== 0) {
           rankLabel = '&nbsp;=';

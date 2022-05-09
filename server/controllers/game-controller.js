@@ -27,7 +27,7 @@ const fieldX = 5000;
 const fieldY = 5000;
 const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spawning anything too close to edge of field
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
-  console.warn("fieldBuffer too large")
+  console.warn('fieldBuffer too large')
 }
 let updatesPerSecond = 24;
 const SPAWN_BUFFER = 400;
@@ -55,7 +55,7 @@ function initServer() {
   asteroids.splice(0, asteroids.length);
   spawnAsteroids();
   bullets.splice(0, bullets.length);
-  broadcasts.push(["boot", "all"]);
+  broadcasts.push(['boot', 'all']);
   ships.splice(0, ships.length);
   console.log('Server initialized');
   manageBots();
@@ -285,7 +285,7 @@ function applyGravity() {
       gravity.add(gravityComponent);
     });
 
-    broadcasts.push(["gravity", {
+    broadcasts.push(['gravity', {
       ship: ship.socket,
       gravity: {
         angle: gravity.angle,

@@ -177,7 +177,6 @@ function socketHandler(socketServer) {
     bots.forEach((bot) => {
 
       socketServer.emit('ship', {
-        blah: "blah",
         x: bot.x,
         y: bot.y,
         direction: bot.direction,
