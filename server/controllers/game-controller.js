@@ -170,6 +170,8 @@ function spawnBots(quantity) {
     let newBot = initShip();
     newBot.bot = true;
     getBotName(newBot);
+    console.log('spawn: ', newBot.user);
+
   }
 }
 
@@ -182,9 +184,14 @@ function killBot() {
   }
 }
 
-function setBotScores () {
-  let bots = ships.filter((bot) => { bot.bot === true });
-  bots.forEach(bot => bot.score = 100 * Math.floor(Math.random() * 100));
+function setBotScores() {
+  console.log('setBotScores');
+
+  let bots = ships.filter((ship) => { ship.bot === true });
+  bots.forEach(bot => {
+    bot.score = 100 * Math.floor(Math.random() * 100)
+    console.log('Fake score: ', bot.user, bot.score);
+  });
 }
 
 function getBotName(bot) {
@@ -192,14 +199,41 @@ function getBotName(bot) {
   bot.socket = nanoid();
 }
 
+function controlBots() {
+  let bots = ships.filter(ship => ship.bot === true);
+  bots = bots.filter(ship => ship.active === false);
+  bots.forEach(bot => {
+    bot.active = true;
+    let burnDelay = Math.random() * 2000;
+    let burnDuration = Math.random() * 1000;
+    let coastTime = Math.random() * 10000;
+
+    turnBot(bot);
+
+    setTimeout(() => {
+      bot.thruster = true;
+      let vectorAngle = bot.direction - 1 / 2 * Math.PI;
+      vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
+      bot.velocity.add(new Vector(vectorAngle, 200));
+
+      setTimeout(() => {
+        bot.thruster = false;
+
+        setTimeout(() => {
+          bot.active = false;
+        }, coastTime);
+
+      }, burnDuration);
+
+    }, burnDelay);
+  });
+}
+
 function moveBots() {
-  // TODO: add bot.desired heading, compare and gradually turn onto heading
   let bots = ships.filter(ship => ship.bot === true);
 
   bots.forEach(bot => {
-    // turn
 
-    // burn
     if (bot.thruster === false) {
       bot.velocity.size *= 0.998;
     }
@@ -212,62 +246,51 @@ function moveBots() {
     switch (true) {
       case bot.x < bot.size / 2:
         bot.velocity = new Vector(0, 20);
+        bot.thruster === false;
         break;
 
       case bot.x > fieldX - bot.size / 2:
         bot.velocity = new Vector(Math.PI, 20);
+        bot.thruster === false
         break;
 
       case bot.y < bot.size / 2:
         bot.velocity = new Vector(Math.PI * 0.5, 20);
+        bot.thruster === false
         break;
 
       case bot.y > fieldY - bot.size / 2:
         bot.velocity = new Vector(Math.PI * 1.5, 20);
+        bot.thruster === false
         break;
     }
   });
 }
 
-function controlBots() {
-  let bots = ships.filter(ship => ship.bot === true);
-  bots = bots.filter(ship => ship.active === false);
-  bots.forEach(bot => {
-    bot.active = true;
-    let burnDelay = Math.random() * 5000;
-    let burnDuration = Math.random() * 2000;
-    let coastTime = Math.random() * 5000;
-
-    turnBot(bot);
-
-    setTimeout(() => {
-
-      let vectorAngle = bot.direction - 1 / 2 * Math.PI;
-      vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
-
-      setTimeout(() => {
-        bot.thruster = true;
-        bot.velocity.add(new Vector(vectorAngle, 400));
-        setTimeout(() => {
-          bot.thruster = false;
-          bot.active = false;
-        }, coastTime);
-
-      }, burnDuration);
-
-    }, burnDelay);
-  });
-}
-
-function turnBot (bot) {
+function turnBot(bot) {
+  let botRotationRate = 8 / updatesPerSecond;
   let targetAngle = randomAngle(); // 0 - 2*PI
-  while targetAngle != bot.direction {
+  let difference = targetAngle - bot.direction;
 
+  if (difference < -Math.PI || difference > Math.PI) {
+    // anticlockwise
+    difference = Math.abs(difference);
+    while (difference >= botRotationRate) {
+      bot.direction = bot.direction - botRotationRate;
+      if (bot.direction < 0) bot.direction = 2 * Math.PI;
+      difference = Math.abs(targetAngle - bot.direction);
+    }
+
+  } else {
+    // clockwise
+    difference = Math.abs(difference);
+    while (difference >= botRotationRate) {
+      bot.direction = bot.direction + botRotationRate;
+      if (bot.direction > 2 * Math.PI) bot.direction = 0;
+      difference = Math.abs(targetAngle - bot.direction);
+    }
   }
-  if (bot.direction - targetAngle
-
 }
-
 
 function checkShipAsteroidCollisions() {
   ships.forEach((ship) => {

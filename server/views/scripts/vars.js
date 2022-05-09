@@ -163,15 +163,15 @@ class MyShip {
   }
 
   rotateL = () => {
-    if (tips.ad === false) tips.ad = true;
     this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction += 2 * Math.PI;
+    if (tips.ad === false) tips.ad = true;
   }
 
   rotateR = () => {
-    if (tips.ad === false) tips.ad = true;
     this.direction = this.direction + this.rotationRate / fps;
     if (this.direction > 2 * Math.PI) this.direction = 0;
+    if (tips.ad === false) tips.ad = true;
   }
 }
 
