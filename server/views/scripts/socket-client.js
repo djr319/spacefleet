@@ -1,5 +1,5 @@
-// const socket = io("http://localhost:5000");
-const socket = io('https://space-fleet.herokuapp.com/');
+const socket = io('http://localhost:5000');
+// const socket = io('https://space-fleet.herokuapp.com/');
 
 function toast(message) {
   if (myShip.alive === true) {

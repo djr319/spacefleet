@@ -59,6 +59,7 @@ function initServer() {
   ships.splice(0, ships.length);
   console.log('Server initialized');
   manageBots();
+  setBotScores();
   debugReport();
 }
 
@@ -151,9 +152,9 @@ function noOfPlayers() {
 
 function manageBots() {
 
-  let peeps = noOfPlayers();
+  let usersOnline = noOfPlayers();
   switch (true) {
-    case peeps >= maxPlayers - 2:
+    case usersOnline > maxPlayers - 2:
       killBot();
       break;
     case ships.length < minPlayers:
@@ -169,7 +170,6 @@ function spawnBots(quantity) {
     let newBot = initShip();
     newBot.bot = true;
     getBotName(newBot);
-    newBot.score = 100 * Math.floor(Math.random() * 100);
   }
 }
 
@@ -180,6 +180,11 @@ function killBot() {
     poorBot.velocity.size = 0;
     die(poorBot);
   }
+}
+
+function setBotScores () {
+  let bots = ships.filter((bot) => { bot.bot === true });
+  bots.forEach(bot => bot.score = 100 * Math.floor(Math.random() * 100));
 }
 
 function getBotName(bot) {

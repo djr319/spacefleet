@@ -265,7 +265,7 @@ splash.innerHTML = `
 <div class="dialog" id="brief">
   <ul>
     <li>🚀 Control your spaceship: WASD</li>
-    <li>🔫 Shoot asteroids: [space]</li>
+    <li>💥 Shoot asteroids: [space]</li>
     <li>😎 Score points</li>
 </div>
 
