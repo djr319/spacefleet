@@ -234,11 +234,14 @@ function controlBots() {
   bots = bots.filter(ship => ship.active === false);
   bots.forEach(bot => {
     bot.active = true;
-    let burnDuration = Math.random() * 2000;
     let burnDelay = Math.random() * 5000;
+    let burnDuration = Math.random() * 2000;
     let coastTime = Math.random() * 5000;
+
+    turnBot(bot);
+
     setTimeout(() => {
-      bot.direction = randomAngle();
+
       let vectorAngle = bot.direction - 1 / 2 * Math.PI;
       vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
 
@@ -249,10 +252,22 @@ function controlBots() {
           bot.thruster = false;
           bot.active = false;
         }, coastTime);
+
       }, burnDuration);
+
     }, burnDelay);
   });
 }
+
+function turnBot (bot) {
+  let targetAngle = randomAngle(); // 0 - 2*PI
+  while targetAngle != bot.direction {
+
+  }
+  if (bot.direction - targetAngle
+
+}
+
 
 function checkShipAsteroidCollisions() {
   ships.forEach((ship) => {

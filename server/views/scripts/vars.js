@@ -145,7 +145,6 @@ class MyShip {
     this.thruster = true;
     // silence tips
     if (tips.w === false) tips.w = true;
-    if (tips.wasd === false) tips.wasd = true;
     // Rebased vector angle for the atan2 method, where the angle is defined as that between the positive x axis and the point.
     let vectorAngle = this.direction - 1 / 2 * Math.PI;
     vectorAngle = vectorAngle < 0 ? vectorAngle + 2 * Math.PI : vectorAngle;
@@ -165,14 +164,12 @@ class MyShip {
 
   rotateL = () => {
     if (tips.ad === false) tips.ad = true;
-    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction - this.rotationRate / fps;
     if (this.direction < 0) this.direction += 2 * Math.PI;
   }
 
   rotateR = () => {
     if (tips.ad === false) tips.ad = true;
-    if (tips.wasd === false) tips.wasd = true;
     this.direction = this.direction + this.rotationRate / fps;
     if (this.direction > 2 * Math.PI) this.direction = 0;
   }
@@ -222,6 +219,7 @@ const tips = {
   ad: false,
   s: false,
   m: false,
+  pro: false
 }
 
 const tipMessage = {

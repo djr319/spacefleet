@@ -94,7 +94,11 @@ function gameLoop(timestamp) {
 function checkTips() {
   let elapsed = Date.now() - tips.gameStartTime;
 
-  if (elapsed > 500000) return;
+  if (elapsed > 101000 || tips.pro === true) return;
+
+  if (tips.ad === true && elapsed < 2000) {
+    tips.pro = true;
+  }
 
   if (tips.w === false && elapsed > 5000) {
     showTip('w');
