@@ -92,35 +92,36 @@ function gameLoop(timestamp) {
 }
 
 function checkTips() {
+  let elapsed = Date.now() - tips.gameStartTime;
 
-  if (Date.now() - tips.gameStartTime > 500000) return;
+  if (elapsed > 500000) return;
 
-  if (tips.w === false && Date.now() - tips.gameStartTime > 5000) {
+  if (tips.w === false && elapsed > 5000) {
     showTip('w');
     tips.w = true;
   }
 
-  if (tips.wasd === false && tips.ad === false && Date.now() - tips.gameStartTime > 10000) {
+  if (tips.ad === false && elapsed > 15000) {
     showTip('ad');
     tips.ad = true;
   }
 
-  if (tips.shotFired === false && Date.now() - tips.gameStartTime > 20000) {
+  if (tips.shotFired === false && elapsed > 30000) {
     showTip('fire');
     tips.shotFired = true;
   }
 
-  if (tips.wasd === false && tips.s === false && Date.now() - tips.gameStartTime > 30000) {
+  if (tips.s === false && elapsed > 50000) {
     showTip('s');
     tips.s = true;
   }
 
-  if (tips.wasd === false && tips.m === false && Date.now() - tips.gameStartTime > 40000) {
+  if (tips.m === false && elapsed > 100000) {
     showTip('m');
     tips.m = true;
   }
-
 }
+
 function showTip(whichTip) {
   tipDiv = document.getElementById('instruction');
   tipDiv.innerHTML = tipMessage[whichTip];

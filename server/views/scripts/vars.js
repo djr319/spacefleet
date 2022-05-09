@@ -218,12 +218,10 @@ let camera = new Entity();
 
 const tips = {
   gameStartTime: new Date(),
-  wasd: false,
   w: false,
   ad: false,
   s: false,
   m: false,
-  shotFired: false
 }
 
 const tipMessage = {
@@ -237,7 +235,7 @@ const tipMessage = {
 // canvas
 let canvas = document.createElement('canvas');
 canvas.id = 'canvas';
-canvas.setAttribute("oncontextmenu", "return false")
+canvas.setAttribute('oncontextmenu', 'return false')
 document.body.appendChild(canvas);
 let ctx = canvas.getContext('2d', { alpha: false });
 

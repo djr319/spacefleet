@@ -100,15 +100,15 @@ function controlsNeutral () {
 
 function setControlListeners () {
   controlsNeutral();
-  document.addEventListener("keydown", controls);
-  document.addEventListener("keyup", keyupControls);
+  document.addEventListener('keydown', controls);
+  document.addEventListener('keyup', keyupControls);
   document.addEventListener('mousedown', mouseDown);
   document.addEventListener('mouseup', mouseUp);
 }
 
 function removeControlListeners() {
-  document.removeEventListener("keydown", controls);
-  document.removeEventListener("keyup", keyupControls);
+  document.removeEventListener('keydown', controls);
+  document.removeEventListener('keyup', keyupControls);
   document.removeEventListener('mousedown', mouseDown);
   document.removeEventListener('mouseup', mouseUp);
   controlsNeutral();
