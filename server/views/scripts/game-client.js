@@ -33,7 +33,7 @@ function centerCamera() {
 // ------------------    User name / Join game    ------------------ //
 function joinGame () {
   let name = document.getElementById('name').value;
-  if (name == '') return;
+  if (name == '') name = 'Player 1';
   lobby('hide');
   sessionStorage.setItem('name', name);
   sendStatus('join', name);   // ---> Server
