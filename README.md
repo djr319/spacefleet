@@ -39,3 +39,4 @@ If you are interested in forking and taking this further, the following librarie
 - https://brm.io/matter-js/ (2D physics engine)
 - https://threejs.org/ (3D rendering)
 - https://phaser.io/ (HTML5 Game framework)
+- https://github.com/adambom/bullet.js/ (3D physics engine)
