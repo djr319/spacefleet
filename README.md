@@ -22,7 +22,8 @@ The game was initially developed as a personal project during the Codeworks Soft
 - Navigate in browser to http://localhost:5000
 
 # Play
-- Use the WASD keys to control your spaceship, W = Thrust, A & D = Turn, S = Warp to new location
+- Use the WASD keys (or arrow keys) to control your spaceship, W = Thrust, A & D = Turn, S = Warp to new location
+- Spacebar (or left mouse click) = Fire
 - Warping has a cost of 1000 points, if you warp below 1000 points, you will die!
 - If there are not enough other players in the server, AI enemies will spawn
 - Shoot meteors to get points. They will split into smaller faster meteors
