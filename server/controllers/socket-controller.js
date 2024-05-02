@@ -30,7 +30,7 @@ function socketHandler(socketServer) {
     socket.emit('init', {
       fX: fieldX,
       fY: fieldY,
-      bulletRange
+      bulletRange: bulletRange
     });
 
     socket.on('join', (name) => {
@@ -114,8 +114,8 @@ function socketHandler(socketServer) {
         return obj.socket === socket.id;
       });
       if (thisShip != undefined) {
-        warp(thisShip);
         thisShip.score = thisShip.score - 1000;
+        warp(thisShip);
         socket.emit('warp',
           {
             x: thisShip.x,

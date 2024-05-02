@@ -30,7 +30,7 @@ if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
   console.warn('fieldBuffer too large')
 }
 let updatesPerSecond = 1;
-const idleRefresh = 1;
+const idleRefresh = 10;
 const fullRefresh = 60;
 
 const SPAWN_BUFFER = 400;
