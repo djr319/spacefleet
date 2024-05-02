@@ -1,7 +1,7 @@
 // ---------------   imports  --------------- //
 
 const { nanoid } = require('nanoid');
-const { Vector } = require('../components/vector')
+const { Vector } = require('../components/vector');
 const {
   asteroids,
   bullets,
@@ -29,7 +29,10 @@ const fieldBuffer = Math.max(50, biggestAsteroid); // buffer width to avoid spaw
 if (fieldBuffer > 0.5 * Math.min(fieldX, fieldY)) {
   console.warn('fieldBuffer too large')
 }
-let updatesPerSecond = 24;
+let updatesPerSecond = 1;
+const idleRefresh = 1;
+const fullRefresh = 60;
+
 const SPAWN_BUFFER = 400;
 const WARP_BUFFER = 100;
 
@@ -52,6 +55,7 @@ function game() {
 }
 
 function initServer() {
+  updatesPerSecond = fullRefresh;
   asteroids.splice(0, asteroids.length);
   spawnAsteroids();
   bullets.splice(0, bullets.length);
@@ -64,20 +68,22 @@ function initServer() {
 }
 
 function debugReport() {
-  setInterval(() => {
+  // setInterval(() => {
     // console.table(ships);
-  }, 10000);
+    // console.log('No of users: ', noOfPlayers());
+    // console.table(ships, ['user','bot', 'score']);
+  // }, 10000);
 }
 
 function serverSpeed() {
   let users = noOfPlayers();
-  if (users === 0 && updatesPerSecond !== 24) {
-    updatesPerSecond = 24;
-    console.log('server update rate: ', updatesPerSecond);
-  }
-  if (users > 0 && updatesPerSecond !== 60) {
-    updatesPerSecond = 60;
-    console.log('server update rate: ', updatesPerSecond);
+  if (users === 0 && updatesPerSecond != idleRefresh) {
+    updatesPerSecond = idleRefresh;
+    console.log('server spinning down, update rate: ', updatesPerSecond);
+
+  } else if (users > 0 && updatesPerSecond != fullRefresh) {
+    updatesPerSecond = fullRefresh;
+    console.log('server spinning up, update rate: ', updatesPerSecond);
   }
 }
 
@@ -146,12 +152,11 @@ function updateShips() {
 // ---------------   Bots  --------------- //
 
 function noOfPlayers() {
-  let realUsers = ships.filter(ship => { ship.bot === false });
+  let realUsers = ships.filter(ship => ship.bot === false );
   return realUsers.length;
 }
 
 function manageBots() {
-
   let usersOnline = noOfPlayers();
   switch (true) {
     case usersOnline > maxPlayers - 2:
@@ -185,12 +190,9 @@ function killBot() {
 }
 
 function setBotScores() {
-  console.log('setBotScores');
-
-  let bots = ships.filter((ship) => { ship.bot === true });
+  let bots = ships.filter((ship) => ship.bot === true );
   bots.forEach(bot => {
     bot.score = 100 * Math.floor(Math.random() * 100)
-    console.log('Fake score: ', bot.user, bot.score);
   });
 }
 

@@ -249,6 +249,9 @@ function makeStarField() {
   }
 }
 
+// AI Enemy ships (for development)
+let enemyStrength = 0;
+
 // splash page
 let splash = document.createElement('div');
 splash.id = 'splash';

@@ -105,6 +105,10 @@ function socketHandler(socketServer) {
       }
     });
 
+    socket.on('enemy', (enemyStrength) => {
+      console.log('enemyStrength: ', enemyStrength);
+    });
+
     socket.on('warp', () => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;

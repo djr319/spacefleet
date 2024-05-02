@@ -37,7 +37,10 @@ function sendStatus(type, object) { // join, warp,
 }
 
 function sendUpdate(type, object) { // ship,
-    socket.volatile.emit(type, object) // only lastest, no buffering
+  socket.volatile.emit(type, object) // only lastest, no buffering
+  if (type == 'enemy') {
+    console.log('enemystrength sent from sendUpdate: ', object);
+  }
 }
 
 // -------------       Listeners       -----------  //

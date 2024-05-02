@@ -149,6 +149,13 @@ function reportToServer() {
       thruster: myShip.thruster
     });
   }
+
+  if (enemyStrength != 0) {
+    sendUpdate('enemy', enemyStrength);
+    enemyStrength = 0;
+
+  }
+
 }
 
 function checkControls() {

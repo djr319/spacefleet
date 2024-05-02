@@ -58,6 +58,17 @@ function controls (e) {
       if (!e.repeat) exitGame();
       break;
 
+      case '1': enemyStrength = 1;
+      break;
+      case '2': enemyStrength = 2;
+      break;
+      case '3': enemyStrength = 3;
+      break;
+      case '4': enemyStrength = 4;
+      break;
+      case '5': enemyStrength = 5;
+      break;
+
     default: break;
   }
 }
