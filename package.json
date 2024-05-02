@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Space based MMO game",
   "engines": {
-    "node": "16.x"
+    "node": ">=20.x"
   },
   "scripts": {
     "start": "node server/app.js",
@@ -14,8 +14,8 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "nanoid": "^3.1.30",
-    "socket.io": "^4.3.2"
+    "nanoid": "^3.2.0",
+    "socket.io": "^4.7.5"
   },
   "devDependencies": {
     "eslint": "^8.10.0"
