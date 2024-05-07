@@ -105,16 +105,17 @@ function socketHandler(socketServer) {
       }
     });
 
-    socket.on('enemy', (enemyStrength) => {
-      console.log('enemyStrength: ', enemyStrength);
+    socket.on('enemy', () => {
+      // Not being triggered!
+      console.log('enemyStrength: ');
     });
 
     socket.on('warp', () => {
       let thisShip = ships.find(obj => {
         return obj.socket === socket.id;
       });
+
       if (thisShip != undefined) {
-        thisShip.score = thisShip.score - 1000;
         warp(thisShip);
         socket.emit('warp',
           {
