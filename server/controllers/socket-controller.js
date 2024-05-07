@@ -8,7 +8,8 @@ const {
   obituries,
   broadcasts,
   explosions,
-  garbageCollectionList
+  garbageCollectionList,
+  AI
 } = require('../models/storage')
 
 const {
@@ -105,9 +106,8 @@ function socketHandler(socketServer) {
       }
     });
 
-    socket.on('enemy', () => {
-      // Not being triggered!
-      console.log('enemyStrength: ');
+    socket.on('enemy', (requestedAiStrength) => {
+      AI.enemyStrength = requestedAiStrength;
     });
 
     socket.on('warp', () => {

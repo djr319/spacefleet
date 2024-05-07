@@ -34,13 +34,13 @@ socket.on('disconnect', (reason) => {
 
 function sendStatus(type, object) { // join, warp,
   socket.emit(type, object); // buffered & assured
+  if (type == 'enemy') {
+    console.log('enemystrength sent from sendStatus: ', object);
+  }
 }
 
 function sendUpdate(type, object) { // ship,
   socket.volatile.emit(type, object) // only lastest, no buffering
-  if (type == 'enemy') {
-    console.log('enemystrength sent from sendUpdate: ', object);
-  }
 }
 
 // -------------       Listeners       -----------  //

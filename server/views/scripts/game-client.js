@@ -151,7 +151,7 @@ function reportToServer() {
   }
 
   if (enemyStrength != 0) {
-    sendUpdate('enemy', enemyStrength);
+    sendStatus('enemy', enemyStrength);
     enemyStrength = 0;
   }
 }

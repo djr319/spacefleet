@@ -10,6 +10,7 @@ const {
   broadcasts,
   explosions,
   garbageCollectionList,
+  AI
 } = require('../models/storage');
 
 const {
@@ -202,6 +203,19 @@ function getBotName(bot) {
 }
 
 function controlBots() {
+  switch (AI.enemyStrength) {
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3:
+      break;
+    case 4:
+      break;
+    case 5:
+      break;
+  }
+
   let bots = ships.filter(ship => ship.bot === true);
   bots = bots.filter(ship => ship.active === false);
   bots.forEach(bot => {
